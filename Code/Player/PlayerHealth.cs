@@ -83,9 +83,9 @@ public sealed class PlayerHealth : DamageableComponent
 			return;
 
 		ResetHealth();
+		SetPlayerControlEnabled( true );
 
-		GameObject.Enabled = true;
-		SetControllerEnabled( true );
+		Log.Info( $"{GameObject.Name} respawned. Health: {Health}" );
 	}
 
 	private void ResetHealth()
@@ -97,14 +97,24 @@ public sealed class PlayerHealth : DamageableComponent
 	{
 		Log.Info( $"{GameObject.Name} died." );
 
-		SetControllerEnabled( false );
+		SetPlayerControlEnabled( false );
 	}
 
-	private void SetControllerEnabled( bool enabled )
+	private void SetPlayerControlEnabled( bool enabled )
 	{
-		var controller = Components.Get<PlayerController>();
-
-		if ( controller.IsValid() )
+		foreach ( var controller in Components.GetAll<PlayerController>( FindMode.EverythingInSelfAndDescendants ) )
+		{
 			controller.Enabled = enabled;
+		}
+
+		foreach ( var camera in Components.GetAll<FloodPlayerCamera>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			camera.Enabled = enabled;
+		}
+
+		foreach ( var inventory in Components.GetAll<PlayerInventory>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			inventory.Enabled = enabled;
+		}
 	}
 }
