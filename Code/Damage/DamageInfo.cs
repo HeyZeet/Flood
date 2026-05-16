@@ -12,6 +12,8 @@ public struct DamageInfo
 	public Vector3 HitNormal { get; set; }
 	public Vector3 Force { get; set; }
 
+	public bool IsDebugDamage { get; set; }
+
 	public static DamageInfo FromWeapon( BaseWeapon weapon, SceneTraceResult trace )
 	{
 		var owner = weapon.Inventory?.GameObject;
@@ -24,7 +26,18 @@ public struct DamageInfo
 			HitObject = trace.GameObject,
 			HitPosition = trace.HitPosition,
 			HitNormal = trace.Normal,
-			Force = weapon.WorldRotation.Forward * weapon.Damage
+			Force = weapon.WorldRotation.Forward * weapon.Damage,
+			IsDebugDamage = false
+		};
+	}
+
+	public static DamageInfo Debug( float damage, GameObject hitObject )
+	{
+		return new DamageInfo
+		{
+			Damage = damage,
+			HitObject = hitObject,
+			IsDebugDamage = true
 		};
 	}
 }

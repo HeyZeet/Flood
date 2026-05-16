@@ -59,25 +59,25 @@ public bool IsDead => !IsAlive;
 
 	private void CacheComponents()
 	{
-		Controller = Components.Get<PlayerController>();
-		Health = Components.Get<PlayerHealth>();
-		Inventory = Components.Get<PlayerInventory>();
-		BuildResources = Components.Get<PlayerBuildResources>();
+		Controller = Components.Get<PlayerController>( FindMode.EverythingInSelfAndDescendants );
+		Health = Components.Get<PlayerHealth>( FindMode.EverythingInSelfAndDescendants );
+		Inventory = Components.Get<PlayerInventory>( FindMode.EverythingInSelfAndDescendants );
+		BuildResources = Components.Get<PlayerBuildResources>( FindMode.EverythingInSelfAndDescendants );
 	}
 
 	private void ValidateRequiredComponents()
 	{
 		if ( !Controller.IsValid() )
-			Log.Warning( "FloodPlayer needs a PlayerController on the same GameObject." );
+			Log.Warning( "FloodPlayer needs a PlayerController on itself or a child GameObject." );
 
 		if ( !Health.IsValid() )
-			Log.Warning( "FloodPlayer needs PlayerHealth on the same GameObject." );
+			Log.Warning( "FloodPlayer needs PlayerHealth on itself or a child GameObject." );
 
 		if ( !Inventory.IsValid() )
-			Log.Warning( "FloodPlayer needs PlayerInventory on the same GameObject." );
+			Log.Warning( "FloodPlayer needs PlayerInventory on itself or a child GameObject." );
 
 		if ( !BuildResources.IsValid() )
-			Log.Warning( "FloodPlayer needs PlayerBuildResources on the same GameObject." );
+			Log.Warning( "FloodPlayer needs PlayerBuildResources on itself or a child GameObject." );
 	}
 
 	private void UpdateLocalPlayerReference()

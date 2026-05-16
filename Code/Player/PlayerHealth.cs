@@ -54,8 +54,16 @@ public sealed class PlayerHealth : DamageableComponent
 		var damageInfo = new DamageInfo
 		{
 			Damage = amount,
-			HitObject = GameObject
+			HitObject = GameObject,
+			IsDebugDamage = false
 		};
+
+		TakeDamage( damageInfo );
+	}
+
+	public void TakeDebugDamage( float amount )
+	{
+		var damageInfo = DamageInfo.Debug( amount, GameObject );
 
 		TakeDamage( damageInfo );
 	}
@@ -66,6 +74,9 @@ public sealed class PlayerHealth : DamageableComponent
 			return;
 
 		if ( IsDead )
+			return;
+
+		if ( !CanTakeGameplayDamage( damageInfo ) )
 			return;
 
 		var amount = damageInfo.Damage.Clamp( 0f, float.MaxValue );

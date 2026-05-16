@@ -5,9 +5,9 @@ public sealed class BoatBuilder : BaseCarryable
 {
 	private BuildPlacementResult CurrentPlacement;
 
-	private BuildPreview Preview => Components.Get<BuildPreview>();
-	private BuildPlacement Placement => Components.Get<BuildPlacement>();
-	private BuildPieceFactory Factory => Components.Get<BuildPieceFactory>();
+	private BuildPreview Preview => Components.Get<BuildPreview>( FindMode.EverythingInSelfAndDescendants );
+	private BuildPlacement Placement => Components.Get<BuildPlacement>( FindMode.EverythingInSelfAndDescendants );
+	private BuildPieceFactory Factory => Components.Get<BuildPieceFactory>( FindMode.EverythingInSelfAndDescendants );
 
 	public override string DisplayName => "Boat Builder";
 

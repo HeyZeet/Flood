@@ -24,6 +24,9 @@ public sealed class BoatPieceHealth : DamageableComponent
 		if ( IsDead )
 			return;
 
+		if ( !CanTakeGameplayDamage( damageInfo ) )
+			return;
+
 		var amount = damageInfo.Damage.Clamp( 0f, float.MaxValue );
 
 		Health -= amount;

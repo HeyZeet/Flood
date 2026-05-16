@@ -2,6 +2,60 @@
   "__guid": "12a3a28f-4cc3-4c54-b98b-907c731fad49",
   "GameObjects": [
     {
+      "__guid": "b35eacfd-c986-4aab-aa69-1e3168148d05",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "RoundManager",
+      "Position": "157.131622,81.0608521,47.0556259",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "FloodRoundManager",
+          "__guid": "012b4ae4-23ec-4121-91ea-5a469a246033",
+          "__enabled": true,
+          "Flags": 0,
+          "AutoRunRoundLoop": true,
+          "BattleDuration": 5,
+          "BuildDuration": 5,
+          "DebugPlayerDamageAmount": 25,
+          "EnableDebugControls": true,
+          "EnableDebugDamageKey": true,
+          "EnableDebugPhaseKeys": true,
+          "EnableDebugResetKey": true,
+          "FloodDuration": 5,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RoundEndDuration": 5,
+          "StartInBuildPhase": true
+        },
+        {
+          "__type": "RoundPhaseDebugListener",
+          "__guid": "553361a0-cda4-48e9-94c5-6d80ba434157",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": []
+    },
+    {
       "__guid": "f2060b4e-71ef-41fd-b264-c5472132b67d",
       "__version": 2,
       "Flags": 0,
@@ -191,8 +245,8 @@
           "RotationSpeed": 1,
           "RunByDefault": false,
           "RunSpeed": 320,
-          "ShowColliderComponents": false,
-          "ShowRigidbodyComponent": false,
+          "ShowColliderComponents": true,
+          "ShowRigidbodyComponent": true,
           "ThirdPerson": true,
           "ToggleCameraModeButton": "view",
           "UseAnimatorControls": true,
@@ -207,7 +261,7 @@
           "__type": "Sandbox.Rigidbody",
           "__guid": "3232a397-3875-46ff-b8b3-f24e21208ee4",
           "__enabled": true,
-          "Flags": 1,
+          "Flags": 0,
           "AngularDamping": 1,
           "EnableImpactDamage": true,
           "EnhancedCcd": true,
@@ -315,13 +369,20 @@
           "__guid": "841765c0-82e2-491b-a513-58f64723b528",
           "__enabled": true,
           "Flags": 0,
+          "HidePlayerModelOnDeath": true,
           "MaxHealth": 100,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "RagdollPrefab": {
+            "_type": "gameobject",
+            "go": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d"
+          },
+          "RequireBattlePhaseForDamage": true,
+          "SpawnRagdollOnDeath": true
         },
         {
           "__type": "PlayerInventory",
@@ -445,7 +506,7 @@
         {
           "__guid": "7d9dc7b4-98a2-422f-b17f-6b03f69fb9ff",
           "__version": 2,
-          "Flags": 1,
+          "Flags": 0,
           "Name": "Colliders",
           "Position": "0,0,0",
           "Rotation": "0,0,0,1",
@@ -462,7 +523,7 @@
               "__type": "Sandbox.CapsuleCollider",
               "__guid": "24b4dcda-919d-4c37-bc41-5798f8ab8b65",
               "__enabled": true,
-              "Flags": 1,
+              "Flags": 0,
               "ColliderFlags": 0,
               "Elasticity": null,
               "End": "0,0,36",
@@ -489,7 +550,7 @@
               "__type": "Sandbox.BoxCollider",
               "__guid": "741376f0-9562-4bc0-af44-f47320fc06ae",
               "__enabled": true,
-              "Flags": 1,
+              "Flags": 0,
               "Center": "0,0,18",
               "ColliderFlags": 0,
               "Elasticity": null,
@@ -563,46 +624,6 @@
           "Children": []
         },
         {
-          "__guid": "b2deb814-bf2a-41ce-9cae-8ad8e755ed99",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "TestWeapon",
-          "Position": "-82.6218185,-131.922638,145.525604",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "CrowbarWeapon",
-              "__guid": "a05f9a26-5dc2-433b-9026-65fe1458a43b",
-              "__enabled": true,
-              "Flags": 0,
-              "Damage": 25,
-              "DrawDebugTrace": true,
-              "HitSound": null,
-              "InventorySlot": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PrimaryFireRate": 0.6,
-              "Range": 90,
-              "SecondaryFireRate": 1,
-              "SwingSound": null,
-              "TraceRadius": 10
-            }
-          ],
-          "Children": []
-        },
-        {
           "__guid": "6116b4c6-3fb6-45fa-9cc4-f384439724ac",
           "__version": 2,
           "Flags": 0,
@@ -642,7 +663,6 @@
               "__enabled": true,
               "Flags": 0,
               "DisableBuildPieceOnPreview": true,
-              "DisableDamageOnPreview": true,
               "DisablePhysicsOnPreview": true,
               "InvalidColor": "1,0,0,0.45",
               "OnComponentDestroy": null,
@@ -691,7 +711,7 @@
           "__guid": "fe208398-fe7c-40d3-931a-679b4c94459a",
           "__version": 2,
           "Flags": 0,
-          "Name": "BuildHud",
+          "Name": "UI",
           "Position": "6.65915871,0,58.3978081",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
@@ -717,7 +737,7 @@
               "OnComponentUpdate": null,
               "Opacity": 1,
               "Scale": 1,
-              "ScaleStrategy": "FollowDesktopScaling",
+              "ScaleStrategy": "ConsistentHeight",
               "TargetCamera": {
                 "_type": "component",
                 "component_id": "85e10d91-bd75-47ff-9ed4-aea288ac0cfb",
@@ -737,9 +757,190 @@
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null
+            },
+            {
+              "__type": "Sandbox.UI.Death.DeathHud",
+              "__guid": "6d234bca-527c-4940-948f-6ea7d7696051",
+              "__enabled": true,
+              "Flags": 0,
+              "EnableDebugHint": true,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            },
+            {
+              "__type": "Sandbox.UI.Round.RoundHud",
+              "__guid": "cdcaa737-df87-42bf-aed6-7d5ab1f728dc",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "ShowDuringWaiting": false
             }
           ],
           "Children": []
+        },
+        {
+          "__guid": "589953c3-4ae9-4c06-a31e-19a56071d647",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Crowbar",
+          "Position": "0,0,70.1770935",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "927a8c73-3be9-476d-b5a5-1667c1604152",
+              "__enabled": true,
+              "Flags": 0,
+              "AnimationGraph": null,
+              "BodyGroups": 18446744073709551615,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Materials": null,
+              "Model": "models/weapons/sbox_melee_crowbar/v_crowbar.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "PlaybackRate": 1,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null,
+                "Looping": true,
+                "Blending": false
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            },
+            {
+              "__type": "CrowbarWeapon",
+              "__guid": "3e7cfadf-198c-4976-8569-c4dd6c79b7f2",
+              "__enabled": true,
+              "Flags": 0,
+              "Damage": 10,
+              "DrawDebugTrace": true,
+              "HitSound": null,
+              "InventorySlot": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "PrimaryFireRate": 0.5,
+              "Range": 85,
+              "SecondaryFireRate": 0.5,
+              "SwingSound": null,
+              "TraceRadius": 8
+            }
+          ],
+          "Children": [
+            {
+              "__guid": "8b5a344a-6a8a-49e9-a4d3-c18ab70a034a",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Citizen_arms",
+              "Position": "0,0,0",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.SkinnedModelRenderer",
+                  "__guid": "ffd4d33c-b580-4605-a093-2c04e729b01e",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "AnimationGraph": null,
+                  "BodyGroups": 18446744073709551615,
+                  "BoneMergeTarget": {
+                    "_type": "component",
+                    "component_id": "927a8c73-3be9-476d-b5a5-1667c1604152",
+                    "go": "589953c3-4ae9-4c06-a31e-19a56071d647",
+                    "component_type": "SkinnedModelRenderer"
+                  },
+                  "CreateAttachments": false,
+                  "CreateBoneObjects": false,
+                  "LodOverride": null,
+                  "MaterialGroup": null,
+                  "MaterialOverride": null,
+                  "Materials": null,
+                  "Model": "models/first_person/v_first_person_arms_citizen.vmdl",
+                  "Morphs": {},
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Parameters": {
+                    "bools": {},
+                    "ints": {},
+                    "floats": {},
+                    "vectors": {},
+                    "rotations": {}
+                  },
+                  "PlaybackRate": 1,
+                  "RenderOptions": {
+                    "GameLayer": true,
+                    "OverlayLayer": false,
+                    "BloomLayer": false,
+                    "AfterUILayer": false
+                  },
+                  "RenderType": "On",
+                  "Sequence": {
+                    "Name": null,
+                    "Looping": true,
+                    "Blending": false
+                  },
+                  "Tint": "1,1,1,1",
+                  "UseAnimGraph": true
+                }
+              ],
+              "Children": []
+            }
+          ]
         }
       ]
     },
@@ -943,13 +1144,17 @@
           "__guid": "a13dba91-8d58-4dc2-ae16-7df1cf3164c1",
           "__enabled": true,
           "Flags": 0,
+          "HidePlayerModelOnDeath": true,
           "MaxHealth": 100,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "RagdollPrefab": null,
+          "RequireBattlePhaseForDamage": true,
+          "SpawnRagdollOnDeath": true
         },
         {
           "__type": "PlayerInventory",
@@ -1139,6 +1344,14 @@
             },
             "Property": "Enabled",
             "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "5527c1aa-4ba4-439a-a9cd-9d5e0fff009b"
+            },
+            "Property": "RequireBattlePhaseForDamage",
+            "Value": true
           }
         ],
         "MovedObjects": []
@@ -1153,15 +1366,15 @@
       }
     },
     {
-      "__guid": "b35eacfd-c986-4aab-aa69-1e3168148d05",
+      "__guid": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d",
       "__version": 2,
       "Flags": 0,
-      "Name": "RoundManager",
-      "Position": "157.131622,81.0608521,47.0556259",
+      "Name": "PlayerRagdoll",
+      "Position": "-176.259079,51.001358,0",
       "Rotation": "0,0,0,1",
       "Scale": "1,1,1",
       "Tags": "",
-      "Enabled": true,
+      "Enabled": false,
       "NetworkMode": 2,
       "NetworkFlags": 0,
       "NetworkOrphaned": 0,
@@ -1169,18 +1382,83 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "FloodRoundManager",
-          "__guid": "012b4ae4-23ec-4121-91ea-5a469a246033",
+          "__type": "Sandbox.SkinnedModelRenderer",
+          "__guid": "4cd17e01-3c9d-4942-83ff-3c354cf24563",
           "__enabled": true,
           "Flags": 0,
-          "CurrentPhase": "Build",
+          "AnimationGraph": null,
+          "BodyGroups": 341,
+          "BoneMergeTarget": null,
+          "CreateAttachments": false,
+          "CreateBoneObjects": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/citizen/citizen.vmdl",
+          "Morphs": {},
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "StartInBuildPhase": true
+          "Parameters": {
+            "bools": {},
+            "ints": {},
+            "floats": {},
+            "vectors": {},
+            "rotations": {}
+          },
+          "PlaybackRate": 1,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Sequence": {
+            "Name": null,
+            "Looping": true,
+            "Blending": false
+          },
+          "Tint": "1,1,1,1",
+          "UseAnimGraph": false
+        },
+        {
+          "__type": "Sandbox.ModelPhysics",
+          "__guid": "1c9bc9b8-520d-4aae-a1c1-deca97e6bddc",
+          "__enabled": true,
+          "Flags": 0,
+          "Bodies": [],
+          "IgnoreRoot": false,
+          "Joints": [],
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "Model": "models/citizen/citizen.vmdl",
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PhysicsWereCreated": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "4cd17e01-3c9d-4942-83ff-3c354cf24563",
+            "go": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false
         }
       ],
       "Children": []
@@ -1206,6 +1484,11 @@
       "CustomBounds": false
     },
     "GameObjectSystems": {
+      "Sandbox.SelectionSetsSystem": {
+        "Data": {
+          "SelectionSets": []
+        }
+      },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
         "DisableClientRecording": false
       },
@@ -1213,17 +1496,15 @@
         "Storage": {
           "$blob": "4cd36ef1-9bdd-4849-9c97-f9d8a906d613"
         }
-      },
-      "Sandbox.SelectionSetsSystem": {
-        "Data": {
-          "SelectionSets": []
-        }
       }
     }
   },
   "ResourceVersion": 3,
   "Title": null,
   "Description": null,
-  "__references": [],
+  "__references": [
+    "facepunch.v_crowbar#205801",
+    "facepunch.v_first_person_arms_citizen#205823"
+  ],
   "__version": 3
 }

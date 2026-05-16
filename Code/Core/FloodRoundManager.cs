@@ -1,9 +1,16 @@
 using Sandbox;
+using System;
 using System.Linq;
 
 public sealed class FloodRoundManager : Component
 {
 	public static FloodRoundManager Instance { get; private set; }
+
+	public event Action<GamePhase, GamePhase> OnPhaseChanged;
+	public event Action OnBuildPhaseStarted;
+	public event Action OnFloodPhaseStarted;
+	public event Action OnBattlePhaseStarted;
+	public event Action OnRoundEndPhaseStarted;
 
 	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.Build;
 
@@ -123,10 +130,14 @@ public sealed class FloodRoundManager : Component
 		if ( !force && CurrentPhase == phase )
 			return;
 
+		var previousPhase = CurrentPhase;
+
 		CurrentPhase = phase;
 		TimeSincePhaseStarted = 0f;
 
-		Log.Info( $"Game phase changed to: {CurrentPhase}" );
+		Log.Info( $"Game phase changed: {previousPhase} -> {CurrentPhase}" );
+
+		NotifyPhaseChanged( previousPhase, CurrentPhase );
 	}
 
 	public void ResetRound()
@@ -150,6 +161,30 @@ public sealed class FloodRoundManager : Component
 			return;
 
 		SetPhase( GamePhase.RoundEnd );
+	}
+
+	private void NotifyPhaseChanged( GamePhase previousPhase, GamePhase newPhase )
+	{
+		OnPhaseChanged?.Invoke( previousPhase, newPhase );
+
+		switch ( newPhase )
+		{
+			case GamePhase.Build:
+				OnBuildPhaseStarted?.Invoke();
+				break;
+
+			case GamePhase.Flood:
+				OnFloodPhaseStarted?.Invoke();
+				break;
+
+			case GamePhase.Battle:
+				OnBattlePhaseStarted?.Invoke();
+				break;
+
+			case GamePhase.RoundEnd:
+				OnRoundEndPhaseStarted?.Invoke();
+				break;
+		}
 	}
 
 	private void HandleRoundLoop()
@@ -297,7 +332,7 @@ public sealed class FloodRoundManager : Component
 			if ( !player.Health.IsValid() )
 				continue;
 
-			player.Health.TakeDamage( DebugPlayerDamageAmount );
+			player.Health.TakeDebugDamage( DebugPlayerDamageAmount );
 		}
 
 		Log.Info( $"Debug damaged all players for {DebugPlayerDamageAmount}." );
