@@ -1,0 +1,59 @@
+@using Sandbox
+@using System
+
+@inherits PanelComponent
+
+<root>
+	@if ( ShouldShow )
+	{
+		<div class="death-hud">
+			<div class="death-hud__panel">
+				<div class="death-hud__title">You Died</div>
+				<div class="death-hud__subtitle">Waiting for the next round...</div>
+
+				@if ( EnableDebugHint )
+				{
+					<div class="death-hud__hint">
+						Debug: Press 7 to reset the round
+					</div>
+				}
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public bool EnableDebugHint { get; set; } = true;
+
+	private bool ShouldShow { get; set; }
+	private int HudBuildVersion { get; set; }
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+
+		var player = FloodPlayer.Local;
+		var shouldShow = player.IsValid() && player.IsDead;
+
+		SetShouldShow( shouldShow );
+	}
+
+	private void SetShouldShow( bool shouldShow )
+	{
+		if ( ShouldShow == shouldShow )
+			return;
+
+		ShouldShow = shouldShow;
+		HudBuildVersion++;
+	}
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine(
+			HudBuildVersion,
+			ShouldShow,
+			EnableDebugHint
+		);
+	}
+}

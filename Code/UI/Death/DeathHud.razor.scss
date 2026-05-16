@@ -1,0 +1,47 @@
+DeathHud {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	pointer-events: none;
+	font-family: Poppins;
+	color: white;
+}
+
+.death-hud {
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba( 0, 0, 0, 0.25 );
+}
+
+.death-hud__panel {
+	min-width: 360px;
+	padding: 28px 36px;
+	border-radius: 18px;
+	background-color: rgba( 0, 0, 0, 0.72 );
+	backdrop-filter: blur( 10px );
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.death-hud__title {
+	font-size: 44px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+}
+
+.death-hud__subtitle {
+	font-size: 18px;
+	opacity: 0.85;
+}
+
+.death-hud__hint {
+	margin-top: 14px;
+	font-size: 14px;
+	opacity: 0.6;
+}
