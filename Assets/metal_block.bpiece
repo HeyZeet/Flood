@@ -1,0 +1,19 @@
+{
+  "DisplayName": "MetalBlock",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "boatpiece_test.prefab"
+  },
+  "Material": "Metal",
+  "Cost": 10,
+  "Weight": 20,
+  "MaxHealth": 100,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "Description": "",
+  "PlacementSurfaceOffset": 25,
+  "PlacementBounds": "50,50,50",
+  "OverlapPadding": 2,
+  "__references": [],
+  "__version": 0
+}

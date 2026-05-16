@@ -1,0 +1,116 @@
+BuildHud {
+	position: absolute;
+	left: 32px;
+	bottom: 120px;
+
+	width: 300px;
+
+	font-family: Poppins;
+	color: white;
+
+	.build-hud {
+		flex-direction: column;
+		gap: 8px;
+
+		padding: 16px;
+
+		background-color: rgba( 10, 14, 20, 0.82 );
+		border-radius: 12px;
+		border: 1px solid rgba( 255, 255, 255, 0.12 );
+	}
+
+	.header {
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 2px;
+		color: rgba( 255, 255, 255, 0.55 );
+	}
+
+	.piece-name {
+		font-size: 26px;
+		font-weight: 800;
+		color: white;
+		margin-bottom: 4px;
+	}
+
+	.row {
+		justify-content: space-between;
+		align-items: center;
+		font-size: 15px;
+	}
+
+	.label {
+		color: rgba( 255, 255, 255, 0.55 );
+	}
+
+	.value {
+		color: white;
+		font-weight: 700;
+	}
+
+	.placement {
+		margin-top: 8px;
+		padding: 8px 10px;
+		border-radius: 8px;
+
+		font-size: 14px;
+		font-weight: 800;
+		text-align: center;
+	}
+
+	.placement.valid {
+		background-color: rgba( 40, 180, 90, 0.25 );
+		color: #7dff9f;
+	}
+
+	.placement.invalid {
+		background-color: rgba( 220, 60, 60, 0.25 );
+		color: #ff8585;
+	}
+
+	.reason {
+		font-size: 12px;
+		color: rgba( 255, 160, 160, 0.9 );
+		text-align: center;
+	}
+
+	.controls {
+		margin-top: 8px;
+		flex-direction: column;
+		gap: 4px;
+
+		font-size: 13px;
+		color: rgba( 255, 255, 255, 0.72 );
+	}
+
+	.control-row {
+		flex-direction: row;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.key {
+		min-width: 42px;
+		color: white;
+		font-weight: 800;
+	}
+
+	.afford {
+	padding: 6px 10px;
+	border-radius: 8px;
+
+	font-size: 12px;
+	font-weight: 800;
+	text-align: center;
+	}
+
+	.afford.can-afford {
+	background-color: rgba( 40, 180, 90, 0.18 );
+	color: #7dff9f;
+	}
+
+	.afford.cannot-afford {
+	background-color: rgba( 220, 60, 60, 0.22 );
+	color: #ff8585;
+	}
+}

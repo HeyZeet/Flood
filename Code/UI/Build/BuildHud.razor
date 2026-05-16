@@ -1,0 +1,125 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+
+<root>
+	@if ( Builder is not null && Piece is not null )
+	{
+		<div class="build-hud">
+			<div class="header">BUILD TOOL</div>
+			@if ( Resources.IsValid() )
+			{
+				<div class="row">
+				<span class="label">Resources</span>
+				<span class="value">$@Resources.Resources</span>
+				</div>
+			}
+			<div class="piece-name">@Piece.DisplayName</div>
+
+			<div class="row">
+				<span class="label">Material</span>
+				<span class="value">@Piece.Material</span>
+			</div>
+
+			<div class="row">
+				<span class="label">Cost</span>
+				<span class="value">$@Piece.Cost</span>
+			</div>
+
+			<div class="afford @(CanAffordPiece ? "can-afford" : "cannot-afford")">
+				@(CanAffordPiece ? "CAN AFFORD" : "CANNOT AFFORD")
+			</div>
+
+			<div class="row">
+				<span class="label">Health</span>
+				<span class="value">@Piece.MaxHealth</span>
+			</div>
+
+			<div class="placement @(Placement.IsValid ? "valid" : "invalid")">
+				@(Placement.IsValid ? "VALID PLACEMENT" : "BLOCKED")
+			</div>
+
+			@if ( !Placement.IsValid && !string.IsNullOrWhiteSpace( Placement.Reason ) )
+			{
+				<div class="reason">@Placement.Reason</div>
+			}
+
+			<div class="controls">
+				<div class="control-row">
+					<span class="key">LMB</span>
+					<span>Place</span>
+				</div>
+
+				<div class="control-row">
+					<span class="key">RMB</span>
+					<span>Cycle Piece</span>
+				</div>
+
+				<div class="control-row">
+					<span class="key">R</span>
+					<span>Rotate</span>
+				</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	private FloodPlayer LocalPlayer { get; set; }
+	private PlayerInventory Inventory { get; set; }
+	private BoatBuilder Builder { get; set; }
+
+	private BuildPieceData Piece => Builder?.SelectedPiece;
+	private BuildPlacementResult Placement => Builder?.PlacementResult ?? default;
+	private PlayerBuildResources Resources => LocalPlayer?.BuildResources;
+
+	private bool CanAffordPiece
+	{
+		get
+		{
+			if ( !Resources.IsValid() || Piece is null )
+				return false;
+
+			return Resources.CanAfford( Piece.Cost );
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		LocalPlayer = FloodPlayer.Local;
+		Inventory = LocalPlayer?.Inventory;
+
+		if ( Inventory.IsValid() )
+			Builder = Inventory.GetActiveCarryable<BoatBuilder>();
+		else
+			Builder = null;
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = 17;
+
+		hash = hash * 31 + (LocalPlayer.IsValid() ? 1 : 0);
+		hash = hash * 31 + (Inventory.IsValid() ? 1 : 0);
+		hash = hash * 31 + (Builder.IsValid() ? 1 : 0);
+
+		if ( Builder.IsValid() )
+		{
+			var piece = Builder.SelectedPiece;
+			var placement = Builder.PlacementResult;
+
+			hash = hash * 31 + Builder.SelectedPieceIndex;
+			hash = hash * 31 + (piece?.DisplayName?.GetHashCode() ?? 0);
+			hash = hash * 31 + (piece?.Material.GetHashCode() ?? 0);
+			hash = hash * 31 + piece?.Cost.GetHashCode() ?? 0;
+			hash = hash * 31 + piece?.MaxHealth.GetHashCode() ?? 0;
+			hash = hash * 31 + (placement.IsValid ? 1 : 0);
+			hash = hash * 31 + (placement.Reason?.GetHashCode() ?? 0);
+			hash = hash * 31 + (Resources.IsValid() ? Resources.Resources.GetHashCode() : 0);
+			hash = hash * 31 + (CanAffordPiece ? 1 : 0);
+		}
+
+		return hash;
+	}
+}
