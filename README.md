@@ -20,6 +20,39 @@ Player(WIP)(Stable)
   - Has an inventory system
 
 
+FloodRoundManager has clean production methods:
+SetPhase()
+ResetRound()
+DeletePlacedBuildPieces()
+ResetPlayers()
+
+
+Debug controls are isolated:
+6 damages all players
+7 resets the round
+8 forces Build phase
+9 forces Battle phase
+EnableDebugControls can turn all debug keys off
+
+
+Death flow works:
+health reaches 0
+movement blocked safely with WishVelocity
+tools/weapons/building blocked
+preview clears
+player model hides
+ragdoll spawns
+death camera works
+death HUD appears
+reset restores everything
+
+
+
+
+
+
+
+
 UI(WIP)(Stable)
 Weapons(WIP)(Stable)
 DamageSystem(WIP)(Stable)
