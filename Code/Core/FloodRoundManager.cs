@@ -7,9 +7,23 @@ public sealed class FloodRoundManager : Component
 
 	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.Build;
 
-	[Property] public bool StartInBuildPhase { get; set; } = true;
-	[Property] public bool EnableDebugPhaseKeys { get; set; } = true;
-	[Property] public bool EnableDebugResetKey { get; set; } = true;
+	[Property, Group( "Round" )]
+	public bool StartInBuildPhase { get; set; } = true;
+
+	[Property, Group( "Debug" )]
+	public bool EnableDebugControls { get; set; } = true;
+
+	[Property, Group( "Debug" )]
+	public bool EnableDebugPhaseKeys { get; set; } = true;
+
+	[Property, Group( "Debug" )]
+	public bool EnableDebugResetKey { get; set; } = true;
+
+	[Property, Group( "Debug" )]
+	public bool EnableDebugDamageKey { get; set; } = true;
+
+	[Property, Group( "Debug" )]
+	public float DebugPlayerDamageAmount { get; set; } = 25f;
 
 	protected override void OnStart()
 	{
@@ -32,13 +46,17 @@ public sealed class FloodRoundManager : Component
 		if ( !Networking.IsHost )
 			return;
 
-		HandleDebugPhaseInput();
-		HandleDebugResetInput();
+		HandleDebugControls();
 	}
 
 	public bool IsBuildPhase()
 	{
 		return CurrentPhase == GamePhase.Build;
+	}
+
+	public bool IsFloodPhase()
+	{
+		return CurrentPhase == GamePhase.Flood;
 	}
 
 	public bool IsBattlePhase()
@@ -121,6 +139,20 @@ public sealed class FloodRoundManager : Component
 		Log.Info( $"Reset {FloodPlayer.All.Count} players." );
 	}
 
+	// -----------------------------
+	// Debug controls
+	// -----------------------------
+
+	private void HandleDebugControls()
+	{
+		if ( !EnableDebugControls )
+			return;
+
+		HandleDebugPhaseInput();
+		HandleDebugResetInput();
+		HandleDebugDamageInput();
+	}
+
 	private void HandleDebugPhaseInput()
 	{
 		if ( !EnableDebugPhaseKeys )
@@ -140,5 +172,32 @@ public sealed class FloodRoundManager : Component
 
 		if ( Input.Pressed( "Slot7" ) )
 			ResetRound();
+	}
+
+	private void HandleDebugDamageInput()
+	{
+		if ( !EnableDebugDamageKey )
+			return;
+
+		if ( !Input.Pressed( "Slot6" ) )
+			return;
+
+		DebugDamageAllPlayers();
+	}
+
+	private void DebugDamageAllPlayers()
+	{
+		foreach ( var player in FloodPlayer.All.ToArray() )
+		{
+			if ( !player.IsValid() )
+				continue;
+
+			if ( !player.Health.IsValid() )
+				continue;
+
+			player.Health.TakeDamage( DebugPlayerDamageAmount );
+		}
+
+		Log.Info( $"Debug damaged all players for {DebugPlayerDamageAmount}." );
 	}
 }
