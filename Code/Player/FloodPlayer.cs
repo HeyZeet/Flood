@@ -1,21 +1,36 @@
 using Sandbox;
+using System.Collections.Generic;
 
 public sealed class FloodPlayer : Component, PlayerController.IEvents
 {
+	private static readonly List<FloodPlayer> AllPlayers = new();
+
+	public static IReadOnlyList<FloodPlayer> All => AllPlayers;
+	public static FloodPlayer Local { get; private set; }
+
 	public PlayerController Controller { get; private set; }
 	public PlayerHealth Health { get; private set; }
 	public PlayerInventory Inventory { get; private set; }
 	public PlayerBuildResources BuildResources { get; private set; }
 
-	public static FloodPlayer Local { get; private set; }
-
 	protected override void OnStart()
 	{
+		if ( !AllPlayers.Contains( this ) )
+			AllPlayers.Add( this );
+
 		CacheComponents();
 		ValidateRequiredComponents();
 		UpdateLocalPlayerReference();
 
 		Log.Info( "FloodPlayer started." );
+	}
+
+	protected override void OnDestroy()
+	{
+		AllPlayers.Remove( this );
+
+		if ( Local == this )
+			Local = null;
 	}
 
 	protected override void OnUpdate()
