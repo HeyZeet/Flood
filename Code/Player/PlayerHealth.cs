@@ -4,17 +4,37 @@ public sealed class PlayerHealth : DamageableComponent
 {
 	[Property] public float MaxHealth { get; set; } = 100f;
 
+	[Property, Group( "Death" )]
+	public GameObject RagdollPrefab { get; set; }
+
+	[Property, Group( "Death" )]
+	public bool HidePlayerModelOnDeath { get; set; } = true;
+
+	[Property, Group( "Death" )]
+	public bool SpawnRagdollOnDeath { get; set; } = true;
+
 	[Sync] public float Health { get; private set; }
 
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
 
+	private PlayerController Controller { get; set; }
+	private GameObject ActiveRagdoll { get; set; }
+
 	protected override void OnStart()
 	{
+		Controller = Components.Get<PlayerController>();
+
 		if ( Networking.IsHost )
-		{
-			Health = MaxHealth;
-		}
+			ResetHealth();
+	}
+
+	protected override void OnFixedUpdate()
+	{
+		if ( !IsDead )
+			return;
+
+		LockDeadPlayerMovement();
 	}
 
 	public void TakeDamage( float amount )
@@ -44,9 +64,7 @@ public sealed class PlayerHealth : DamageableComponent
 		Log.Info( $"{GameObject.Name} took {amount} damage. Health: {Health}" );
 
 		if ( Health <= 0f )
-		{
 			Die( damageInfo );
-		}
 	}
 
 	public void Heal( float amount )
@@ -86,27 +104,114 @@ public sealed class PlayerHealth : DamageableComponent
 		if ( !Networking.IsHost )
 			return;
 
+		ResetHealth();
+		ClearMovement();
+		DestroyRagdoll();
+		SetPlayerModelVisible( true );
+
+		Log.Info( $"{GameObject.Name} respawned. Health: {Health}" );
+	}
+
+	public void ResetHealth()
+	{
+		if ( !Networking.IsHost )
+			return;
+
 		Health = MaxHealth;
-
-		GameObject.Enabled = true;
-
-		var controller = Components.Get<PlayerController>();
-
-		if ( controller.IsValid() )
-		{
-			controller.Enabled = true;
-		}
 	}
 
 	private void Die( DamageInfo damageInfo )
 	{
+		ClearMovement();
+
+		if ( HidePlayerModelOnDeath )
+			SetPlayerModelVisible( false );
+
+		if ( SpawnRagdollOnDeath )
+			SpawnRagdoll( damageInfo );
+
 		Log.Info( $"{GameObject.Name} died." );
+	}
 
-		var controller = Components.Get<PlayerController>();
+	private void LockDeadPlayerMovement()
+	{
+		if ( !Controller.IsValid() )
+			Controller = Components.Get<PlayerController>();
 
-		if ( controller.IsValid() )
+		if ( !Controller.IsValid() )
+			return;
+
+		Controller.WishVelocity = Vector3.Zero;
+	}
+
+	private void ClearMovement()
+	{
+		if ( !Controller.IsValid() )
+			Controller = Components.Get<PlayerController>();
+
+		if ( !Controller.IsValid() )
+			return;
+
+		Controller.WishVelocity = Vector3.Zero;
+	}
+
+	private void SpawnRagdoll( DamageInfo damageInfo )
+	{
+		if ( ActiveRagdoll.IsValid() )
+			return;
+
+		if ( !RagdollPrefab.IsValid() )
 		{
-			controller.Enabled = false;
+			Log.Warning( $"{GameObject.Name} died but has no RagdollPrefab assigned." );
+			return;
+		}
+
+		ActiveRagdoll = RagdollPrefab.Clone( WorldPosition, WorldRotation );
+		ActiveRagdoll.Name = $"{GameObject.Name} Ragdoll";
+
+		ActiveRagdoll.NetworkSpawn();
+
+		ApplyRagdollForce( damageInfo );
+
+		Log.Info( $"Spawned ragdoll for {GameObject.Name}." );
+	}
+
+	private void DestroyRagdoll()
+	{
+		if ( !ActiveRagdoll.IsValid() )
+			return;
+
+		ActiveRagdoll.Destroy();
+		ActiveRagdoll = null;
+	}
+
+	private void ApplyRagdollForce( DamageInfo damageInfo )
+	{
+		if ( !ActiveRagdoll.IsValid() )
+			return;
+
+		var force = damageInfo.Force;
+
+		if ( force.Length <= 0f )
+			force = WorldRotation.Forward * 250f;
+
+		foreach ( var rigidbody in ActiveRagdoll.Components.GetAll<Rigidbody>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( !rigidbody.IsValid() )
+				continue;
+
+			rigidbody.ApplyImpulse( force );
+		}
+	}
+
+	private void SetPlayerModelVisible( bool visible )
+	{
+		foreach ( var renderer in Components.GetAll<ModelRenderer>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( !renderer.IsValid() )
+				continue;
+
+			renderer.Enabled = visible;
 		}
 	}
 }

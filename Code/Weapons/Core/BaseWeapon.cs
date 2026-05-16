@@ -6,8 +6,8 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public float PrimaryFireRate { get; set; } = 0.5f;
 	[Property] public float SecondaryFireRate { get; set; } = 0.5f;
 
-	private TimeSince _timeSincePrimaryAttack;
-	private TimeSince _timeSinceSecondaryAttack;
+	private TimeSince TimeSincePrimaryAttack { get; set; }
+	private TimeSince TimeSinceSecondaryAttack { get; set; }
 
 	protected FloodPlayer OwnerPlayer
 	{
@@ -35,21 +35,17 @@ public abstract class BaseWeapon : BaseCarryable
 	{
 		base.OnAddedToInventory( inventory );
 
-		_timeSincePrimaryAttack = 999f;
-		_timeSinceSecondaryAttack = 999f;
+		TimeSincePrimaryAttack = 999f;
+		TimeSinceSecondaryAttack = 999f;
 	}
 
 	public override void OnPlayerUpdate()
 	{
-		if ( Input.Pressed( "attack1" ) || Input.Down( "attack1" ) )
-		{
+		if ( Input.Down( "attack1" ) )
 			TryPrimaryAttack();
-		}
 
-		if ( Input.Pressed( "attack2" ) || Input.Down( "attack2" ) )
-		{
+		if ( Input.Down( "attack2" ) )
 			TrySecondaryAttack();
-		}
 	}
 
 	public void TryPrimaryAttack()
@@ -57,8 +53,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !CanPrimaryAttack() )
 			return;
 
-		_timeSincePrimaryAttack = 0f;
-
+		TimeSincePrimaryAttack = 0f;
 		PrimaryAttack();
 	}
 
@@ -67,8 +62,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !CanSecondaryAttack() )
 			return;
 
-		_timeSinceSecondaryAttack = 0f;
-
+		TimeSinceSecondaryAttack = 0f;
 		SecondaryAttack();
 	}
 
@@ -80,7 +74,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( PrimaryFireRate <= 0f )
 			return true;
 
-		return _timeSincePrimaryAttack >= PrimaryFireRate;
+		return TimeSincePrimaryAttack >= PrimaryFireRate;
 	}
 
 	public override bool CanSecondaryAttack()
@@ -91,7 +85,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( SecondaryFireRate <= 0f )
 			return true;
 
-		return _timeSinceSecondaryAttack >= SecondaryFireRate;
+		return TimeSinceSecondaryAttack >= SecondaryFireRate;
 	}
 
 	public override void PrimaryAttack()

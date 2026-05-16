@@ -44,61 +44,44 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 
 	protected override void DoMeleeAttack()
 	{
+		var start = GetAttackStart();
+		var direction = GetAttackDirection();
+
+		base.DoMeleeAttack();
+
+		TryPlayHitSound( start, direction );
+	}
+
+	private void TryPlayHitSound( Vector3 start, Vector3 direction )
+	{
+		if ( HitSound is null )
+			return;
+
 		var owner = OwnerPlayer;
 
 		if ( !owner.IsValid() )
-		{
-			Log.Warning( "Crowbar has no valid owner player." );
 			return;
-		}
 
-		var start = GetAttackStart();
-		var end = start + GetAttackDirection() * Range;
+		var end = start + direction * Range;
 
 		var tr = Scene.Trace
 			.Sphere( TraceRadius, start, end )
 			.IgnoreGameObjectHierarchy( owner.GameObject )
 			.Run();
 
-		if ( DrawDebugTrace )
-		{
-			DebugOverlay.Trace( tr, 1f );
-		}
-
-		if ( !tr.Hit )
-		{
-			Log.Info( "Crowbar missed." );
-			return;
-		}
-
-		Log.Info( $"Crowbar hit {tr.GameObject.Name}." );
-
-		PlayHitEffects( tr.HitPosition );
-
-        var damageable = tr.GameObject.Components.Get<DamageableComponent>( FindMode.EverythingInSelfAndAncestors );
-
-        if ( damageable.IsValid() )
-        {
-	        var damageInfo = DamageInfo.FromWeapon( this, tr );
-	        damageable.TakeDamage( damageInfo );
-
-	        Log.Info( $"Crowbar damaged {tr.GameObject.Name} for {Damage}." );
-        }
+		if ( tr.Hit )
+			PlayHitEffects( tr.HitPosition );
 	}
 
 	private void PlaySwingEffects()
 	{
 		if ( SwingSound is not null )
-		{
 			Sound.Play( SwingSound, WorldPosition );
-		}
 	}
 
 	private void PlayHitEffects( Vector3 hitPosition )
 	{
 		if ( HitSound is not null )
-		{
 			Sound.Play( HitSound, hitPosition );
-		}
 	}
 }
