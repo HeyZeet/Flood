@@ -12,9 +12,7 @@ public sealed class PlayerHealth : DamageableComponent
 	protected override void OnStart()
 	{
 		if ( Networking.IsHost )
-		{
-			Health = MaxHealth;
-		}
+			ResetHealth();
 	}
 
 	public void TakeDamage( float amount )
@@ -44,9 +42,7 @@ public sealed class PlayerHealth : DamageableComponent
 		Log.Info( $"{GameObject.Name} took {amount} damage. Health: {Health}" );
 
 		if ( Health <= 0f )
-		{
 			Die( damageInfo );
-		}
 	}
 
 	public void Heal( float amount )
@@ -86,27 +82,29 @@ public sealed class PlayerHealth : DamageableComponent
 		if ( !Networking.IsHost )
 			return;
 
-		Health = MaxHealth;
+		ResetHealth();
 
 		GameObject.Enabled = true;
+		SetControllerEnabled( true );
+	}
 
-		var controller = Components.Get<PlayerController>();
-
-		if ( controller.IsValid() )
-		{
-			controller.Enabled = true;
-		}
+	private void ResetHealth()
+	{
+		Health = MaxHealth;
 	}
 
 	private void Die( DamageInfo damageInfo )
 	{
 		Log.Info( $"{GameObject.Name} died." );
 
+		SetControllerEnabled( false );
+	}
+
+	private void SetControllerEnabled( bool enabled )
+	{
 		var controller = Components.Get<PlayerController>();
 
 		if ( controller.IsValid() )
-		{
-			controller.Enabled = false;
-		}
+			controller.Enabled = enabled;
 	}
 }
