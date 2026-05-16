@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Linq;
 
 public sealed class FloodRoundManager : Component
 {
@@ -8,6 +9,7 @@ public sealed class FloodRoundManager : Component
 
 	[Property] public bool StartInBuildPhase { get; set; } = true;
 	[Property] public bool EnableDebugPhaseKeys { get; set; } = true;
+	[Property] public bool EnableDebugResetKey { get; set; } = true;
 
 	protected override void OnStart()
 	{
@@ -31,6 +33,7 @@ public sealed class FloodRoundManager : Component
 			return;
 
 		HandleDebugPhaseInput();
+		HandleDebugResetInput();
 	}
 
 	public bool IsBuildPhase()
@@ -48,6 +51,11 @@ public sealed class FloodRoundManager : Component
 		return CurrentPhase == GamePhase.Waiting;
 	}
 
+	public bool IsRoundEndPhase()
+	{
+		return CurrentPhase == GamePhase.RoundEnd;
+	}
+
 	public void SetPhase( GamePhase phase )
 	{
 		if ( !Networking.IsHost )
@@ -61,6 +69,58 @@ public sealed class FloodRoundManager : Component
 		Log.Info( $"Game phase changed to: {CurrentPhase}" );
 	}
 
+	public void ResetRound()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Log.Info( "Resetting round." );
+
+		SetPhase( GamePhase.RoundEnd );
+
+		DeletePlacedBuildPieces();
+		ResetPlayers();
+
+		SetPhase( GamePhase.Build );
+
+		Log.Info( "Round reset complete." );
+	}
+
+	private void DeletePlacedBuildPieces()
+	{
+		var pieces = BuildPiece.All
+			.Where( piece => piece.IsValid() )
+			.Where( piece => piece.IsPlaced )
+			.ToArray();
+
+		foreach ( var piece in pieces )
+		{
+			if ( !piece.IsValid() )
+				continue;
+
+			piece.GameObject.Destroy();
+		}
+
+		Log.Info( $"Deleted {pieces.Length} placed build pieces." );
+	}
+
+	private void ResetPlayers()
+	{
+		foreach ( var player in FloodPlayer.All.ToArray() )
+		{
+			if ( !player.IsValid() )
+				continue;
+
+			if ( player.Health.IsValid() )
+				player.Health.Respawn();
+
+			if ( player.BuildResources.IsValid() )
+				player.BuildResources.ResetResources();
+		}
+
+		Log.Info( $"Reset {FloodPlayer.All.Count} players." );
+	}
+
 	private void HandleDebugPhaseInput()
 	{
 		if ( !EnableDebugPhaseKeys )
@@ -71,5 +131,14 @@ public sealed class FloodRoundManager : Component
 
 		if ( Input.Pressed( "Slot9" ) )
 			SetPhase( GamePhase.Battle );
+	}
+
+	private void HandleDebugResetInput()
+	{
+		if ( !EnableDebugResetKey )
+			return;
+
+		if ( Input.Pressed( "Slot7" ) )
+			ResetRound();
 	}
 }
