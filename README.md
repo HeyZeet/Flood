@@ -15,9 +15,11 @@ Building(WIP)(Stable)
   - Shows Preview as "Red" if invalid placement
   - Allows Cycling between pieces via mouseinput
   - "BuildPieces" have there own data such as "health" "weight" "cost"
+
 Player(WIP)(Stable)
   - Has an inventory system
-  - 
+
+
 UI(WIP)(Stable)
 Weapons(WIP)(Stable)
 DamageSystem(WIP)(Stable)
