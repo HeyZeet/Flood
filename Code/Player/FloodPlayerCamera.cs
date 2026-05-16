@@ -20,15 +20,8 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 
 	public void OnEyeAngles( ref Angles angles )
 	{
-		var health = Components.Get<PlayerHealth>();
-
-		if ( !health.IsValid() )
-			return;
-
-		if ( !health.IsDead )
-			return;
-
-		angles = EyeRotation.Angles();
+		// Leave this empty for now.
+		// Forcing angles here can fight the built-in PlayerController camera handling.
 	}
 
 	public void PostCameraSetup( CameraComponent camera )
