@@ -63,10 +63,23 @@ public sealed class PlayerInventory : Component
 
 	public void OnControl()
 	{
+		if ( IsOwnerDead() )
+			return;
+
 		ActiveCarryable?.OnPlayerUpdate();
 
 		HandleSlotInput();
 		HandleMouseWheelInput();
+	}
+
+	private bool IsOwnerDead()
+	{
+		var health = Components.Get<PlayerHealth>();
+
+		if ( !health.IsValid() )
+			return false;
+
+		return health.IsDead;
 	}
 
 	public bool AddCarryable( BaseCarryable carryable, int slot = -1, bool makeActive = true )
