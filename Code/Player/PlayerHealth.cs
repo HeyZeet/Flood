@@ -9,10 +9,22 @@ public sealed class PlayerHealth : DamageableComponent
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
 
+	private PlayerController Controller { get; set; }
+
 	protected override void OnStart()
 	{
+		Controller = Components.Get<PlayerController>();
+
 		if ( Networking.IsHost )
 			ResetHealth();
+	}
+
+	protected override void OnFixedUpdate()
+	{
+		if ( !IsDead )
+			return;
+
+		LockDeadPlayerMovement();
 	}
 
 	public void TakeDamage( float amount )
@@ -83,6 +95,7 @@ public sealed class PlayerHealth : DamageableComponent
 			return;
 
 		ResetHealth();
+		ClearMovement();
 
 		Log.Info( $"{GameObject.Name} respawned. Health: {Health}" );
 	}
@@ -97,10 +110,32 @@ public sealed class PlayerHealth : DamageableComponent
 
 	private void Die( DamageInfo damageInfo )
 	{
-		Log.Info( $"{GameObject.Name} died." );
+		ClearMovement();
 
-		// Do not disable PlayerController here.
-		// Sandbox.PlayerController can throw errors if disabled/re-enabled during physics updates.
-		// Later we will add a proper dead-state input/movement block instead.
+		Log.Info( $"{GameObject.Name} died." );
+	}
+
+	private void LockDeadPlayerMovement()
+	{
+		if ( !Controller.IsValid() )
+			Controller = Components.Get<PlayerController>();
+
+		if ( !Controller.IsValid() )
+			return;
+
+		Controller.WishVelocity = Vector3.Zero;
+		Controller.Velocity = Vector3.Zero;
+	}
+
+	private void ClearMovement()
+	{
+		if ( !Controller.IsValid() )
+			Controller = Components.Get<PlayerController>();
+
+		if ( !Controller.IsValid() )
+			return;
+
+		Controller.WishVelocity = Vector3.Zero;
+		Controller.Velocity = Vector3.Zero;
 	}
 }
