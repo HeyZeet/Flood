@@ -19,14 +19,6 @@ public sealed class PlayerInventory : Component
 		}
 	}
 
-	public T GetActiveCarryable<T>() where T : BaseCarryable
-	{
-		if ( !ActiveCarryable.IsValid() )
-			return null;
-
-		return ActiveCarryable.Components.Get<T>();
-	}
-
 	public IReadOnlyList<BaseCarryable> Carryables
 	{
 		get
@@ -39,26 +31,19 @@ public sealed class PlayerInventory : Component
 	}
 
 	protected override void OnStart()
-    {
-	    if ( Networking.IsHost )
-	    {
-		    foreach ( var carryable in Carryables )
-		    {
-			    carryable.Inventory = this;
-			    carryable.OnAddedToInventory( this );
-			    carryable.GameObject.Enabled = false;
-		    }
+	{
+		if ( !Networking.IsHost )
+			return;
 
-		    var firstCarryable = GetCarryableInSlot( 0 );
+		SetupStartingCarryables();
 
-		    if ( firstCarryable.IsValid() )
-		    {
+		var firstCarryable = GetCarryableInSlot( 0 );
+
+		if ( firstCarryable.IsValid() )
 			SetActiveCarryable( firstCarryable );
-		    }
 
-		    RefreshActiveState();
-	    }
-    }
+		RefreshActiveState();
+	}
 
 	protected override void OnUpdate()
 	{
@@ -68,30 +53,20 @@ public sealed class PlayerInventory : Component
 		OnControl();
 	}
 
+	public T GetActiveCarryable<T>() where T : BaseCarryable
+	{
+		if ( !ActiveCarryable.IsValid() )
+			return null;
+
+		return ActiveCarryable.Components.Get<T>();
+	}
+
 	public void OnControl()
 	{
-		if ( ActiveCarryable.IsValid() )
-		{
-			ActiveCarryable.OnPlayerUpdate();
-		}
+		ActiveCarryable?.OnPlayerUpdate();
 
-		if ( Input.Pressed( "Slot1" ) )
-			SwitchToSlot( 0 );
-
-		if ( Input.Pressed( "Slot2" ) )
-			SwitchToSlot( 1 );
-
-		if ( Input.Pressed( "Slot3" ) )
-			SwitchToSlot( 2 );
-
-		if ( Input.Pressed( "Slot4" ) )
-			SwitchToSlot( 3 );
-
-		if ( Input.MouseWheel.y > 0 )
-			SwitchNext();
-
-		if ( Input.MouseWheel.y < 0 )
-			SwitchPrevious();
+		HandleSlotInput();
+		HandleMouseWheelInput();
 	}
 
 	public bool AddCarryable( BaseCarryable carryable, int slot = -1, bool makeActive = true )
@@ -105,7 +80,7 @@ public sealed class PlayerInventory : Component
 		if ( slot < 0 )
 			slot = FindEmptySlot();
 
-		if ( slot < 0 || slot >= MaxSlots )
+		if ( !IsValidSlot( slot ) )
 			return false;
 
 		if ( GetCarryableInSlot( slot ).IsValid() )
@@ -155,7 +130,7 @@ public sealed class PlayerInventory : Component
 
 	public int FindEmptySlot()
 	{
-		for ( int i = 0; i < MaxSlots; i++ )
+		for ( var i = 0; i < MaxSlots; i++ )
 		{
 			if ( !GetCarryableInSlot( i ).IsValid() )
 				return i;
@@ -176,10 +151,7 @@ public sealed class PlayerInventory : Component
 
 	public void SwitchNext()
 	{
-		var carryables = Carryables
-			.Where( x => x.IsValid() )
-			.OrderBy( x => x.InventorySlot )
-			.ToList();
+		var carryables = GetSortedCarryables();
 
 		if ( carryables.Count == 0 )
 			return;
@@ -191,17 +163,20 @@ public sealed class PlayerInventory : Component
 		}
 
 		var index = carryables.IndexOf( ActiveCarryable );
-		var nextIndex = (index + 1) % carryables.Count;
 
+		if ( index < 0 )
+		{
+			RequestSetActive( carryables[0] );
+			return;
+		}
+
+		var nextIndex = (index + 1) % carryables.Count;
 		RequestSetActive( carryables[nextIndex] );
 	}
 
 	public void SwitchPrevious()
 	{
-		var carryables = Carryables
-			.Where( x => x.IsValid() )
-			.OrderBy( x => x.InventorySlot )
-			.ToList();
+		var carryables = GetSortedCarryables();
 
 		if ( carryables.Count == 0 )
 			return;
@@ -213,12 +188,62 @@ public sealed class PlayerInventory : Component
 		}
 
 		var index = carryables.IndexOf( ActiveCarryable );
+
+		if ( index < 0 )
+		{
+			RequestSetActive( carryables[0] );
+			return;
+		}
+
 		var previousIndex = index - 1;
 
 		if ( previousIndex < 0 )
 			previousIndex = carryables.Count - 1;
 
 		RequestSetActive( carryables[previousIndex] );
+	}
+
+	private void SetupStartingCarryables()
+	{
+		foreach ( var carryable in Carryables )
+		{
+			if ( !carryable.IsValid() )
+				continue;
+
+			carryable.Inventory = this;
+			carryable.OnAddedToInventory( this );
+			carryable.GameObject.Enabled = false;
+		}
+	}
+
+	private void HandleSlotInput()
+	{
+		if ( Input.Pressed( "Slot1" ) ) SwitchToSlot( 0 );
+		if ( Input.Pressed( "Slot2" ) ) SwitchToSlot( 1 );
+		if ( Input.Pressed( "Slot3" ) ) SwitchToSlot( 2 );
+		if ( Input.Pressed( "Slot4" ) ) SwitchToSlot( 3 );
+	}
+
+	private void HandleMouseWheelInput()
+	{
+		if ( Input.MouseWheel.y > 0 )
+			SwitchNext();
+
+		if ( Input.MouseWheel.y < 0 )
+			SwitchPrevious();
+	}
+
+	private List<BaseCarryable> GetSortedCarryables()
+	{
+		return Carryables
+			.Where( x => x.IsValid() )
+			.OrderBy( x => x.InventorySlot )
+			.ToList();
+	}
+
+	private bool IsValidSlot( int slot )
+	{
+		return slot >= 0 && slot < MaxSlots;
 	}
 
 	private void RequestSetActive( BaseCarryable carryable )
@@ -250,7 +275,6 @@ public sealed class PlayerInventory : Component
 			return;
 
 		var oldCarryable = ActiveCarryable;
-
 		ActiveCarryable = carryable;
 
 		if ( oldCarryable.IsValid() )
@@ -269,21 +293,6 @@ public sealed class PlayerInventory : Component
 				continue;
 
 			carryable.GameObject.Enabled = carryable == ActiveCarryable;
-		}
-	}
-
-	private void OnActiveCarryableChanged( BaseCarryable oldCarryable, BaseCarryable newCarryable )
-	{
-		if ( oldCarryable.IsValid() )
-		{
-			oldCarryable.GameObject.Enabled = false;
-			oldCarryable.OnHolster();
-		}
-
-		if ( newCarryable.IsValid() )
-		{
-			newCarryable.GameObject.Enabled = true;
-			newCarryable.OnDeploy();
 		}
 	}
 }
