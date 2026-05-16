@@ -25,6 +25,19 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		Log.Info( "FloodPlayer started." );
 	}
 
+	public bool IsAlive
+	{
+		get
+		{
+			if ( !Health.IsValid() )
+				return true;
+
+			return Health.IsAlive;
+		}
+	}
+
+public bool IsDead => !IsAlive;
+
 	protected override void OnDestroy()
 	{
 		AllPlayers.Remove( this );

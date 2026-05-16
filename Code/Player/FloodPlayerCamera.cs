@@ -24,21 +24,41 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 		// Forcing angles here can fight the built-in PlayerController camera handling.
 	}
 
+	private void UpdateDeathCamera( CameraComponent camera, FloodPlayer player )
+	{
+		var target = player.Health.DeathCameraTarget;
+
+		var targetPosition = WorldPosition;
+
+		if ( target.IsValid() )
+			targetPosition = target.WorldPosition + Vector3.Up * 48f;
+
+		var cameraOffset =
+			Vector3.Up * 80f +
+			EyeRotation.Backward * 180f;
+
+		camera.WorldPosition = targetPosition + cameraOffset;
+		camera.WorldRotation = Rotation.LookAt( targetPosition - camera.WorldPosition );
+
+		EyePosition = camera.WorldPosition;
+		EyeRotation = camera.WorldRotation;
+	}
+
 	public void PostCameraSetup( CameraComponent camera )
 	{
 		if ( !camera.IsValid() )
 			return;
 
+		camera.Enabled = true;
+		camera.FieldOfView = FieldOfView;
+
 		var player = Components.Get<FloodPlayer>();
 
 		if ( player.IsValid() && player.IsDead )
 		{
-			camera.Enabled = false;
+			UpdateDeathCamera( camera, player );
 			return;
 		}
-
-		camera.Enabled = true;
-		camera.FieldOfView = FieldOfView;
 
 		EyePosition = camera.WorldPosition;
 		EyeRotation = camera.WorldRotation;

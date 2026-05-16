@@ -1,0 +1,104 @@
+@using Sandbox
+@using System
+
+@inherits PanelComponent
+
+<root>
+	@if ( ShouldShow )
+	{
+		<div class="round-hud">
+			<div class="round-hud__phase">@PhaseText</div>
+			<div class="round-hud__time">@TimeText</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public bool ShowDuringWaiting { get; set; } = false;
+
+	private bool ShouldShow { get; set; }
+	private string PhaseText { get; set; } = "Waiting";
+	private string TimeText { get; set; } = "--:--";
+
+	private int HudBuildVersion { get; set; }
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+
+		UpdateHudText();
+	}
+
+	private void UpdateHudText()
+	{
+		var roundManager = FloodRoundManager.Instance;
+
+		if ( !roundManager.IsValid() )
+		{
+			SetHudState( false, "No Round", "--:--" );
+			return;
+		}
+
+		var phase = roundManager.CurrentPhase;
+		var shouldShow = ShowDuringWaiting || phase != GamePhase.Waiting;
+
+		var phaseText = GetPhaseText( phase );
+		var timeText = GetTimeText( roundManager.GetCurrentPhaseTimeRemaining() );
+
+		SetHudState( shouldShow, phaseText, timeText );
+	}
+
+	private string GetPhaseText( GamePhase phase )
+	{
+		return phase switch
+		{
+			GamePhase.Waiting => "Waiting",
+			GamePhase.Build => "Build Phase",
+			GamePhase.Flood => "Flood Phase",
+			GamePhase.Battle => "Battle Phase",
+			GamePhase.RoundEnd => "Round End",
+			_ => phase.ToString()
+		};
+	}
+
+	private string GetTimeText( float seconds )
+	{
+		seconds = seconds.Clamp( 0f, float.MaxValue );
+
+		var totalSeconds = MathF.Ceiling( seconds );
+		var minutes = (int)(totalSeconds / 60f);
+		var remainingSeconds = (int)(totalSeconds % 60f);
+
+		return $"{minutes:00}:{remainingSeconds:00}";
+	}
+
+	private void SetHudState( bool shouldShow, string phaseText, string timeText )
+	{
+		if (
+			ShouldShow == shouldShow &&
+			PhaseText == phaseText &&
+			TimeText == timeText
+		)
+		{
+			return;
+		}
+
+		ShouldShow = shouldShow;
+		PhaseText = phaseText;
+		TimeText = timeText;
+
+		HudBuildVersion++;
+	}
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine(
+			HudBuildVersion,
+			ShouldShow,
+			PhaseText,
+			TimeText,
+			ShowDuringWaiting
+		);
+	}
+}

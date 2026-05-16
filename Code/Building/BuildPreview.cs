@@ -3,9 +3,7 @@ using Sandbox;
 public sealed class BuildPreview : Component
 {
 	[Property] public bool DisablePhysicsOnPreview { get; set; } = true;
-	[Property] public bool DisableDamageOnPreview { get; set; } = true;
 	[Property] public bool DisableBuildPieceOnPreview { get; set; } = true;
-
 	[Property] public Color ValidColor { get; set; } = new Color( 0f, 1f, 0f, 0.45f );
 	[Property] public Color InvalidColor { get; set; } = new Color( 1f, 0f, 0f, 0.45f );
 
@@ -87,14 +85,6 @@ public sealed class BuildPreview : Component
 			foreach ( var collider in PreviewObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
 			{
 				collider.Enabled = false;
-			}
-		}
-
-		if ( DisableDamageOnPreview )
-		{
-			foreach ( var damageable in PreviewObject.Components.GetAll<DamageableObject>( FindMode.EverythingInSelfAndDescendants ) )
-			{
-				damageable.Enabled = false;
 			}
 		}
 

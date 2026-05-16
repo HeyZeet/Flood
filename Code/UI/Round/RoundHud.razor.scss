@@ -1,0 +1,33 @@
+RoundHud {
+	position: absolute;
+	top: 32px;
+	left: 0px;
+	right: 0px;
+	pointer-events: none;
+	font-family: Poppins;
+	color: white;
+}
+
+.round-hud {
+	align-self: center;
+	min-width: 260px;
+	padding: 12px 22px;
+	border-radius: 14px;
+	background-color: rgba( 0, 0, 0, 0.65 );
+	backdrop-filter: blur( 8px );
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+.round-hud__phase {
+	font-size: 20px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.round-hud__time {
+	font-size: 34px;
+	font-weight: 800;
+}

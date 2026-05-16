@@ -5,6 +5,7 @@ using System.Linq;
 public sealed class PlayerInventory : Component
 {
 	[Property] public int MaxSlots { get; set; } = 4;
+	private bool WasOwnerDead { get; set; }
 
 	[Sync] public BaseCarryable ActiveCarryable { get; private set; }
 
@@ -63,8 +64,22 @@ public sealed class PlayerInventory : Component
 
 	public void OnControl()
 	{
-		if ( IsOwnerDead() )
+		var ownerDead = IsOwnerDead();
+
+		if ( ownerDead )
+		{
+			if ( !WasOwnerDead )
+				ActiveCarryable?.OnHolster();
+
+			WasOwnerDead = true;
 			return;
+		}
+
+		if ( WasOwnerDead )
+		{
+			WasOwnerDead = false;
+			ActiveCarryable?.OnDeploy();
+		}
 
 		ActiveCarryable?.OnPlayerUpdate();
 
@@ -74,12 +89,12 @@ public sealed class PlayerInventory : Component
 
 	private bool IsOwnerDead()
 	{
-		var health = Components.Get<PlayerHealth>();
+		var player = Components.Get<FloodPlayer>();
 
-		if ( !health.IsValid() )
+		if ( !player.IsValid() )
 			return false;
 
-		return health.IsDead;
+		return player.IsDead;
 	}
 
 	public bool AddCarryable( BaseCarryable carryable, int slot = -1, bool makeActive = true )

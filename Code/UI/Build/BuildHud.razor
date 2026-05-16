@@ -58,6 +58,20 @@
 			return;
 		}
 
+		if ( player.IsDead )
+		{
+			SetHudState( false, "Dead", "None", "--" );
+			return;
+		}
+
+		var roundManager = FloodRoundManager.Instance;
+
+		if ( roundManager.IsValid() && !roundManager.IsBuildPhase() )
+		{
+			SetHudState( false, "Not Build Phase", "None", "--" );
+			return;
+		}
+
 		var inventory = player.Inventory;
 
 		if ( !inventory.IsValid() )

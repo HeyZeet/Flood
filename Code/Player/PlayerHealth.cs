@@ -18,6 +18,17 @@ public sealed class PlayerHealth : DamageableComponent
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
 
+	public GameObject DeathCameraTarget
+	{
+		get
+		{
+			if ( ActiveRagdoll.IsValid() )
+				return ActiveRagdoll;
+
+			return GameObject;
+		}
+	}
+
 	private PlayerController Controller { get; set; }
 	private GameObject ActiveRagdoll { get; set; }
 
@@ -36,6 +47,7 @@ public sealed class PlayerHealth : DamageableComponent
 
 		LockDeadPlayerMovement();
 	}
+	
 
 	public void TakeDamage( float amount )
 	{

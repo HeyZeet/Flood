@@ -73,6 +73,12 @@ public sealed class BoatBuilder : BaseCarryable
 
 	public override void OnPlayerUpdate()
 	{
+		if ( !IsBuildingAllowed() )
+		{
+			Preview?.ClearPreview();
+			return;
+		}
+
 		UpdatePreview();
 
 		if ( Input.Pressed( "attack1" ) )
@@ -87,6 +93,12 @@ public sealed class BoatBuilder : BaseCarryable
 
 	private void UpdatePreview()
 	{
+		if ( !IsBuildingAllowed() )
+		{
+			Preview?.ClearPreview();
+			return;
+		}
+
 		if ( !CanUseSelectedPiece() )
 		{
 			Preview?.ClearPreview();
