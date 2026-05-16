@@ -20,7 +20,15 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 
 	public void OnEyeAngles( ref Angles angles )
 	{
-		// Later we can add recoil, view punch, camera sway, etc.
+		var health = Components.Get<PlayerHealth>();
+
+		if ( !health.IsValid() )
+			return;
+
+		if ( !health.IsDead )
+			return;
+
+		angles = EyeRotation.Angles();
 	}
 
 	public void PostCameraSetup( CameraComponent camera )
