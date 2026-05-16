@@ -9,13 +9,14 @@ public sealed class PlayerBuildResources : Component
 	protected override void OnStart()
 	{
 		if ( Networking.IsHost )
-		{
 			Resources = StartingResources;
-		}
 	}
 
 	public bool CanAfford( int amount )
 	{
+		if ( amount <= 0 )
+			return true;
+
 		return Resources >= amount;
 	}
 
@@ -43,5 +44,13 @@ public sealed class PlayerBuildResources : Component
 			return;
 
 		Resources += amount;
+	}
+
+	public void ResetResources()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Resources = StartingResources;
 	}
 }
