@@ -1,64 +1,25 @@
-@using Sandbox;
-@using Sandbox.UI;
+@using Sandbox
+
 @inherits PanelComponent
 
 <root>
-	@if ( Builder is not null && Piece is not null )
+	@if ( ShouldShowHud )
 	{
 		<div class="build-hud">
-			<div class="header">BUILD TOOL</div>
-			@if ( Resources.IsValid() )
-			{
-				<div class="row">
-				<span class="label">Resources</span>
-				<span class="value">$@Resources.Resources</span>
-				</div>
-			}
-			<div class="piece-name">@Piece.DisplayName</div>
+			<div class="build-hud__title">Build Mode</div>
 
-			<div class="row">
-				<span class="label">Material</span>
-				<span class="value">@Piece.Material</span>
+			<div class="build-hud__row">
+				<span>Tool</span>
+				<strong>@ActiveToolName</strong>
 			</div>
 
-			<div class="row">
-				<span class="label">Cost</span>
-				<span class="value">$@Piece.Cost</span>
+			<div class="build-hud__row">
+				<span>Resources</span>
+				<strong>@ResourceText</strong>
 			</div>
 
-			<div class="afford @(CanAffordPiece ? "can-afford" : "cannot-afford")">
-				@(CanAffordPiece ? "CAN AFFORD" : "CANNOT AFFORD")
-			</div>
-
-			<div class="row">
-				<span class="label">Health</span>
-				<span class="value">@Piece.MaxHealth</span>
-			</div>
-
-			<div class="placement @(Placement.IsValid ? "valid" : "invalid")">
-				@(Placement.IsValid ? "VALID PLACEMENT" : "BLOCKED")
-			</div>
-
-			@if ( !Placement.IsValid && !string.IsNullOrWhiteSpace( Placement.Reason ) )
-			{
-				<div class="reason">@Placement.Reason</div>
-			}
-
-			<div class="controls">
-				<div class="control-row">
-					<span class="key">LMB</span>
-					<span>Place</span>
-				</div>
-
-				<div class="control-row">
-					<span class="key">RMB</span>
-					<span>Cycle Piece</span>
-				</div>
-
-				<div class="control-row">
-					<span class="key">R</span>
-					<span>Rotate</span>
-				</div>
+			<div class="build-hud__hint">
+				LMB: Place &nbsp; RMB: Next Piece &nbsp; R: Rotate
 			</div>
 		</div>
 	}
@@ -66,60 +27,55 @@
 
 @code
 {
-	private FloodPlayer LocalPlayer { get; set; }
-	private PlayerInventory Inventory { get; set; }
-	private BoatBuilder Builder { get; set; }
+	private FloodPlayer Player => FloodPlayer.Local;
 
-	private BuildPieceData Piece => Builder?.SelectedPiece;
-	private BuildPlacementResult Placement => Builder?.PlacementResult ?? default;
-	private PlayerBuildResources Resources => LocalPlayer?.BuildResources;
+	private PlayerInventory Inventory => Player?.Inventory;
+	private PlayerBuildResources BuildResources => Player?.BuildResources;
 
-	private bool CanAffordPiece
+	private BoatBuilder BoatBuilder => Inventory?.ActiveCarryable as BoatBuilder;
+
+	private bool ShouldShowHud
 	{
 		get
 		{
-			if ( !Resources.IsValid() || Piece is null )
+			if ( !Player.IsValid() )
 				return false;
 
-			return Resources.CanAfford( Piece.Cost );
+			if ( !Inventory.IsValid() )
+				return false;
+
+			return BoatBuilder.IsValid();
 		}
 	}
 
-	protected override void OnUpdate()
+	private string ActiveToolName
 	{
-		LocalPlayer = FloodPlayer.Local;
-		Inventory = LocalPlayer?.Inventory;
+		get
+		{
+			if ( !Inventory.IsValid() )
+				return "None";
 
-		if ( Inventory.IsValid() )
-			Builder = Inventory.GetActiveCarryable<BoatBuilder>();
-		else
-			Builder = null;
+			return Inventory.ActiveCarryableName;
+		}
+	}
+
+	private string ResourceText
+	{
+		get
+		{
+			if ( !BuildResources.IsValid() )
+				return "--";
+
+			return BuildResources.Resources.ToString();
+		}
 	}
 
 	protected override int BuildHash()
 	{
-		var hash = 17;
-
-		hash = hash * 31 + (LocalPlayer.IsValid() ? 1 : 0);
-		hash = hash * 31 + (Inventory.IsValid() ? 1 : 0);
-		hash = hash * 31 + (Builder.IsValid() ? 1 : 0);
-
-		if ( Builder.IsValid() )
-		{
-			var piece = Builder.SelectedPiece;
-			var placement = Builder.PlacementResult;
-
-			hash = hash * 31 + Builder.SelectedPieceIndex;
-			hash = hash * 31 + (piece?.DisplayName?.GetHashCode() ?? 0);
-			hash = hash * 31 + (piece?.Material.GetHashCode() ?? 0);
-			hash = hash * 31 + piece?.Cost.GetHashCode() ?? 0;
-			hash = hash * 31 + piece?.MaxHealth.GetHashCode() ?? 0;
-			hash = hash * 31 + (placement.IsValid ? 1 : 0);
-			hash = hash * 31 + (placement.Reason?.GetHashCode() ?? 0);
-			hash = hash * 31 + (Resources.IsValid() ? Resources.Resources.GetHashCode() : 0);
-			hash = hash * 31 + (CanAffordPiece ? 1 : 0);
-		}
-
-		return hash;
+		return HashCode.Combine(
+			ShouldShowHud,
+			ActiveToolName,
+			ResourceText
+		);
 	}
 }
