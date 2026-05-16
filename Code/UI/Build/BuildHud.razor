@@ -1,4 +1,5 @@
 @using Sandbox
+@using System
 
 @inherits PanelComponent
 
@@ -11,6 +12,11 @@
 			<div class="build-hud__row">
 				<span>Tool</span>
 				<strong>@ActiveToolName</strong>
+			</div>
+
+			<div class="build-hud__row">
+				<span>Piece</span>
+				<strong>@SelectedPieceName</strong>
 			</div>
 
 			<div class="build-hud__row">
@@ -29,10 +35,49 @@
 {
 	private FloodPlayer Player => FloodPlayer.Local;
 
-	private PlayerInventory Inventory => Player?.Inventory;
-	private PlayerBuildResources BuildResources => Player?.BuildResources;
+	private PlayerInventory Inventory
+	{
+		get
+		{
+			if ( !Player.IsValid() )
+				return null;
 
-	private BoatBuilder BoatBuilder => Inventory?.ActiveCarryable as BoatBuilder;
+			return Player.Inventory;
+		}
+	}
+
+	private PlayerBuildResources BuildResources
+	{
+		get
+		{
+			if ( !Player.IsValid() )
+				return null;
+
+			return Player.BuildResources;
+		}
+	}
+
+	private BaseCarryable ActiveCarryable
+	{
+		get
+		{
+			if ( !Inventory.IsValid() )
+				return null;
+
+			return Inventory.ActiveCarryable;
+		}
+	}
+
+	private BoatBuilder BoatBuilder
+	{
+		get
+		{
+			if ( !ActiveCarryable.IsValid() )
+				return null;
+
+			return ActiveCarryable as BoatBuilder;
+		}
+	}
 
 	private bool ShouldShowHud
 	{
@@ -44,6 +89,7 @@
 			if ( !Inventory.IsValid() )
 				return false;
 
+			// Show while the Boat Builder is active.
 			return BoatBuilder.IsValid();
 		}
 	}
@@ -52,10 +98,24 @@
 	{
 		get
 		{
-			if ( !Inventory.IsValid() )
+			if ( !ActiveCarryable.IsValid() )
 				return "None";
 
-			return Inventory.ActiveCarryableName;
+			return ActiveCarryable.DisplayName;
+		}
+	}
+
+	private string SelectedPieceName
+	{
+		get
+		{
+			if ( !BoatBuilder.IsValid() )
+				return "None";
+
+			if ( BoatBuilder.SelectedPiece is null )
+				return "None";
+
+			return BoatBuilder.SelectedPiece.DisplayName;
 		}
 	}
 
@@ -75,6 +135,7 @@
 		return HashCode.Combine(
 			ShouldShowHud,
 			ActiveToolName,
+			SelectedPieceName,
 			ResourceText
 		);
 	}
