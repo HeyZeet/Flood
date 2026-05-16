@@ -3,7 +3,6 @@ using Sandbox;
 public sealed class BoatPieceHealth : DamageableComponent
 {
 	[Property] public float MaxHealth { get; set; } = 100f;
-
 	[Property] public bool DestroyOnDeath { get; set; } = true;
 
 	[Sync] public float Health { get; private set; }
@@ -14,9 +13,7 @@ public sealed class BoatPieceHealth : DamageableComponent
 	protected override void OnStart()
 	{
 		if ( Networking.IsHost )
-		{
-			Health = MaxHealth;
-		}
+			ResetHealth();
 	}
 
 	public override void TakeDamage( DamageInfo damageInfo )
@@ -35,9 +32,7 @@ public sealed class BoatPieceHealth : DamageableComponent
 		Log.Info( $"{GameObject.Name} boat piece took {amount} damage. Health: {Health}" );
 
 		if ( Health <= 0f )
-		{
 			Die( damageInfo );
-		}
 	}
 
 	public void Repair( float amount )
@@ -54,13 +49,19 @@ public sealed class BoatPieceHealth : DamageableComponent
 		Health = Health.Clamp( 0f, MaxHealth );
 	}
 
+	public void ResetHealth()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Health = MaxHealth;
+	}
+
 	private void Die( DamageInfo damageInfo )
 	{
 		Log.Info( $"{GameObject.Name} boat piece destroyed." );
 
 		if ( DestroyOnDeath )
-		{
 			GameObject.Destroy();
-		}
 	}
 }
