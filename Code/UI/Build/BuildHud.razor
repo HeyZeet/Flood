@@ -11,12 +11,12 @@
 
 			<div class="build-hud__row">
 				<span>Tool</span>
-				<strong>@ActiveToolName</strong>
+				<strong>@ToolName</strong>
 			</div>
 
 			<div class="build-hud__row">
 				<span>Piece</span>
-				<strong>@SelectedPieceName</strong>
+				<strong>@PieceName</strong>
 			</div>
 
 			<div class="build-hud__row">
@@ -33,109 +33,83 @@
 
 @code
 {
-	private FloodPlayer Player => FloodPlayer.Local;
+	private string ToolName { get; set; } = "None";
+	private string PieceName { get; set; } = "None";
+	private string ResourceText { get; set; } = "--";
 
-	private PlayerInventory Inventory
+	private bool ShouldShowHud { get; set; }
+
+	private int HudBuildVersion { get; set; }
+
+	protected override void OnUpdate()
 	{
-		get
-		{
-			if ( !Player.IsValid() )
-				return null;
+		base.OnUpdate();
 
-			return Player.Inventory;
-		}
+		UpdateHudText();
 	}
 
-	private PlayerBuildResources BuildResources
+	private void UpdateHudText()
 	{
-		get
-		{
-			if ( !Player.IsValid() )
-				return null;
+		var player = FloodPlayer.Local;
 
-			return Player.BuildResources;
+		if ( !player.IsValid() )
+		{
+			SetHudState( false, "No Player", "None", "--" );
+			return;
 		}
+
+		var inventory = player.Inventory;
+
+		if ( !inventory.IsValid() )
+		{
+			SetHudState( false, "No Inventory", "None", "--" );
+			return;
+		}
+
+		var activeCarryable = inventory.ActiveCarryable;
+
+		if ( activeCarryable is not BoatBuilder boatBuilder )
+		{
+			SetHudState( false, "None", "None", "--" );
+			return;
+		}
+
+		var resources = player.BuildResources;
+
+		var toolName = boatBuilder.DisplayName;
+		var pieceName = boatBuilder.SelectedPiece?.DisplayName ?? "None";
+		var resourceText = resources.IsValid() ? resources.Resources.ToString() : "--";
+
+		SetHudState( true, toolName, pieceName, resourceText );
 	}
 
-	private BaseCarryable ActiveCarryable
+	private void SetHudState( bool shouldShow, string toolName, string pieceName, string resourceText )
 	{
-		get
+		if (
+			ShouldShowHud == shouldShow &&
+			ToolName == toolName &&
+			PieceName == pieceName &&
+			ResourceText == resourceText
+		)
 		{
-			if ( !Inventory.IsValid() )
-				return null;
-
-			return Inventory.ActiveCarryable;
+			return;
 		}
-	}
 
-	private BoatBuilder BoatBuilder
-	{
-		get
-		{
-			if ( !ActiveCarryable.IsValid() )
-				return null;
+		ShouldShowHud = shouldShow;
+		ToolName = toolName;
+		PieceName = pieceName;
+		ResourceText = resourceText;
 
-			return ActiveCarryable as BoatBuilder;
-		}
-	}
-
-	private bool ShouldShowHud
-	{
-		get
-		{
-			if ( !Player.IsValid() )
-				return false;
-
-			if ( !Inventory.IsValid() )
-				return false;
-
-			// Show while the Boat Builder is active.
-			return BoatBuilder.IsValid();
-		}
-	}
-
-	private string ActiveToolName
-	{
-		get
-		{
-			if ( !ActiveCarryable.IsValid() )
-				return "None";
-
-			return ActiveCarryable.DisplayName;
-		}
-	}
-
-	private string SelectedPieceName
-	{
-		get
-		{
-			if ( !BoatBuilder.IsValid() )
-				return "None";
-
-			if ( BoatBuilder.SelectedPiece is null )
-				return "None";
-
-			return BoatBuilder.SelectedPiece.DisplayName;
-		}
-	}
-
-	private string ResourceText
-	{
-		get
-		{
-			if ( !BuildResources.IsValid() )
-				return "--";
-
-			return BuildResources.Resources.ToString();
-		}
+		HudBuildVersion++;
 	}
 
 	protected override int BuildHash()
 	{
 		return HashCode.Combine(
+			HudBuildVersion,
 			ShouldShowHud,
-			ActiveToolName,
-			SelectedPieceName,
+			ToolName,
+			PieceName,
 			ResourceText
 		);
 	}
