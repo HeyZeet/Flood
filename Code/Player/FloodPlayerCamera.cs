@@ -29,6 +29,15 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 		if ( !camera.IsValid() )
 			return;
 
+		var player = Components.Get<FloodPlayer>();
+
+		if ( player.IsValid() && player.IsDead )
+		{
+			camera.Enabled = false;
+			return;
+		}
+
+		camera.Enabled = true;
 		camera.FieldOfView = FieldOfView;
 
 		EyePosition = camera.WorldPosition;
