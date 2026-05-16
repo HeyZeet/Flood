@@ -83,13 +83,15 @@ public sealed class PlayerHealth : DamageableComponent
 			return;
 
 		ResetHealth();
-		SetPlayerControlEnabled( true );
 
 		Log.Info( $"{GameObject.Name} respawned. Health: {Health}" );
 	}
 
-	private void ResetHealth()
+	public void ResetHealth()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		Health = MaxHealth;
 	}
 
@@ -97,24 +99,8 @@ public sealed class PlayerHealth : DamageableComponent
 	{
 		Log.Info( $"{GameObject.Name} died." );
 
-		SetPlayerControlEnabled( false );
-	}
-
-	private void SetPlayerControlEnabled( bool enabled )
-	{
-		foreach ( var controller in Components.GetAll<PlayerController>( FindMode.EverythingInSelfAndDescendants ) )
-		{
-			controller.Enabled = enabled;
-		}
-
-		foreach ( var camera in Components.GetAll<FloodPlayerCamera>( FindMode.EverythingInSelfAndDescendants ) )
-		{
-			camera.Enabled = enabled;
-		}
-
-		foreach ( var inventory in Components.GetAll<PlayerInventory>( FindMode.EverythingInSelfAndDescendants ) )
-		{
-			inventory.Enabled = enabled;
-		}
+		// Do not disable PlayerController here.
+		// Sandbox.PlayerController can throw errors if disabled/re-enabled during physics updates.
+		// Later we will add a proper dead-state input/movement block instead.
 	}
 }
