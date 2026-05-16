@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Collections.Generic;
 
 public enum BuildPieceMaterial
 {
@@ -10,6 +11,10 @@ public enum BuildPieceMaterial
 
 public sealed class BuildPiece : Component
 {
+	private static readonly List<BuildPiece> AllPieces = new();
+
+	public static IReadOnlyList<BuildPiece> All => AllPieces;
+
 	[Property] public string DisplayName { get; set; } = "Build Piece";
 	[Property] public BuildPieceMaterial Material { get; set; } = BuildPieceMaterial.Wood;
 	[Property] public int Cost { get; set; } = 10;
@@ -26,8 +31,16 @@ public sealed class BuildPiece : Component
 
 	protected override void OnStart()
 	{
+		if ( !AllPieces.Contains( this ) )
+			AllPieces.Add( this );
+
 		CacheComponents();
 		ValidateRequiredComponents();
+	}
+
+	protected override void OnDestroy()
+	{
+		AllPieces.Remove( this );
 	}
 
 	public void ApplyData( BuildPieceData data )
