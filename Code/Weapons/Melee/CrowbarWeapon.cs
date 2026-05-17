@@ -7,6 +7,11 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 	[Property] public SoundEvent SwingSound { get; set; }
 	[Property] public SoundEvent HitSound { get; set; }
 
+	private ThirdPersonWeaponModel ThirdPersonModel =>
+	Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+	private ViewModelWeapon ViewModel => 
+	Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
 	protected override void OnStart()
 	{
 		base.OnStart();
@@ -21,11 +26,19 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 	{
 		base.OnDeploy();
 
+		if ( Inventory.IsValid() && !Inventory.IsProxy )
+			ViewModel?.Show();
+
+		ThirdPersonModel?.Show();
+
 		Log.Info( "Crowbar deployed." );
 	}
 
 	public override void OnHolster()
 	{
+		ViewModel?.Hide();
+		ThirdPersonModel?.Hide();
+
 		base.OnHolster();
 
 		Log.Info( "Crowbar holstered." );
@@ -35,11 +48,13 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 	{
 		PlaySwingEffects();
 
+		ViewModel?.PlayAttack();
+		ThirdPersonModel?.PlayAttack();
+
 		base.PrimaryAttack();
 
 		// Later:
-		// Trigger viewmodel swing animation.
-		// Trigger third-person attack animation.
+		// Add third-person weapon-specific swing effects if needed.
 	}
 
 	protected override void DoMeleeAttack()
