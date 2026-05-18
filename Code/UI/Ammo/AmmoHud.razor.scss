@@ -1,59 +1,56 @@
 AmmoHud {
 	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
+	right: 64px;
+	bottom: 64px;
 	pointer-events: none;
+	font-family: Poppins;
+	color: white;
+}
 
-	.ammo-hud {
-		position: absolute;
-		right: 64px;
-		bottom: 64px;
+.ammo-hud {
+	min-width: 180px;
+	padding: 16px 22px;
+	border-radius: 12px;
+	background-color: rgba( 0, 0, 0, 0.65 );
+	backdrop-filter: blur( 8px );
+	flex-direction: column;
+	align-items: flex-end;
+}
 
-		padding: 16px 22px;
-		border-radius: 12px;
+.ammo-hud__weapon {
+	font-size: 18px;
+	font-weight: 700;
+	opacity: 0.8;
+	margin-bottom: 4px;
+}
 
-		background-color: rgba( 0, 0, 0, 0.55 );
-		color: white;
+.ammo-hud__row {
+	flex-direction: row;
+	align-items: baseline;
+}
 
-		font-family: Poppins;
-		flex-direction: column;
-		align-items: flex-end;
-	}
+.ammo-hud__clip {
+	font-size: 42px;
+	font-weight: 800;
+}
 
-	.ammo-hud.hidden {
-		display: none;
-	}
+.ammo-hud__slash {
+	font-size: 28px;
+	font-weight: 600;
+	margin-left: 8px;
+	margin-right: 8px;
+	opacity: 0.6;
+}
 
-	.weapon-name {
-		font-size: 18px;
-		font-weight: 600;
-		opacity: 0.8;
-		margin-bottom: 4px;
-	}
+.ammo-hud__reserve {
+	font-size: 28px;
+	font-weight: 700;
+	opacity: 0.85;
+}
 
-	.ammo-row {
-		flex-direction: row;
-		align-items: baseline;
-	}
-
-	.clip {
-		font-size: 42px;
-		font-weight: 800;
-	}
-
-	.slash {
-		font-size: 28px;
-		font-weight: 600;
-		margin-left: 8px;
-		margin-right: 8px;
-		opacity: 0.6;
-	}
-
-	.reserve {
-		font-size: 28px;
-		font-weight: 700;
-		opacity: 0.85;
-	}
+.ammo-hud__reload {
+	margin-top: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	opacity: 0.8;
 }

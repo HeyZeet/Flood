@@ -763,7 +763,7 @@
               "__type": "Sandbox.UI.Death.DeathHud",
               "__guid": "6d234bca-527c-4940-948f-6ea7d7696051",
               "__enabled": true,
-              "Flags": 0,
+              "Flags": 512,
               "EnableDebugHint": true,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
@@ -786,8 +786,8 @@
               "ShowDuringWaiting": false
             },
             {
-              "__type": "AmmoHudComponent",
-              "__guid": "05defb43-6c4d-4667-8e25-0c6dcf120e66",
+              "__type": "Sandbox.UI.Ammo.AmmoHud",
+              "__guid": "4262b698-6276-42c0-9169-0dc6f49a579b",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
@@ -822,11 +822,13 @@
               "__enabled": true,
               "Flags": 0,
               "AnimationRenderer": null,
+              "BaseSpreadDegrees": 0.75,
               "Damage": 10,
               "DrawDebugTrace": true,
               "HitSound": "sounds/hit.sound",
               "HoldType": "mele_weapons",
               "InventorySlot": 0,
+              "MaxSpreadDegrees": 4,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -837,7 +839,12 @@
               "PlayDeployAnimation": true,
               "PrimaryFireRate": 0.5,
               "Range": 85,
+              "RecoilPitch": 1.25,
+              "RecoilRecoveryRate": 8,
+              "RecoilYaw": 0.4,
               "SecondaryFireRate": 0.5,
+              "SpreadPerShot": 0.35,
+              "SpreadRecoveryRate": 3,
               "SwingSound": "sounds/swing.sound",
               "TraceRadius": 8
             },
@@ -913,6 +920,7 @@
               "Flags": 0,
               "AmmoInClip": 12,
               "AnimationRenderer": null,
+              "BaseSpreadDegrees": 0.75,
               "BulletRadius": 1.5,
               "BulletRange": 5000,
               "ClipSize": 12,
@@ -924,6 +932,7 @@
               "HoldType": "pistol",
               "InfiniteAmmo": true,
               "InventorySlot": 1,
+              "MaxSpreadDegrees": 4,
               "MuzzleBoneName": "silencer",
               "MuzzleFlashLifeTime": 0.2,
               "MuzzleFlashPositionOffset": "0,0,0",
@@ -941,10 +950,15 @@
               "PlayAttackAnimation": true,
               "PlayDeployAnimation": true,
               "PrimaryFireRate": 0.5,
+              "RecoilPitch": 1.25,
+              "RecoilRecoveryRate": 8,
+              "RecoilYaw": 0.4,
               "ReloadSound": "sounds/pistolreload.sound",
               "ReloadTime": 1.4,
               "ReserveAmmo": 48,
-              "SecondaryFireRate": 0.5
+              "SecondaryFireRate": 0.5,
+              "SpreadPerShot": 0.35,
+              "SpreadRecoveryRate": 3
             },
             {
               "__type": "ViewModelWeapon",
@@ -1734,8 +1748,24 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "BaseSpreadDegrees",
+            "Value": 0.75
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "HasReserveAmmo",
             "Value": true
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MaxSpreadDegrees",
+            "Value": 4
           },
           {
             "Target": {
@@ -1782,6 +1812,30 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "RecoilPitch",
+            "Value": 1.25
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "RecoilRecoveryRate",
+            "Value": 8
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "RecoilYaw",
+            "Value": 0.4
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "ReloadSound",
             "Value": null
           },
@@ -1800,6 +1854,22 @@
             },
             "Property": "ReserveAmmo",
             "Value": 48
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "SpreadPerShot",
+            "Value": 0.35
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "SpreadRecoveryRate",
+            "Value": 3
           },
           {
             "Target": {

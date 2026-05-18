@@ -19,7 +19,7 @@ public abstract class BaseGunWeapon : BaseWeapon
     [Property] public float ReloadTime { get; set; } = 1.4f;
     [Property] public SoundEvent ReloadSound { get; set; }
 
-    private bool IsReloading { get; set; }
+    public bool IsReloading { get; private set; }
     private TimeSince TimeSinceReloadStarted { get; set; }
 
 	[Header( "Effects" )]
@@ -32,6 +32,55 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public Vector3 MuzzleFlashPositionOffset { get; set; } = Vector3.Zero;
 	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
 	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
+
+    protected virtual Vector3 GetBaseShootDirection()
+    {
+	    var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+
+	    if ( camera.IsValid() )
+		    return camera.AimForward;
+
+	    var sceneCamera = Scene.Camera;
+
+	    if ( sceneCamera.IsValid() )
+		    return sceneCamera.WorldRotation.Forward;
+
+	    return WorldRotation.Forward;
+    }
+
+    protected virtual void AddSpread()
+    {
+	    CurrentSpreadDegrees += SpreadPerShot;
+	    CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
+    }
+
+    protected virtual void UpdateSpreadRecovery()
+    {
+	    if ( CurrentSpreadDegrees <= BaseSpreadDegrees )
+	    {
+		    CurrentSpreadDegrees = BaseSpreadDegrees;
+		    return;
+	    }
+
+	    CurrentSpreadDegrees -= SpreadRecoveryRate * Time.Delta;
+	    CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
+    }
+
+    protected virtual void ApplyRecoil()
+    {
+	    var pitch = -RecoilPitch;
+	    var yaw = Game.Random.Float( -RecoilYaw, RecoilYaw );
+
+	    ViewRecoilOffset += new Angles( pitch, yaw, 0f );
+    }
+
+    protected virtual void UpdateRecoilRecovery()
+    {
+	    if ( ViewRecoilOffset == Angles.Zero )
+		    return;
+
+	    ViewRecoilOffset = Angles.Lerp( ViewRecoilOffset, Angles.Zero, RecoilRecoveryRate * Time.Delta );
+    }
 
     public BaseGunWeapon ActiveGun
     {
@@ -88,7 +137,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 	    base.OnHolster();
     }
 
-    public override void OnPlayerUpdate()
+   public override void OnPlayerUpdate()
     {
 	    base.OnPlayerUpdate();
 
@@ -96,6 +145,8 @@ public abstract class BaseGunWeapon : BaseWeapon
 		    StartReload();
 
 	    UpdateReload();
+	    UpdateSpreadRecovery();
+	    UpdateRecoilRecovery();
     }
 
     public override void PrimaryAttack()
@@ -113,6 +164,8 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	    PlayFireEffects();
 	    FireBullet();
+        AddSpread();
+        ApplyRecoil();
 
 	    base.PrimaryAttack();
 
@@ -324,19 +377,23 @@ public abstract class BaseGunWeapon : BaseWeapon
 	}
 
 	protected virtual Vector3 GetShootDirection()
-	{
-		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+    {
+	    var baseDirection = GetBaseShootDirection();
 
-		if ( camera.IsValid() )
-			return camera.AimForward;
+	    if ( CurrentSpreadDegrees <= 0f )
+		    return baseDirection;
 
-		var sceneCamera = Scene.Camera;
+	    var spread = CurrentSpreadDegrees.DegreeToRadian();
 
-		if ( sceneCamera.IsValid() )
-			return sceneCamera.WorldRotation.Forward;
+	    var randomYaw = Game.Random.Float( -spread, spread );
+	    var randomPitch = Game.Random.Float( -spread, spread );
 
-		return WorldRotation.Forward;
-	}
+	    var rotation = Rotation.LookAt( baseDirection );
+	    rotation *= Rotation.FromYaw( randomYaw.RadianToDegree() );
+	    rotation *= Rotation.FromPitch( randomPitch.RadianToDegree() );
+
+	    return rotation.Forward;
+    }
 
 	protected virtual void TryDamageHitObject( SceneTraceResult trace )
 	{

@@ -1,59 +1,135 @@
 @using Sandbox
+@using System
 
-<div class="ammo-hud @(Gun.IsValid() ? "" : "hidden")">
-	@if ( Gun.IsValid() )
+@inherits PanelComponent
+
+<root>
+	@if ( ShouldShowHud )
 	{
-		<div class="weapon-name">@Gun.DisplayName</div>
+		<div class="ammo-hud">
+			<div class="ammo-hud__weapon">@WeaponName</div>
 
-		<div class="ammo-row">
-			<span class="clip">@Gun.AmmoInClip</span>
-			<span class="slash">/</span>
-			<span class="reserve">@ReserveText</span>
+			<div class="ammo-hud__row">
+				<span class="ammo-hud__clip">@AmmoInClip</span>
+				<span class="ammo-hud__slash">/</span>
+				<span class="ammo-hud__reserve">@ReserveText</span>
+			</div>
+
+			@if ( IsReloading )
+			{
+				<div class="ammo-hud__reload">Reloading...</div>
+			}
 		</div>
 	}
-</div>
+</root>
 
 @code
 {
-	private BaseGunWeapon Gun => GetActiveGun();
+	private bool ShouldShowHud { get; set; }
+	private string WeaponName { get; set; } = "";
+	private int AmmoInClip { get; set; }
+	private string ReserveText { get; set; } = "";
+	private bool IsReloading { get; set; }
 
-	private BaseGunWeapon GetActiveGun()
+	private int HudBuildVersion { get; set; }
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+
+		UpdateHudText();
+	}
+
+	private void UpdateHudText()
 	{
 		var player = FloodPlayer.Local;
 
 		if ( !player.IsValid() )
-			return null;
+		{
+			SetHudState( false, "", 0, "", false );
+			return;
+		}
 
 		var inventory = player.Inventory;
 
 		if ( !inventory.IsValid() )
-			return null;
+		{
+			SetHudState( false, "", 0, "", false );
+			return;
+		}
 
 		var activeCarryable = inventory.ActiveCarryable;
 
 		if ( !activeCarryable.IsValid() )
-			return null;
+		{
+			SetHudState( false, "", 0, "", false );
+			return;
+		}
 
-		if ( activeCarryable is BaseGunWeapon gun )
-			return gun;
+		var gun = activeCarryable.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
 
-		return activeCarryable.GameObject.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
+		if ( !gun.IsValid() )
+		{
+			SetHudState( false, "", 0, "", false );
+			return;
+		}
+
+		var reserveText = GetReserveText( gun );
+
+		SetHudState(
+			true,
+			gun.DisplayName,
+			gun.AmmoInClip,
+			reserveText,
+			gun.IsReloading
+		);
 	}
 
-	private string ReserveText
+	private string GetReserveText( BaseGunWeapon gun )
 	{
-		get
+		if ( !gun.IsValid() )
+			return "";
+
+		if ( gun.InfiniteAmmo )
+			return "∞";
+
+		if ( !gun.HasReserveAmmo )
+			return "--";
+
+		return gun.ReserveAmmo.ToString();
+	}
+
+	private void SetHudState( bool shouldShow, string weaponName, int ammoInClip, string reserveText, bool isReloading )
+	{
+		if (
+			ShouldShowHud == shouldShow &&
+			WeaponName == weaponName &&
+			AmmoInClip == ammoInClip &&
+			ReserveText == reserveText &&
+			IsReloading == isReloading
+		)
 		{
-			if ( !Gun.IsValid() )
-				return "";
-
-			if ( Gun.InfiniteAmmo )
-				return "∞";
-
-			if ( !Gun.HasReserveAmmo )
-				return "--";
-
-			return Gun.ReserveAmmo.ToString();
+			return;
 		}
+
+		ShouldShowHud = shouldShow;
+		WeaponName = weaponName;
+		AmmoInClip = ammoInClip;
+		ReserveText = reserveText;
+		IsReloading = isReloading;
+
+		HudBuildVersion++;
+	}
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine(
+			HudBuildVersion,
+			ShouldShowHud,
+			WeaponName,
+			AmmoInClip,
+			ReserveText,
+			IsReloading
+		);
 	}
 }

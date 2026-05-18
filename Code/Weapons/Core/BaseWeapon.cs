@@ -12,9 +12,22 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public bool PlayDeployAnimation { get; set; } = true;
 	[Property] public bool PlayAttackAnimation { get; set; } = true;
 
+	[Header( "Accuracy" )]
+	[Property] public float BaseSpreadDegrees { get; set; } = 0.75f;
+	[Property] public float MaxSpreadDegrees { get; set; } = 4f;
+	[Property] public float SpreadPerShot { get; set; } = 0.35f;
+	[Property] public float SpreadRecoveryRate { get; set; } = 3f;
+
+	[Header( "Recoil" )]
+	[Property] public float RecoilPitch { get; set; } = 1.25f;
+	[Property] public float RecoilYaw { get; set; } = 0.4f;
+	[Property] public float RecoilRecoveryRate { get; set; } = 8f;
+
 	private TimeSince TimeSincePrimaryAttack { get; set; }
 	private TimeSince TimeSinceSecondaryAttack { get; set; }
-
+	private float CurrentSpreadDegrees { get; set; }
+	private Angles ViewRecoilOffset { get; set; }
+	
 	protected FloodPlayer OwnerPlayer
 	{
 		get
