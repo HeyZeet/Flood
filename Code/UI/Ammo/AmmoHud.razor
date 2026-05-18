@@ -1,0 +1,59 @@
+@using Sandbox
+
+<div class="ammo-hud @(Gun.IsValid() ? "" : "hidden")">
+	@if ( Gun.IsValid() )
+	{
+		<div class="weapon-name">@Gun.DisplayName</div>
+
+		<div class="ammo-row">
+			<span class="clip">@Gun.AmmoInClip</span>
+			<span class="slash">/</span>
+			<span class="reserve">@ReserveText</span>
+		</div>
+	}
+</div>
+
+@code
+{
+	private BaseGunWeapon Gun => GetActiveGun();
+
+	private BaseGunWeapon GetActiveGun()
+	{
+		var player = FloodPlayer.Local;
+
+		if ( !player.IsValid() )
+			return null;
+
+		var inventory = player.Inventory;
+
+		if ( !inventory.IsValid() )
+			return null;
+
+		var activeCarryable = inventory.ActiveCarryable;
+
+		if ( !activeCarryable.IsValid() )
+			return null;
+
+		if ( activeCarryable is BaseGunWeapon gun )
+			return gun;
+
+		return activeCarryable.GameObject.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
+	}
+
+	private string ReserveText
+	{
+		get
+		{
+			if ( !Gun.IsValid() )
+				return "";
+
+			if ( Gun.InfiniteAmmo )
+				return "∞";
+
+			if ( !Gun.HasReserveAmmo )
+				return "--";
+
+			return Gun.ReserveAmmo.ToString();
+		}
+	}
+}

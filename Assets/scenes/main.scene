@@ -784,6 +784,18 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "ShowDuringWaiting": false
+            },
+            {
+              "__type": "AmmoHudComponent",
+              "__guid": "05defb43-6c4d-4667-8e25-0c6dcf120e66",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
             }
           ],
           "Children": []
@@ -844,6 +856,7 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "PositionOffset": "3.66285872,0.354287833,0.97142458",
+              "ReloadTrigger": "b_reload",
               "RotationOffset": "0,0,0",
               "WeaponModel": "models/weapons/sbox_melee_crowbar/v_crowbar.vmdl"
             },
@@ -907,6 +920,7 @@
               "DrawDebugTrace": true,
               "DryFireSound": "sounds/pistoldryfire.sound",
               "FireSound": "sounds/pistolshoot.sound",
+              "HasReserveAmmo": true,
               "HoldType": "pistol",
               "InfiniteAmmo": true,
               "InventorySlot": 1,
@@ -927,6 +941,9 @@
               "PlayAttackAnimation": true,
               "PlayDeployAnimation": true,
               "PrimaryFireRate": 0.5,
+              "ReloadSound": "sounds/pistolreload.sound",
+              "ReloadTime": 1.4,
+              "ReserveAmmo": 48,
               "SecondaryFireRate": 0.5
             },
             {
@@ -944,6 +961,7 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "PositionOffset": "12.6170683,1.45141733,-3.31432462",
+              "ReloadTrigger": "b_reload",
               "RotationOffset": "0,0,0",
               "WeaponModel": "models/weapons/sbox_pistol_usp/v_usp.vmdl"
             },
@@ -1716,6 +1734,14 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "HasReserveAmmo",
+            "Value": true
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "MuzzleBoneName",
             "Value": "muzzle"
           },
@@ -1754,10 +1780,42 @@
           {
             "Target": {
               "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "ReloadSound",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "ReloadTime",
+            "Value": 1.4
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "ReserveAmmo",
+            "Value": 48
+          },
+          {
+            "Target": {
+              "Type": "Component",
               "IdValue": "540c582c-5f1d-4fae-b908-0d91bc1b8174"
             },
             "Property": "__enabled",
             "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "540c582c-5f1d-4fae-b908-0d91bc1b8174"
+            },
+            "Property": "ReloadTrigger",
+            "Value": "b_reload"
           },
           {
             "Target": {

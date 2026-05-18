@@ -20,6 +20,9 @@ public sealed class ViewModelWeapon : Component
 	[Property, Group( "Animation" )]
 	public string AttackTrigger { get; set; } = "b_attack";
 
+	[Property, Group( "Animation" )]
+	public string ReloadTrigger { get; set; } = "b_reload";
+
 	private GameObject ViewModelObject { get; set; }
 	private SkinnedModelRenderer WeaponRenderer { get; set; }
 	private SkinnedModelRenderer ArmsRenderer { get; set; }
@@ -66,6 +69,11 @@ public sealed class ViewModelWeapon : Component
 	public void PlayAttack()
 	{
 		SetAnimationTrigger( AttackTrigger );
+	}
+
+	public void PlayReload()
+	{
+		SetAnimationTrigger( ReloadTrigger );
 	}
 
 	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
@@ -148,7 +156,6 @@ public sealed class ViewModelWeapon : Component
 		if ( !WeaponRenderer.IsValid() )
 			return;
 
-		// Force the bool to retrigger cleanly.
 		WeaponRenderer.Set( triggerName, false );
 		WeaponRenderer.Set( triggerName, true );
 	}

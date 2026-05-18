@@ -94,6 +94,7 @@ public sealed class ThirdPersonWeaponModel : Component
 			return;
 
 		BodyRenderer.Set( "holdtype_attack", HoldTypeAttack );
+		BodyRenderer.Set( AttackTrigger, false );
 		BodyRenderer.Set( AttackTrigger, true );
 	}
 
@@ -123,12 +124,6 @@ public sealed class ThirdPersonWeaponModel : Component
 			return false;
 
 		return !inventory.IsProxy;
-	}
-
-	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
-	{
-		boneTransform = default;
-		return false;
 	}
 
 	private void UpdateBodyHoldType()

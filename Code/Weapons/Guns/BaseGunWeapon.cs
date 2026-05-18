@@ -8,9 +8,19 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public float BulletRadius { get; set; } = 1.5f;
 	[Property] public bool DrawDebugTrace { get; set; } = true;
 
-	[Property] public bool InfiniteAmmo { get; set; } = true;
+    [Header( "Ammo" )]
+    [Property] public int ReserveAmmo { get; set; } = 48;
+    [Property] public bool HasReserveAmmo { get; set; } = true;
+    [Property] public bool InfiniteAmmo { get; set; } = true;
 	[Property] public int ClipSize { get; set; } = 12;
 	[Property, Sync] public int AmmoInClip { get; set; } = 12;
+
+    [Header( "Reload" )]
+    [Property] public float ReloadTime { get; set; } = 1.4f;
+    [Property] public SoundEvent ReloadSound { get; set; }
+
+    private bool IsReloading { get; set; }
+    private TimeSince TimeSinceReloadStarted { get; set; }
 
 	[Header( "Effects" )]
 	[Property] public SoundEvent FireSound { get; set; }
@@ -23,6 +33,46 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
 	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
+    public BaseGunWeapon ActiveGun
+    {
+	    get
+	    {
+		    var player = FloodPlayer.Local;
+
+		    if ( !player.IsValid() )
+			    return null;
+
+		    var inventory = player.Inventory;
+
+		    if ( !inventory.IsValid() )
+			return null;
+
+		    var activeCarryable = inventory.ActiveCarryable;
+
+		    if ( !activeCarryable.IsValid() )
+			return null;
+
+		    if ( activeCarryable is BaseGunWeapon activeGun )
+			return activeGun;
+
+		    return activeCarryable.GameObject.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
+	    }
+    }
+
+    public string AmmoDisplay
+    {
+	    get
+	    {
+		    if ( InfiniteAmmo )
+			    return $"{AmmoInClip} / ∞";
+
+		    if ( !HasReserveAmmo )
+			    return $"{AmmoInClip} / --";
+
+		    return $"{AmmoInClip} / {ReserveAmmo}";
+	    }
+    }
+
 	protected override void OnStart()
 	{
 		base.OnStart();
@@ -31,21 +81,44 @@ public abstract class BaseGunWeapon : BaseWeapon
 			AmmoInClip = ClipSize;
 	}
 
-	public override void PrimaryAttack()
-	{
-		if ( !HasAmmo() )
-		{
-			PlayDryFireEffects();
-			return;
-		}
+    public override void OnHolster()
+    {
+	    CancelReload();
 
-		ConsumeAmmo();
+	    base.OnHolster();
+    }
 
-		PlayFireEffects();
-		FireBullet();
+    public override void OnPlayerUpdate()
+    {
+	    base.OnPlayerUpdate();
 
-		base.PrimaryAttack();
-	}
+	    if ( Input.Pressed( "reload" ) )
+		    StartReload();
+
+	    UpdateReload();
+    }
+
+    public override void PrimaryAttack()
+    {
+	    if ( IsReloading )
+		    return;
+
+	    if ( !HasAmmo() )
+	    {
+		    PlayDryFireEffects();
+		    return;
+	    }
+
+	    ConsumeAmmo();
+
+	    PlayFireEffects();
+	    FireBullet();
+
+	    base.PrimaryAttack();
+
+	    if ( AmmoInClip <= 0 && HasReserveAmmo )
+		    StartReload();
+    }
 
 	protected virtual bool HasAmmo()
 	{
@@ -69,11 +142,6 @@ public abstract class BaseGunWeapon : BaseWeapon
 			Sound.Play( FireSound, WorldPosition );
 
 		PlayMuzzleFlash();
-
-		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( viewModel.IsValid() )
-			viewModel.PlayAttack();
 	}
 
 	protected virtual void PlayDryFireEffects()
@@ -89,6 +157,80 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	    PlayFirstPersonMuzzleFlash();
 	    PlayThirdPersonMuzzleFlash();
+    }
+
+    protected virtual bool CanReload()
+{
+	if ( IsReloading )
+		return false;
+
+	if ( InfiniteAmmo )
+		return false;
+
+	if ( AmmoInClip >= ClipSize )
+		return false;
+
+	if ( HasReserveAmmo && ReserveAmmo <= 0 )
+		return false;
+
+	return true;
+}
+
+    protected virtual void StartReload()
+    {
+	    if ( !CanReload() )
+		    return;
+
+	    IsReloading = true;
+	    TimeSinceReloadStarted = 0f;
+
+	    PlayReloadEffects();
+    }
+
+    protected virtual void UpdateReload()
+    {
+	    if ( !IsReloading )
+		    return;
+
+	    if ( TimeSinceReloadStarted < ReloadTime )
+		    return;
+
+	    FinishReload();
+    }
+
+    protected virtual void FinishReload()
+    {
+	    IsReloading = false;
+
+	    var ammoNeeded = ClipSize - AmmoInClip;
+
+	    if ( ammoNeeded <= 0 )
+		    return;
+
+	    if ( !HasReserveAmmo )
+	    {
+		    AmmoInClip = ClipSize;
+		    return;
+	    }
+
+	    var ammoToLoad = System.Math.Min( ammoNeeded, ReserveAmmo );
+
+	    AmmoInClip += ammoToLoad;
+	    ReserveAmmo -= ammoToLoad;
+    }
+
+    protected virtual void PlayReloadEffects()
+    {
+	    if ( ReloadSound is not null )
+		    Sound.Play( ReloadSound, WorldPosition );
+
+	    ClearOneShotAnimationParams();
+	    TriggerAnimationBool( "b_reload" );
+
+	    var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+	    if ( viewModel.IsValid() )
+		    viewModel.PlayReload();
     }
 
     private void PlayFirstPersonMuzzleFlash()
@@ -209,4 +351,14 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 		Log.Info( $"{DisplayName} shot {trace.GameObject.Name} for {Damage} damage." );
 	}
+
+    protected virtual void CancelReload()
+    {
+	    if ( !IsReloading )
+		    return;
+
+	    IsReloading = false;
+
+	    ClearOneShotAnimationParams();
+    }
 }
