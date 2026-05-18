@@ -6,6 +6,12 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public float PrimaryFireRate { get; set; } = 0.5f;
 	[Property] public float SecondaryFireRate { get; set; } = 0.5f;
 
+	[Header( "Animation" )]
+	[Property] public SkinnedModelRenderer AnimationRenderer { get; set; }
+	[Property] public string HoldType { get; set; } = "holditem";
+	[Property] public bool PlayDeployAnimation { get; set; } = true;
+	[Property] public bool PlayAttackAnimation { get; set; } = true;
+
 	private TimeSince TimeSincePrimaryAttack { get; set; }
 	private TimeSince TimeSinceSecondaryAttack { get; set; }
 
@@ -37,6 +43,24 @@ public abstract class BaseWeapon : BaseCarryable
 
 		TimeSincePrimaryAttack = 999f;
 		TimeSinceSecondaryAttack = 999f;
+	}
+
+	public override void OnDeploy()
+	{
+		base.OnDeploy();
+
+		ClearOneShotAnimationParams();
+		ApplyHoldType();
+
+		if ( PlayDeployAnimation )
+			TriggerAnimationBool( "b_deploy" );
+	}
+
+	public override void OnHolster()
+	{
+		ClearOneShotAnimationParams();
+
+		base.OnHolster();
 	}
 
 	public override void OnPlayerUpdate()
@@ -90,11 +114,84 @@ public abstract class BaseWeapon : BaseCarryable
 
 	public override void PrimaryAttack()
 	{
+		if ( PlayAttackAnimation )
+			TriggerAnimationBool( "b_attack" );
+
 		Log.Info( $"{DisplayName} primary attack." );
 	}
 
 	public override void SecondaryAttack()
 	{
 		Log.Info( $"{DisplayName} secondary attack." );
+	}
+
+	protected void ClearOneShotAnimationParams()
+	{
+		var renderer = GetAnimationRenderer();
+
+		if ( !renderer.IsValid() )
+			return;
+
+		renderer.Set( "b_attack", false );
+		renderer.Set( "b_deploy", false );
+		renderer.Set( "b_reload", false );
+	}
+
+	protected void TriggerAnimationBool( string parameterName )
+	{
+		var renderer = GetAnimationRenderer();
+
+		if ( !renderer.IsValid() )
+			return;
+
+		// Force a clean retrigger.
+		renderer.Set( parameterName, false );
+		renderer.Set( parameterName, true );
+	}
+
+	protected void ApplyHoldType()
+	{
+		if ( string.IsNullOrWhiteSpace( HoldType ) )
+			return;
+
+		var renderer = GetAnimationRenderer();
+
+		if ( !renderer.IsValid() )
+		return;
+
+		ClearHoldTypeTags( renderer );
+
+		renderer.GameObject.Tags.Add( HoldType );
+	}
+
+	private void ClearHoldTypeTags( SkinnedModelRenderer renderer )
+	{
+		if ( !renderer.IsValid() )
+			return;
+
+		renderer.GameObject.Tags.Remove( "none" );
+		renderer.GameObject.Tags.Remove( "pistol" );
+		renderer.GameObject.Tags.Remove( "rifle" );
+		renderer.GameObject.Tags.Remove( "shotgun" );
+		renderer.GameObject.Tags.Remove( "holditem" );
+		renderer.GameObject.Tags.Remove( "melee_punch" );
+		renderer.GameObject.Tags.Remove( "melee_weapons" );
+		renderer.GameObject.Tags.Remove( "rpg" );
+		renderer.GameObject.Tags.Remove( "physgun" );
+	}
+
+	protected SkinnedModelRenderer GetAnimationRenderer()
+	{
+		if ( AnimationRenderer.IsValid() )
+			return AnimationRenderer;
+
+		var owner = OwnerPlayer;
+
+		if ( !owner.IsValid() )
+			return null;
+
+		AnimationRenderer = owner.Components.Get<SkinnedModelRenderer>( FindMode.EverythingInSelfAndDescendants );
+
+		return AnimationRenderer;
 	}
 }
