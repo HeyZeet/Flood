@@ -45,9 +45,37 @@ public abstract class BaseWeapon : BaseCarryable
 		TimeSinceSecondaryAttack = 999f;
 	}
 
+	protected void ShowWeaponVisuals()
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+			viewModel.Show();
+
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+			thirdPersonModel.Show();
+	}
+
+	protected void HideWeaponVisuals()
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+			viewModel.Hide();
+
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+			thirdPersonModel.Hide();
+	}
+
 	public override void OnDeploy()
 	{
 		base.OnDeploy();
+
+		ShowWeaponVisuals();
 
 		ClearOneShotAnimationParams();
 		ApplyHoldType();
@@ -58,6 +86,8 @@ public abstract class BaseWeapon : BaseCarryable
 
 	public override void OnHolster()
 	{
+		HideWeaponVisuals();
+
 		ClearOneShotAnimationParams();
 
 		base.OnHolster();

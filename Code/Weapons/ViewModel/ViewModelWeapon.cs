@@ -27,6 +27,8 @@ public sealed class ViewModelWeapon : Component
 	protected override void OnStart()
 	{
 		CreateViewModel();
+
+		ClearViewModelOneShotParams();
 		SetVisible( false );
 	}
 
@@ -44,11 +46,15 @@ public sealed class ViewModelWeapon : Component
 	public void Show()
 	{
 		SetVisible( true );
+
+		ClearViewModelOneShotParams();
 		PlayDeploy();
 	}
 
 	public void Hide()
 	{
+		ClearViewModelOneShotParams();
+
 		SetVisible( false );
 	}
 
@@ -132,6 +138,18 @@ public sealed class ViewModelWeapon : Component
 		if ( !WeaponRenderer.IsValid() )
 			return;
 
+		// Force the bool to retrigger cleanly.
+		WeaponRenderer.Set( triggerName, false );
 		WeaponRenderer.Set( triggerName, true );
+	}
+
+	private void ClearViewModelOneShotParams()
+	{
+		if ( !WeaponRenderer.IsValid() )
+			return;
+
+		WeaponRenderer.Set( "b_attack", false );
+		WeaponRenderer.Set( "b_deploy", false );
+		WeaponRenderer.Set( "b_reload", false );
 	}
 }
