@@ -32,9 +32,25 @@ public sealed class ThirdPersonWeaponModel : Component
 	[Property, Group( "Offset" )]
 	public Angles RotationOffset { get; set; } = Angles.Zero;
 
+	[Property, Group( "Muzzle" )]
+	public Vector3 MuzzleLocalOffset { get; set; } = new Vector3( 8f, 0f, 0f );
+
+	[Property, Group( "Muzzle Debug" )]
+	public bool ShowDebugMuzzleFlash { get; set; } = false;
+
+	[Property, Group( "Muzzle Debug" )]
+	public GameObject DebugMuzzleFlashPrefab { get; set; }
+
+	[Property, Group( "Muzzle Debug" )]
+	public float DebugMuzzleFlashScale { get; set; } = 1f;
+
+	[Property, Group( "Muzzle" )]
+	public Angles MuzzleRotationOffset { get; set; } = Angles.Zero;
+
 	private GameObject WorldModelObject { get; set; }
 	private ModelRenderer WorldRenderer { get; set; }
 	private SkinnedModelRenderer BodyRenderer { get; set; }
+	private GameObject DebugMuzzleFlashObject { get; set; }
 
 	protected override void OnStart()
 	{
@@ -49,10 +65,13 @@ public sealed class ThirdPersonWeaponModel : Component
 		UpdateBodyHoldType();
 		UpdateVisibilityForOwner();
 		FollowHandBone();
+		UpdateDebugMuzzleFlash();
 	}
 
 	protected override void OnDestroy()
 	{
+		DestroyDebugMuzzleFlash();
+
 		if ( WorldModelObject.IsValid() )
 			WorldModelObject.Destroy();
 	}
@@ -91,6 +110,25 @@ public sealed class ThirdPersonWeaponModel : Component
 
 		WorldRenderer = WorldModelObject.Components.Create<ModelRenderer>();
 		WorldRenderer.Model = WorldModel;
+	}
+
+	public bool ShouldHideForLocalPlayer()
+	{
+		if ( !HideForLocalPlayer )
+			return false;
+
+		var inventory = Inventory;
+
+		if ( !inventory.IsValid() )
+			return false;
+
+		return !inventory.IsProxy;
+	}
+
+	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
+	{
+		boneTransform = default;
+		return false;
 	}
 
 	private void UpdateBodyHoldType()
@@ -191,4 +229,57 @@ public sealed class ThirdPersonWeaponModel : Component
 
 		WorldModelObject.Enabled = visible;
 	}
+
+	public Transform GetMuzzleTransform()
+	{
+		if ( !WorldModelObject.IsValid() )
+			return WorldTransform;
+
+		var rotation = WorldModelObject.WorldRotation;
+
+		var position =
+			WorldModelObject.WorldPosition +
+			rotation.Forward * MuzzleLocalOffset.x +
+			rotation.Right * MuzzleLocalOffset.y +
+			rotation.Up * MuzzleLocalOffset.z;
+
+		return new Transform( position, rotation * MuzzleRotationOffset.ToRotation() );
+	}
+
+	private void UpdateDebugMuzzleFlash()
+	{
+		if ( !ShowDebugMuzzleFlash )
+		{
+			DestroyDebugMuzzleFlash();
+			return;
+		}
+
+		if ( !DebugMuzzleFlashPrefab.IsValid() )
+			return;
+
+		if ( !WorldModelObject.IsValid() )
+			return;
+
+		if ( !DebugMuzzleFlashObject.IsValid() )
+		{
+			DebugMuzzleFlashObject = DebugMuzzleFlashPrefab.Clone();
+			DebugMuzzleFlashObject.Name = $"{GameObject.Name} Debug Muzzle Flash";
+		}
+
+		var muzzleTransform = GetMuzzleTransform();
+
+		DebugMuzzleFlashObject.WorldPosition = muzzleTransform.Position;
+		DebugMuzzleFlashObject.WorldRotation = muzzleTransform.Rotation;
+		DebugMuzzleFlashObject.WorldScale = new Vector3( DebugMuzzleFlashScale );
+	}
+
+	private void DestroyDebugMuzzleFlash()
+	{
+		if ( !DebugMuzzleFlashObject.IsValid() )
+			return;
+
+		DebugMuzzleFlashObject.Destroy();
+		DebugMuzzleFlashObject = null;
+	}
+
 }

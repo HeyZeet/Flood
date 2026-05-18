@@ -68,6 +68,16 @@ public sealed class ViewModelWeapon : Component
 		SetAnimationTrigger( AttackTrigger );
 	}
 
+	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
+	{
+		boneTransform = default;
+
+		if ( !WeaponRenderer.IsValid() )
+			return false;
+
+		return WeaponRenderer.TryGetBoneTransform( boneName, out boneTransform );
+	}
+
 	private void CreateViewModel()
 	{
 		if ( !WeaponModel.IsValid() )

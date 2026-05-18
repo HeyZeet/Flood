@@ -1,5 +1,6 @@
 using Sandbox;
 using System;
+
 public abstract class BaseGunWeapon : BaseWeapon
 {
 	[Header( "Gun" )]
@@ -14,6 +15,13 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Header( "Effects" )]
 	[Property] public SoundEvent FireSound { get; set; }
 	[Property] public SoundEvent DryFireSound { get; set; }
+
+	[Header( "Muzzle Flash" )]
+	[Property] public GameObject MuzzleFlashPrefab { get; set; }
+	[Property] public string MuzzleBoneName { get; set; } = "muzzle";
+	[Property] public Vector3 MuzzleFlashPositionOffset { get; set; } = Vector3.Zero;
+	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
+	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
 	protected override void OnStart()
 	{
@@ -60,6 +68,8 @@ public abstract class BaseGunWeapon : BaseWeapon
 		if ( FireSound is not null )
 			Sound.Play( FireSound, WorldPosition );
 
+		PlayMuzzleFlash();
+
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( viewModel.IsValid() )
@@ -71,6 +81,63 @@ public abstract class BaseGunWeapon : BaseWeapon
 		if ( DryFireSound is not null )
 			Sound.Play( DryFireSound, WorldPosition );
 	}
+
+    protected virtual void PlayMuzzleFlash()
+    {
+	    if ( !MuzzleFlashPrefab.IsValid() )
+		    return;
+
+	    PlayFirstPersonMuzzleFlash();
+	    PlayThirdPersonMuzzleFlash();
+    }
+
+    private void PlayFirstPersonMuzzleFlash()
+    {
+	    var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+	    if ( !viewModel.IsValid() )
+		    return;
+
+	    if ( !viewModel.TryGetBoneTransform( MuzzleBoneName, out var muzzleTransform ) )
+		    return;
+
+	    SpawnMuzzleFlash( muzzleTransform );
+    }
+
+    private void PlayThirdPersonMuzzleFlash()
+    {
+	    var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+	    if ( !thirdPersonModel.IsValid() )
+		    return;
+
+	    if ( thirdPersonModel.ShouldHideForLocalPlayer() )
+		    return;
+
+	    var muzzleTransform = thirdPersonModel.GetMuzzleTransform();
+
+	    SpawnMuzzleFlash( muzzleTransform );
+    }
+
+    private void SpawnMuzzleFlash( Transform muzzleTransform )
+    {
+	    var flash = MuzzleFlashPrefab.Clone();
+
+	    flash.WorldPosition =
+		    muzzleTransform.Position +
+		    muzzleTransform.Rotation.Forward * MuzzleFlashPositionOffset.x +
+		    muzzleTransform.Rotation.Right * MuzzleFlashPositionOffset.y +
+		    muzzleTransform.Rotation.Up * MuzzleFlashPositionOffset.z;
+
+	    flash.WorldRotation = muzzleTransform.Rotation * MuzzleFlashRotationOffset.ToRotation();
+
+	    if ( MuzzleFlashLifeTime > 0f )
+	    {
+		    var destroyAfterTime = flash.Components.Create<DestroyAfterTime>();
+		    destroyAfterTime.LifeTime = MuzzleFlashLifeTime;
+	    }
+    }
+
 
 	protected virtual void FireBullet()
 	{

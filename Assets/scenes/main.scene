@@ -853,12 +853,16 @@
               "__enabled": true,
               "Flags": 0,
               "AttackTrigger": "b_attack",
+              "DebugMuzzleFlashPrefab": null,
+              "DebugMuzzleFlashScale": 1,
               "HandBoneName": "hand_R",
               "HideForLocalPlayer": false,
               "HoldType": 6,
               "HoldTypeAttack": 0,
               "HoldTypeHandedness": 1,
               "HoldTypePose": 0,
+              "MuzzleLocalOffset": "8,0,0",
+              "MuzzleRotationOffset": "0,0,0",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -867,6 +871,7 @@
               "OnComponentUpdate": null,
               "PositionOffset": "5.96000767,4.28571129,-3.25714421",
               "RotationOffset": "142.491348,-11.8972349,-100.086189",
+              "ShowDebugMuzzleFlash": false,
               "WorldModel": "models/weapons/sbox_melee_crowbar/w_crowbar.vmdl"
             }
           ],
@@ -905,6 +910,14 @@
               "HoldType": "pistol",
               "InfiniteAmmo": true,
               "InventorySlot": 1,
+              "MuzzleBoneName": "silencer",
+              "MuzzleFlashLifeTime": 0.2,
+              "MuzzleFlashPositionOffset": "0,0,0",
+              "MuzzleFlashPrefab": {
+                "_type": "gameobject",
+                "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+              },
+              "MuzzleFlashRotationOffset": "0,0,0",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -940,12 +953,19 @@
               "__enabled": true,
               "Flags": 0,
               "AttackTrigger": "b_attack",
+              "DebugMuzzleFlashPrefab": {
+                "_type": "gameobject",
+                "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+              },
+              "DebugMuzzleFlashScale": 1,
               "HandBoneName": "hold_R",
               "HideForLocalPlayer": true,
               "HoldType": 1,
               "HoldTypeAttack": 0,
               "HoldTypeHandedness": 0,
               "HoldTypePose": 0,
+              "MuzzleLocalOffset": "4.4914403,-0.0514297523,4.82284784",
+              "MuzzleRotationOffset": "0,0,0",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -954,6 +974,7 @@
               "OnComponentUpdate": null,
               "PositionOffset": "2.96571803,-0.268576056,-2.44000006",
               "RotationOffset": "0,0,0",
+              "ShowDebugMuzzleFlash": false,
               "WorldModel": "models/weapons/sbox_pistol_usp/w_usp.vmdl"
             }
           ],
@@ -1693,6 +1714,46 @@
           {
             "Target": {
               "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MuzzleBoneName",
+            "Value": "muzzle"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MuzzleFlashLifeTime",
+            "Value": 0.08
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MuzzleFlashPositionOffset",
+            "Value": "0,0,0"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MuzzleFlashPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MuzzleFlashRotationOffset",
+            "Value": "0,0,0"
+          },
+          {
+            "Target": {
+              "Type": "Component",
               "IdValue": "540c582c-5f1d-4fae-b908-0d91bc1b8174"
             },
             "Property": "__enabled",
@@ -1704,6 +1765,46 @@
               "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
             },
             "Property": "__enabled",
+            "Value": false
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
+            },
+            "Property": "DebugMuzzleFlashPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
+            },
+            "Property": "DebugMuzzleFlashScale",
+            "Value": 1
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
+            },
+            "Property": "MuzzleLocalOffset",
+            "Value": "8,0,0"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
+            },
+            "Property": "MuzzleRotationOffset",
+            "Value": "0,0,0"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
+            },
+            "Property": "ShowDebugMuzzleFlash",
             "Value": false
           },
           {
