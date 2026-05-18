@@ -45,32 +45,6 @@ public abstract class BaseWeapon : BaseCarryable
 		TimeSinceSecondaryAttack = 999f;
 	}
 
-	protected void ShowWeaponVisuals()
-	{
-		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( viewModel.IsValid() )
-			viewModel.Show();
-
-		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( thirdPersonModel.IsValid() )
-			thirdPersonModel.Show();
-	}
-
-	protected void HideWeaponVisuals()
-	{
-		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( viewModel.IsValid() )
-			viewModel.Hide();
-
-		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( thirdPersonModel.IsValid() )
-			thirdPersonModel.Hide();
-	}
-
 	public override void OnDeploy()
 	{
 		base.OnDeploy();
@@ -147,12 +121,54 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( PlayAttackAnimation )
 			TriggerAnimationBool( "b_attack" );
 
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+			viewModel.PlayAttack();
+
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+			thirdPersonModel.PlayAttack();
+
 		Log.Info( $"{DisplayName} primary attack." );
 	}
 
 	public override void SecondaryAttack()
 	{
 		Log.Info( $"{DisplayName} secondary attack." );
+	}
+
+	protected void ShowWeaponVisuals()
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+		{
+			viewModel.GameObject.Enabled = true;
+			viewModel.Show();
+		}
+
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+		{
+			thirdPersonModel.GameObject.Enabled = true;
+			thirdPersonModel.Show();
+		}
+	}
+
+	protected void HideWeaponVisuals()
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+			viewModel.Hide();
+
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+			thirdPersonModel.Hide();
 	}
 
 	protected void ClearOneShotAnimationParams()
@@ -174,7 +190,6 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !renderer.IsValid() )
 			return;
 
-		// Force a clean retrigger.
 		renderer.Set( parameterName, false );
 		renderer.Set( parameterName, true );
 	}
@@ -187,7 +202,7 @@ public abstract class BaseWeapon : BaseCarryable
 		var renderer = GetAnimationRenderer();
 
 		if ( !renderer.IsValid() )
-		return;
+			return;
 
 		ClearHoldTypeTags( renderer );
 
