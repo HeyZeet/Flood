@@ -5,7 +5,7 @@
   "Decibels": 70,
   "SelectionMode": "Random",
   "Sounds": [
-    "sounds/crowbarimpact.vsnd"
+    "sounds/weapons/crowbarimpact.vsnd"
   ],
   "Occlusion": true,
   "AirAbsorption": true,

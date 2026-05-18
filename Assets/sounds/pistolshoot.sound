@@ -1,11 +1,11 @@
 {
-  "UI": false,
-  "Volume": "0.5",
+  "UI": true,
+  "Volume": "1",
   "Pitch": "1",
   "Decibels": 70,
   "SelectionMode": "Random",
   "Sounds": [
-    "sounds/weapons/swing.vsnd"
+    "sounds/weapons/pistolshoot5.vsnd"
   ],
   "Occlusion": true,
   "AirAbsorption": true,
@@ -44,8 +44,8 @@
     }
   ],
   "DefaultMixer": {
-    "Name": "unknown",
-    "Id": "00000000-0000-0000-0000-000000000000"
+    "Name": "game",
+    "Id": "9a560d5d-c470-461b-b6f4-0ec5985b0ef8"
   },
   "__references": [],
   "__version": 1

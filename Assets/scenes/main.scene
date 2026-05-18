@@ -900,8 +900,8 @@
               "ClipSize": 12,
               "Damage": 18,
               "DrawDebugTrace": true,
-              "DryFireSound": null,
-              "FireSound": null,
+              "DryFireSound": "sounds/pistoldryfire.sound",
+              "FireSound": "sounds/pistolshoot.sound",
               "HoldType": "pistol",
               "InfiniteAmmo": true,
               "InventorySlot": 1,
@@ -913,7 +913,7 @@
               "OnComponentUpdate": null,
               "PlayAttackAnimation": true,
               "PlayDeployAnimation": true,
-              "PrimaryFireRate": 0.18,
+              "PrimaryFireRate": 0.5,
               "SecondaryFireRate": 0.5
             },
             {
