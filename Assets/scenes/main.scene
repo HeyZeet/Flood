@@ -816,38 +816,6 @@
                 },
                 "Property": "Position",
                 "Value": "0,-172.337402,-9.87458038"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
-                },
-                "Property": "AttackTrigger",
-                "Value": "b_attack"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
-                },
-                "Property": "DeployTrigger",
-                "Value": "b_deploy"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
-                },
-                "Property": "DryAttackTrigger",
-                "Value": "b_attack_dry"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
-                },
-                "Property": "ReloadTrigger",
-                "Value": "b_reload"
               }
             ],
             "MovedObjects": []
@@ -880,14 +848,6 @@
                   "Type": "Component",
                   "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
                 },
-                "Property": "AttackTrigger",
-                "Value": "b_attack"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
-                },
                 "Property": "BrickImpactPrefab",
                 "Value": {
                   "_type": "gameobject",
@@ -904,22 +864,6 @@
                   "_type": "gameobject",
                   "prefab": "particles/surfaces/impact.generic.prefab"
                 }
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
-                },
-                "Property": "DeployTrigger",
-                "Value": "b_deploy"
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
-                },
-                "Property": "DryAttackTrigger",
-                "Value": "b_attack_dry"
               },
               {
                 "Target": {
@@ -948,27 +892,11 @@
                   "Type": "Component",
                   "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
                 },
-                "Property": "ImpactLifeTime",
-                "Value": 1.5
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
-                },
                 "Property": "MetalImpactPrefab",
                 "Value": {
                   "_type": "gameobject",
                   "prefab": "particles/surfaces/impact.metal.prefab"
                 }
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
-                },
-                "Property": "ReloadTrigger",
-                "Value": "b_reload"
               },
               {
                 "Target": {
@@ -991,14 +919,6 @@
                   "_type": "gameobject",
                   "prefab": "particles/surfaces/impact.wood.prefab"
                 }
-              },
-              {
-                "Target": {
-                  "Type": "Component",
-                  "IdValue": "361807d2-5051-4623-abac-78ed123dcd26"
-                },
-                "Property": "DryAttackTrigger",
-                "Value": "b_attack_dry"
               }
             ],
             "MovedObjects": []
@@ -1554,14 +1474,6 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "AttackTrigger",
-            "Value": "b_attack"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
             "Property": "BaseSpreadDegrees",
             "Value": 0.75
           },
@@ -1570,72 +1482,8 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "BrickImpactPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "DefaultImpactPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "DeployTrigger",
-            "Value": "b_deploy"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "DryAttackTrigger",
-            "Value": "b_attack_dry"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "FleshImpactPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "GlassImpactPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "ImpactLifeTime",
-            "Value": 1.5
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
             "Property": "MaxSpreadDegrees",
             "Value": 4
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "MetalImpactPrefab",
-            "Value": null
           },
           {
             "Target": {
@@ -1658,32 +1506,8 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "ReloadTrigger",
-            "Value": "b_reload"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
             "Property": "SpreadRecoveryRate",
             "Value": 3
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "WaterImpactPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "WoodImpactPrefab",
-            "Value": null
           },
           {
             "Target": {
@@ -1692,14 +1516,6 @@
             },
             "Property": "__enabled",
             "Value": false
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "540c582c-5f1d-4fae-b908-0d91bc1b8174"
-            },
-            "Property": "DryAttackTrigger",
-            "Value": "b_attack_dry"
           },
           {
             "Target": {
@@ -1730,9 +1546,9 @@
       },
       "__PrefabIdToInstanceId": {
         "4faba1cc-3439-40b8-a525-f28eab73bacd": "f80ac79e-31c2-4161-85c1-dffe1ac3310f",
-        "a6b196de-8e48-47f4-9cf9-7204fef60cf1": "c61ab43c-5219-4739-9a5c-d7975b2f6c2d",
-        "eea555a1-5f42-496e-9437-26c529864d8e": "2038c4be-7eb8-4e96-9599-79bbc1e90818",
-        "503503f8-93b6-4683-ba47-202329c697d6": "c7b81a45-7431-4898-95fc-78127a7189aa",
+        "09a2991f-461c-4101-921f-6d0e4f299dd0": "63ddde80-281f-407f-bfd1-4f47894ad397",
+        "540c582c-5f1d-4fae-b908-0d91bc1b8174": "cd4acd9c-bae2-42bc-9f98-308deb0d9f13",
+        "4505511f-ac70-4f95-8e81-94a5cfd12d0e": "217607b2-7e82-4625-9923-a310abf402b9",
         "d8314150-1fe5-450c-8681-2c68e00ab380": "6f7eec87-ff22-4365-85c6-36b7616c8c8f",
         "e277d751-e31f-4882-9ac0-22f55ad8c7c8": "d601bf11-9a3e-4a70-b97c-6572fc739af3",
         "44f7a710-21f7-4ae4-9241-5f9df8a3c2d7": "de3bd89f-8d8c-4f5e-b29c-85c71d46c80e",
@@ -1786,142 +1602,38 @@
     {
       "__guid": "354eb863-b2fc-412e-a5f1-99c63dd29a03",
       "__version": 2,
-      "Flags": 0,
-      "Name": "metalblock",
-      "Position": "196.95256,123.940536,71.7000961",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "metal",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.ModelRenderer",
-          "__guid": "10399f0e-9e07-42e2-b316-c7a15615a52f",
-          "__enabled": true,
-          "Flags": 0,
-          "BodyGroups": 18446744073709551615,
-          "CreateAttachments": false,
-          "LodOverride": null,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Materials": null,
-          "Model": "models/dev/box.vmdl",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
+      "__Prefab": "prefabs/builder/metalblock.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "88e3993d-35a4-4f20-a0e7-1023f1afe45e"
+            },
+            "Property": "Position",
+            "Value": "196.95256,123.940536,71.7000961"
           },
-          "RenderType": "On",
-          "Tint": "1,1,1,1"
-        },
-        {
-          "__type": "Sandbox.BoxCollider",
-          "__guid": "ced06910-41a1-4bc8-8ef1-bb47b23b8ca5",
-          "__enabled": true,
-          "Flags": 0,
-          "Center": "0,0,0",
-          "ColliderFlags": 0,
-          "Elasticity": null,
-          "Friction": null,
-          "IsTrigger": false,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OnObjectTriggerEnter": null,
-          "OnObjectTriggerExit": null,
-          "OnTriggerEnter": null,
-          "OnTriggerExit": null,
-          "RollingResistance": null,
-          "Scale": "50,50,50",
-          "Static": false,
-          "Surface": null,
-          "SurfaceVelocity": "0,0,0"
-        },
-        {
-          "__type": "Sandbox.Rigidbody",
-          "__guid": "8f099ebc-d2a8-4435-9ca3-1d381e017269",
-          "__enabled": true,
-          "Flags": 0,
-          "AngularDamping": 0,
-          "EnableImpactDamage": true,
-          "EnhancedCcd": false,
-          "Gravity": true,
-          "GravityScale": 1,
-          "ImpactDamage": 0,
-          "LinearDamping": 0,
-          "Locking": {
-            "X": false,
-            "Y": false,
-            "Z": false,
-            "Pitch": false,
-            "Yaw": false,
-            "Roll": false
-          },
-          "MassCenterOverride": "0,0,0",
-          "MassOverride": 0,
-          "MinImpactDamageSpeed": 500,
-          "MotionEnabled": true,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OverrideMassCenter": false,
-          "RigidbodyFlags": 0,
-          "SleepThreshold": 2,
-          "StartAsleep": false
-        },
-        {
-          "__type": "BuildPiece",
-          "__guid": "1f35eb73-2b8b-43db-bddc-ea45002720cc",
-          "__enabled": true,
-          "Flags": 0,
-          "CanBeWelded": true,
-          "Cost": 10,
-          "CountsAsBoatPart": true,
-          "DisplayName": "metalblock",
-          "Material": "Metal",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Weight": 10
-        },
-        {
-          "__type": "BoatPieceHealth",
-          "__guid": "6874b753-cc65-4ef4-bef8-96665074645b",
-          "__enabled": true,
-          "Flags": 0,
-          "DestroyOnDeath": true,
-          "MaxHealth": 100,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RequireBattlePhaseForDamage": true
-        }
-      ],
-      "Children": []
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "88e3993d-35a4-4f20-a0e7-1023f1afe45e"
+            },
+            "Property": "Enabled",
+            "Value": false
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "88e3993d-35a4-4f20-a0e7-1023f1afe45e": "354eb863-b2fc-412e-a5f1-99c63dd29a03",
+        "3ec72a0d-d700-4021-a6e8-fb874bd8450d": "10399f0e-9e07-42e2-b316-c7a15615a52f",
+        "6ac6f2c7-a7a6-45ee-9297-7e9ebc0f6214": "ced06910-41a1-4bc8-8ef1-bb47b23b8ca5",
+        "3d04f9b0-61e2-49fc-9e93-a69abf2fe147": "8f099ebc-d2a8-4435-9ca3-1d381e017269",
+        "c07a389c-4d4a-406b-acf8-ea90018fd55c": "1f35eb73-2b8b-43db-bddc-ea45002720cc",
+        "c7fc56d8-a14e-412a-8230-fbefa1903227": "6874b753-cc65-4ef4-bef8-96665074645b"
+      }
     }
   ],
   "SceneProperties": {
@@ -1944,13 +1656,18 @@
       "CustomBounds": false
     },
     "GameObjectSystems": {
-      "Sandbox.MovieMaker.MovieRecorderSystem": {
-        "DisableClientRecording": false
+      "Sandbox.Clutter.ClutterGridSystem": {
+        "Storage": {
+          "$blob": "8b8278fc-0a2e-4e6d-9072-b5e1440ad27b"
+        }
       },
       "Sandbox.SelectionSetsSystem": {
         "Data": {
           "SelectionSets": []
         }
+      },
+      "Sandbox.MovieMaker.MovieRecorderSystem": {
+        "DisableClientRecording": false
       }
     }
   },
