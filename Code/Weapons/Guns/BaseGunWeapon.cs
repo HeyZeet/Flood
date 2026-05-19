@@ -302,7 +302,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 			DebugOverlay.Trace( tr, 1f );
 
 		if ( !tr.Hit )
-		return;
+			return;
 
 		PlayImpactEffect( tr );
 		TryDamageHitObject( tr );
@@ -414,9 +414,19 @@ public abstract class BaseGunWeapon : BaseWeapon
 		return DefaultImpactPrefab;
 	}
 
-	private bool IsWaterHit( SceneTraceResult trace )
+	private bool HasTagInHierarchy( GameObject gameObject, string tag )
 	{
-		return trace.GameObject.Tags.Has( "water" );
+		var current = gameObject;
+
+		while ( current.IsValid() )
+		{
+			if ( current.Tags.Has( tag ) )
+				return true;
+
+			current = current.Parent;
+		}
+
+		return false;
 	}
 
 	private bool IsFleshHit( SceneTraceResult trace )
@@ -434,41 +444,6 @@ public abstract class BaseGunWeapon : BaseWeapon
 			return true;
 
 		return false;
-	}
-
-	private bool IsGlassHit( SceneTraceResult trace )
-	{
-		return trace.GameObject.Tags.Has( "glass" );
-	}
-
-	private bool IsMetalHit( SceneTraceResult trace )
-	{
-		return trace.GameObject.Tags.Has( "metal" );
-	}
-
-	private bool HasTagInHierarchy( GameObject gameObject, string tag )
-	{
-		var current = gameObject;
-
-		while ( current.IsValid() )
-		{
-			if ( current.Tags.Has( tag ) )
-				return true;
-
-			current = current.Parent;
-		}
-
-		return false;
-	}
-
-	private bool IsWoodHit( SceneTraceResult trace )
-	{
-		return trace.GameObject.Tags.Has( "wood" );
-	}
-
-	private bool IsBrickHit( SceneTraceResult trace )
-	{
-		return trace.GameObject.Tags.Has( "brick" ) || trace.GameObject.Tags.Has( "concrete" );
 	}
 
 	protected virtual void AddSpread()

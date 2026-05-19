@@ -137,6 +137,7 @@ public sealed class FloodRoundManager : Component
 
 		Log.Info( $"Game phase changed: {previousPhase} -> {CurrentPhase}" );
 
+		HandleWaterForPhase( CurrentPhase );
 		NotifyPhaseChanged( previousPhase, CurrentPhase );
 	}
 
@@ -161,6 +162,40 @@ public sealed class FloodRoundManager : Component
 			return;
 
 		SetPhase( GamePhase.RoundEnd );
+	}
+
+	private void HandleWaterForPhase( GamePhase phase )
+	{
+		var water = FloodWaterController.Instance;
+
+		if ( !water.IsValid() )
+		{
+			Log.Warning( "FloodRoundManager could not find FloodWaterController.Instance." );
+			return;
+		}
+
+		switch ( phase )
+		{
+			case GamePhase.Build:
+				water.ResetWater();
+				break;
+
+			case GamePhase.Flood:
+				water.StartFlood();
+				break;
+
+			case GamePhase.Battle:
+				water.StopFlood();
+				break;
+
+			case GamePhase.RoundEnd:
+				water.StartDrain();
+				break;
+
+			case GamePhase.Waiting:
+				water.ResetWater();
+				break;
+		}
 	}
 
 	private void NotifyPhaseChanged( GamePhase previousPhase, GamePhase newPhase )
@@ -299,6 +334,9 @@ public sealed class FloodRoundManager : Component
 			SetPhase( GamePhase.Build, true );
 
 		if ( Input.Pressed( "Slot9" ) )
+			SetPhase( GamePhase.Flood, true );
+		
+		if ( Input.Pressed( "Slot0" ) )
 			SetPhase( GamePhase.Battle, true );
 	}
 

@@ -2,6 +2,47 @@
   "__guid": "12a3a28f-4cc3-4c54-b98b-907c731fad49",
   "GameObjects": [
     {
+      "__guid": "dc465a36-c28f-4f45-8cee-a307e5c17b0a",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "FloodWaterController",
+      "Position": "-25.0191345,-2.45599365,24.7056885",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "FloodWaterController",
+          "__guid": "453e4051-6396-439e-be93-24b57010fe56",
+          "__enabled": true,
+          "Flags": 0,
+          "DrainHeight": -64,
+          "DrainSpeed": 48,
+          "MaxHeight": 500,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RiseSpeed": 16,
+          "StartFlooded": false,
+          "StartHeight": -64,
+          "WaterObject": {
+            "_type": "gameobject",
+            "go": "ee9fe17d-f946-4878-b801-89a4c9c94145"
+          }
+        }
+      ],
+      "Children": []
+    },
+    {
       "__guid": "b35eacfd-c986-4aab-aa69-1e3168148d05",
       "__version": 2,
       "Flags": 0,
@@ -1070,7 +1111,7 @@
       "__guid": "23a19435-2028-400e-9d3a-1e647beba855",
       "__version": 2,
       "Flags": 0,
-      "Name": "FloodPlayer (1)",
+      "Name": "TestDummy",
       "Position": "145.828186,0,0",
       "Rotation": "0,0,1,-7.74860382E-07",
       "Scale": "1,1,1",
@@ -1634,6 +1675,52 @@
         "c07a389c-4d4a-406b-acf8-ea90018fd55c": "1f35eb73-2b8b-43db-bddc-ea45002720cc",
         "c7fc56d8-a14e-412a-8230-fbefa1903227": "6874b753-cc65-4ef4-bef8-96665074645b"
       }
+    },
+    {
+      "__guid": "ee9fe17d-f946-4878-b801-89a4c9c94145",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Water",
+      "Position": "0,0,-64",
+      "Rotation": "0,0,0,1",
+      "Scale": "25.5,25.5,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "bb87a3a8-7338-4468-bfcb-fe838ad189c7",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/dev/plane.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "0.01395,0.09612,1,0.93"
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {

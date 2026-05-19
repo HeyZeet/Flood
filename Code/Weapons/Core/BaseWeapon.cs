@@ -12,8 +12,8 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public bool PlayDeployAnimation { get; set; } = true;
 	[Property] public bool PlayAttackAnimation { get; set; } = true;
 
-[Property] public string DeployTrigger { get; set; } = "b_deploy";
-[Property] public string AttackTrigger { get; set; } = "b_attack";
+	[Property] public string DeployTrigger { get; set; } = "b_deploy";
+	[Property] public string AttackTrigger { get; set; } = "b_attack";
 	[Property] public string DryAttackTrigger { get; set; } = "b_attack_dry";
 	[Property] public string ReloadTrigger { get; set; } = "b_reload";
 
