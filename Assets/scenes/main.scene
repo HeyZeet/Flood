@@ -647,8 +647,8 @@
               "__enabled": true,
               "Flags": 0,
               "AvailablePieces": [
-                "resources/metal_block.bpiece",
-                "resources/wood_block.bpiece"
+                "resources/wood_block.bpiece",
+                "resources/metal_block.bpiece"
               ],
               "InventorySlot": 3,
               "OnComponentDestroy": null,
@@ -696,7 +696,7 @@
             },
             {
               "__type": "BuildPieceFactory",
-              "__guid": "988da60c-8a48-4dba-b4ab-44ec68c020d7",
+              "__guid": "55765b33-f7dc-4be2-b70c-76fa140ea02c",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
@@ -888,6 +888,28 @@
                   "Type": "Component",
                   "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
                 },
+                "Property": "BrickImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.brick.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "DefaultImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.generic.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
                 "Property": "DeployTrigger",
                 "Value": "b_deploy"
               },
@@ -904,8 +926,71 @@
                   "Type": "Component",
                   "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
                 },
+                "Property": "FleshImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.flesh.mist.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "GlassImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.glass.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "ImpactLifeTime",
+                "Value": 1.5
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "MetalImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.metal.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
                 "Property": "ReloadTrigger",
                 "Value": "b_reload"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "WaterImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact_water.prefab"
+                }
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "WoodImpactPrefab",
+                "Value": {
+                  "_type": "gameobject",
+                  "prefab": "particles/surfaces/impact.wood.prefab"
+                }
               },
               {
                 "Target": {
@@ -1069,7 +1154,7 @@
       "Position": "145.828186,0,0",
       "Rotation": "0,0,1,-7.74860382E-07",
       "Scale": "1,1,1",
-      "Tags": "",
+      "Tags": "flesh",
       "Enabled": true,
       "NetworkMode": 2,
       "NetworkFlags": 0,
@@ -1485,6 +1570,22 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "BrickImpactPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "DefaultImpactPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "DeployTrigger",
             "Value": "b_deploy"
           },
@@ -1501,8 +1602,40 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "FleshImpactPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "GlassImpactPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "ImpactLifeTime",
+            "Value": 1.5
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "MaxSpreadDegrees",
             "Value": 4
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "MetalImpactPrefab",
+            "Value": null
           },
           {
             "Target": {
@@ -1535,6 +1668,22 @@
             },
             "Property": "SpreadRecoveryRate",
             "Value": 3
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "WaterImpactPrefab",
+            "Value": null
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "WoodImpactPrefab",
+            "Value": null
           },
           {
             "Target": {
@@ -1599,9 +1748,9 @@
       }
     },
     {
-      "__guid": "1bf44908-4040-49fc-ad10-279659da03c7",
+      "__guid": "76d379e6-9979-457e-a3e4-c53fd7dbf8aa",
       "__version": 2,
-      "__Prefab": "prefabs/builder/boatpiece_test.prefab",
+      "__Prefab": "prefabs/builder/woodblock.prefab",
       "__PrefabInstancePatch": {
         "AddedObjects": [],
         "RemovedObjects": [],
@@ -1609,7 +1758,15 @@
           {
             "Target": {
               "Type": "GameObject",
-              "IdValue": "1ff8c511-3e8e-4dfc-9d13-03d1b9ae0f21"
+              "IdValue": "8fe5d5d5-be97-4db7-9f41-cde10598f0c4"
+            },
+            "Property": "Position",
+            "Value": "184.281128,63.0776978,37.2839813"
+          },
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "8fe5d5d5-be97-4db7-9f41-cde10598f0c4"
             },
             "Property": "Enabled",
             "Value": false
@@ -1618,13 +1775,153 @@
         "MovedObjects": []
       },
       "__PrefabIdToInstanceId": {
-        "1ff8c511-3e8e-4dfc-9d13-03d1b9ae0f21": "1bf44908-4040-49fc-ad10-279659da03c7",
-        "121ed009-1c47-4011-b575-e34362698281": "36a1bd32-51bd-40f7-8780-e7664a98e3dd",
-        "7b53b696-79d4-42c6-af3c-68ee0c2f6dbc": "09516b67-e49e-40f6-9774-eab1b94c3757",
-        "cd0ed4a3-0d62-4348-b552-4b76c8611234": "b7b010c8-fd73-4bc1-8613-d96a47dba8f6",
-        "a628dfa8-302c-4e50-9755-2b027676538a": "a63fbe21-161f-48a9-8c15-0d162ee29507",
-        "fbf53a30-3bce-46bc-a785-93c51c239ccc": "e97bb36b-4b9e-4a33-a28e-2db53c3280af"
+        "8fe5d5d5-be97-4db7-9f41-cde10598f0c4": "76d379e6-9979-457e-a3e4-c53fd7dbf8aa",
+        "392de3f2-5bfe-4b3c-a9b9-025c69812865": "8e6725f2-3783-46ac-b26f-a44022925c84",
+        "72a82fb4-bbb5-449f-a217-56220e129575": "ce12088d-1aeb-4d5c-b22c-fcfb5d40cdf7",
+        "454fe780-2579-4228-bb5e-4c78b9f509e1": "bd6aac77-05b4-4501-ace7-551eb2053a9f",
+        "d1bab0a1-fe93-47bb-8f15-bff09d550ffa": "4bcb3b6f-d26a-44d9-89a3-80e59071ca9e",
+        "58da25f6-d6e6-441a-993f-96c96e660d9d": "84738cd2-8907-455c-aedf-cd8a0a7da779"
       }
+    },
+    {
+      "__guid": "354eb863-b2fc-412e-a5f1-99c63dd29a03",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "metalblock",
+      "Position": "196.95256,123.940536,71.7000961",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "metal",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "Sandbox.ModelRenderer",
+          "__guid": "10399f0e-9e07-42e2-b316-c7a15615a52f",
+          "__enabled": true,
+          "Flags": 0,
+          "BodyGroups": 18446744073709551615,
+          "CreateAttachments": false,
+          "LodOverride": null,
+          "MaterialGroup": null,
+          "MaterialOverride": null,
+          "Materials": null,
+          "Model": "models/dev/box.vmdl",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RenderOptions": {
+            "GameLayer": true,
+            "OverlayLayer": false,
+            "BloomLayer": false,
+            "AfterUILayer": false
+          },
+          "RenderType": "On",
+          "Tint": "1,1,1,1"
+        },
+        {
+          "__type": "Sandbox.BoxCollider",
+          "__guid": "ced06910-41a1-4bc8-8ef1-bb47b23b8ca5",
+          "__enabled": true,
+          "Flags": 0,
+          "Center": "0,0,0",
+          "ColliderFlags": 0,
+          "Elasticity": null,
+          "Friction": null,
+          "IsTrigger": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OnObjectTriggerEnter": null,
+          "OnObjectTriggerExit": null,
+          "OnTriggerEnter": null,
+          "OnTriggerExit": null,
+          "RollingResistance": null,
+          "Scale": "50,50,50",
+          "Static": false,
+          "Surface": null,
+          "SurfaceVelocity": "0,0,0"
+        },
+        {
+          "__type": "Sandbox.Rigidbody",
+          "__guid": "8f099ebc-d2a8-4435-9ca3-1d381e017269",
+          "__enabled": true,
+          "Flags": 0,
+          "AngularDamping": 0,
+          "EnableImpactDamage": true,
+          "EnhancedCcd": false,
+          "Gravity": true,
+          "GravityScale": 1,
+          "ImpactDamage": 0,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassCenterOverride": "0,0,0",
+          "MassOverride": 0,
+          "MinImpactDamageSpeed": 500,
+          "MotionEnabled": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "OverrideMassCenter": false,
+          "RigidbodyFlags": 0,
+          "SleepThreshold": 2,
+          "StartAsleep": false
+        },
+        {
+          "__type": "BuildPiece",
+          "__guid": "1f35eb73-2b8b-43db-bddc-ea45002720cc",
+          "__enabled": true,
+          "Flags": 0,
+          "CanBeWelded": true,
+          "Cost": 10,
+          "CountsAsBoatPart": true,
+          "DisplayName": "metalblock",
+          "Material": "Metal",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Weight": 10
+        },
+        {
+          "__type": "BoatPieceHealth",
+          "__guid": "6874b753-cc65-4ef4-bef8-96665074645b",
+          "__enabled": true,
+          "Flags": 0,
+          "DestroyOnDeath": true,
+          "MaxHealth": 100,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RequireBattlePhaseForDamage": true
+        }
+      ],
+      "Children": []
     }
   ],
   "SceneProperties": {
@@ -1661,6 +1958,13 @@
   "Title": null,
   "Description": null,
   "__references": [
+    "facepunch.impactbrick#110493",
+    "facepunch.impactfleshmist#110498",
+    "facepunch.impactgeneric#110495",
+    "facepunch.impactglass#110497",
+    "facepunch.impactmetal#110496",
+    "facepunch.impactwater#110499",
+    "facepunch.impactwood#110494",
     "facepunch.v_crowbar#205801",
     "facepunch.v_first_person_arms_citizen#205823"
   ],

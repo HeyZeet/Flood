@@ -33,6 +33,16 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public SoundEvent FireSound { get; set; }
 	[Property] public SoundEvent DryFireSound { get; set; }
 
+	[Header( "Impact Effects" )]
+	[Property] public GameObject DefaultImpactPrefab { get; set; }
+	[Property] public GameObject WoodImpactPrefab { get; set; }
+	[Property] public GameObject MetalImpactPrefab { get; set; }
+	[Property] public GameObject GlassImpactPrefab { get; set; }
+	[Property] public GameObject WaterImpactPrefab { get; set; }
+	[Property] public GameObject BrickImpactPrefab { get; set; }
+	[Property] public GameObject FleshImpactPrefab { get; set; }
+	[Property] public float ImpactLifeTime { get; set; } = 1.5f;
+
 	[Header( "Muzzle Flash" )]
 	[Property] public GameObject MuzzleFlashPrefab { get; set; }
 	[Property] public string MuzzleBoneName { get; set; } = "muzzle";
@@ -292,8 +302,9 @@ public abstract class BaseGunWeapon : BaseWeapon
 			DebugOverlay.Trace( tr, 1f );
 
 		if ( !tr.Hit )
-			return;
+		return;
 
+		PlayImpactEffect( tr );
 		TryDamageHitObject( tr );
 	}
 
@@ -356,6 +367,108 @@ public abstract class BaseGunWeapon : BaseWeapon
 		damageable.TakeDamage( damageInfo );
 
 		Log.Info( $"{DisplayName} shot {trace.GameObject.Name} for {Damage} damage." );
+	}
+
+	protected virtual void PlayImpactEffect( SceneTraceResult trace )
+	{
+		var impactPrefab = GetImpactPrefab( trace );
+
+		if ( !impactPrefab.IsValid() )
+			return;
+
+		var impact = impactPrefab.Clone();
+
+		impact.WorldPosition = trace.HitPosition;
+		impact.WorldRotation = Rotation.LookAt( trace.Normal );
+
+		if ( ImpactLifeTime > 0f )
+		{
+			var destroyAfterTime = impact.Components.Create<DestroyAfterTime>();
+			destroyAfterTime.LifeTime = ImpactLifeTime;
+		}
+	}
+
+	protected virtual GameObject GetImpactPrefab( SceneTraceResult trace )
+	{
+		if ( HasTagInHierarchy( trace.GameObject, "water" ) && WaterImpactPrefab.IsValid() )
+			return WaterImpactPrefab;
+
+		if ( IsFleshHit( trace ) && FleshImpactPrefab.IsValid() )
+			return FleshImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "glass" ) && GlassImpactPrefab.IsValid() )
+			return GlassImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "metal" ) && MetalImpactPrefab.IsValid() )
+			return MetalImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "wood" ) && WoodImpactPrefab.IsValid() )
+			return WoodImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "brick" ) && BrickImpactPrefab.IsValid() )
+			return BrickImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "concrete" ) && BrickImpactPrefab.IsValid() )
+			return BrickImpactPrefab;
+
+		return DefaultImpactPrefab;
+	}
+
+	private bool IsWaterHit( SceneTraceResult trace )
+	{
+		return trace.GameObject.Tags.Has( "water" );
+	}
+
+	private bool IsFleshHit( SceneTraceResult trace )
+	{
+		if ( trace.GameObject.Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndAncestors ).IsValid() )
+			return true;
+
+		if ( trace.GameObject.Components.Get<PlayerHealth>( FindMode.EverythingInSelfAndAncestors ).IsValid() )
+			return true;
+
+		if ( HasTagInHierarchy( trace.GameObject, "player" ) )
+			return true;
+
+		if ( HasTagInHierarchy( trace.GameObject, "flesh" ) )
+			return true;
+
+		return false;
+	}
+
+	private bool IsGlassHit( SceneTraceResult trace )
+	{
+		return trace.GameObject.Tags.Has( "glass" );
+	}
+
+	private bool IsMetalHit( SceneTraceResult trace )
+	{
+		return trace.GameObject.Tags.Has( "metal" );
+	}
+
+	private bool HasTagInHierarchy( GameObject gameObject, string tag )
+	{
+		var current = gameObject;
+
+		while ( current.IsValid() )
+		{
+			if ( current.Tags.Has( tag ) )
+				return true;
+
+			current = current.Parent;
+		}
+
+		return false;
+	}
+
+	private bool IsWoodHit( SceneTraceResult trace )
+	{
+		return trace.GameObject.Tags.Has( "wood" );
+	}
+
+	private bool IsBrickHit( SceneTraceResult trace )
+	{
+		return trace.GameObject.Tags.Has( "brick" ) || trace.GameObject.Tags.Has( "concrete" );
 	}
 
 	protected virtual void AddSpread()
