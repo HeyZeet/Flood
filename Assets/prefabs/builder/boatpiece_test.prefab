@@ -1,6 +1,6 @@
 {
   "RootObject": {
-    "__guid": "a4d0c64d-a3df-4ec4-a0bf-40c5538ef82c",
+    "__guid": "1ff8c511-3e8e-4dfc-9d13-03d1b9ae0f21",
     "__version": 2,
     "Flags": 0,
     "Name": "boatpiece_test",
@@ -8,7 +8,7 @@
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
     "Tags": "",
-    "Enabled": false,
+    "Enabled": true,
     "NetworkMode": 2,
     "NetworkFlags": 0,
     "NetworkOrphaned": 0,
@@ -17,7 +17,7 @@
     "Components": [
       {
         "__type": "Sandbox.ModelRenderer",
-        "__guid": "b3bdc09c-aca1-4454-9f76-a5708f6f09e4",
+        "__guid": "121ed009-1c47-4011-b575-e34362698281",
         "__enabled": true,
         "Flags": 0,
         "BodyGroups": 18446744073709551615,
@@ -44,7 +44,7 @@
       },
       {
         "__type": "Sandbox.BoxCollider",
-        "__guid": "e354dae6-498d-488d-8f5f-ae7174f83b0d",
+        "__guid": "7b53b696-79d4-42c6-af3c-68ee0c2f6dbc",
         "__enabled": true,
         "Flags": 0,
         "Center": "0,0,0",
@@ -70,7 +70,7 @@
       },
       {
         "__type": "Sandbox.Rigidbody",
-        "__guid": "31af03bb-587b-4f0c-8a38-8ec60b0a7578",
+        "__guid": "cd0ed4a3-0d62-4348-b552-4b76c8611234",
         "__enabled": true,
         "Flags": 0,
         "AngularDamping": 0,
@@ -105,7 +105,7 @@
       },
       {
         "__type": "BuildPiece",
-        "__guid": "c0588978-5dc6-448a-a1f9-baba8c606481",
+        "__guid": "a628dfa8-302c-4e50-9755-2b027676538a",
         "__enabled": true,
         "Flags": 0,
         "CanBeWelded": true,
@@ -120,6 +120,21 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "Weight": 10
+      },
+      {
+        "__type": "BoatPieceHealth",
+        "__guid": "fbf53a30-3bce-46bc-a785-93c51c239ccc",
+        "__enabled": true,
+        "Flags": 0,
+        "DestroyOnDeath": true,
+        "MaxHealth": 100,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "RequireBattlePhaseForDamage": true
       }
     ],
     "Children": [],

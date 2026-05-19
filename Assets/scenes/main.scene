@@ -364,8 +364,36 @@
           "WorkshopItems": []
         },
         {
+          "__type": "FloodPlayer",
+          "__guid": "39107895-5d7a-4230-b747-cc1a403e8b4b",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        },
+        {
+          "__type": "FloodPlayerCamera",
+          "__guid": "2013ecbe-7af6-43d1-9c26-09ce609ce331",
+          "__enabled": true,
+          "Flags": 0,
+          "DrawDebugAim": true,
+          "EyeHeight": 64,
+          "FieldOfView": 80,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RecoilRecoveryRate": 10
+        },
+        {
           "__type": "PlayerHealth",
-          "__guid": "841765c0-82e2-491b-a513-58f64723b528",
+          "__guid": "eebb6921-cb52-41ba-adce-45de87d98b4d",
           "__enabled": true,
           "Flags": 0,
           "HidePlayerModelOnDeath": true,
@@ -378,14 +406,14 @@
           "OnComponentUpdate": null,
           "RagdollPrefab": {
             "_type": "gameobject",
-            "go": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d"
+            "prefab": "prefabs/player/player_ragdoll.prefab"
           },
           "RequireBattlePhaseForDamage": true,
           "SpawnRagdollOnDeath": true
         },
         {
           "__type": "PlayerInventory",
-          "__guid": "db01b5b2-d078-42cc-bc4e-aa592fd8f4eb",
+          "__guid": "2f058908-5935-4831-b361-551aae2fe0f0",
           "__enabled": true,
           "Flags": 0,
           "MaxSlots": 4,
@@ -397,35 +425,8 @@
           "OnComponentUpdate": null
         },
         {
-          "__type": "FloodPlayer",
-          "__guid": "f0af33ba-379a-41b0-b3eb-de8bc9ab93b5",
-          "__enabled": true,
-          "Flags": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "FloodPlayerCamera",
-          "__guid": "0a455565-da8e-4822-a2c4-2294222e8a84",
-          "__enabled": true,
-          "Flags": 0,
-          "DrawDebugAim": true,
-          "EyeHeight": 64,
-          "FieldOfView": 80,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
           "__type": "PlayerBuildResources",
-          "__guid": "2b84eafb-fea7-4090-b0a3-1c510677744e",
+          "__guid": "2fdf68aa-80c1-4d9e-b0f8-0ffe2edc0869",
           "__enabled": true,
           "Flags": 0,
           "OnComponentDestroy": null,
@@ -434,7 +435,7 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
-          "StartingResources": 50
+          "StartingResources": 500
         }
       ],
       "Children": [
@@ -642,14 +643,14 @@
           "Components": [
             {
               "__type": "BoatBuilder",
-              "__guid": "27d2648d-ac0a-4586-9ac2-a18d89f74a8a",
+              "__guid": "10ae93b6-8e9f-46eb-a85d-4908bfce4a82",
               "__enabled": true,
               "Flags": 0,
               "AvailablePieces": [
-                "resources/wood_block.bpiece",
-                "resources/metal_block.bpiece"
+                "resources/metal_block.bpiece",
+                "resources/wood_block.bpiece"
               ],
-              "InventorySlot": -1,
+              "InventorySlot": 3,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -659,24 +660,8 @@
               "SelectedPieceIndex": 0
             },
             {
-              "__type": "BuildPreview",
-              "__guid": "d2b794a7-ea29-4033-a464-938b9c616d19",
-              "__enabled": true,
-              "Flags": 0,
-              "DisableBuildPieceOnPreview": true,
-              "DisablePhysicsOnPreview": true,
-              "InvalidColor": "1,0,0,0.45",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "ValidColor": "0,1,0,0.45"
-            },
-            {
               "__type": "BuildPlacement",
-              "__guid": "86e3efd6-82bb-44a8-85ba-0d4772926ac4",
+              "__guid": "c0f478c4-a27d-4bf1-a177-441d5f088342",
               "__enabled": true,
               "Flags": 0,
               "BuildDistance": 150,
@@ -694,8 +679,24 @@
               "UseSurfacePlacement": true
             },
             {
+              "__type": "BuildPreview",
+              "__guid": "f2c309bc-b20a-4145-922e-ef028af210c7",
+              "__enabled": true,
+              "Flags": 0,
+              "DisableBuildPieceOnPreview": true,
+              "DisablePhysicsOnPreview": true,
+              "InvalidColor": "1,0,0,0.45",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "ValidColor": "0,1,0,0.45"
+            },
+            {
               "__type": "BuildPieceFactory",
-              "__guid": "d04e28f6-c7fd-4db4-bf40-4befe7d8e7be",
+              "__guid": "988da60c-8a48-4dba-b4ab-44ec68c020d7",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
@@ -749,7 +750,19 @@
             },
             {
               "__type": "Sandbox.UI.Build.BuildHud",
-              "__guid": "1bb24096-e2d0-4c30-92eb-69c9a56ab49c",
+              "__guid": "6e9e587b-3a2d-4e94-9d7d-6e74c071e5cb",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            },
+            {
+              "__type": "Sandbox.UI.Ammo.AmmoHud",
+              "__guid": "fe271036-060a-4523-a5eb-2c3637614a13",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
@@ -761,9 +774,9 @@
             },
             {
               "__type": "Sandbox.UI.Death.DeathHud",
-              "__guid": "6d234bca-527c-4940-948f-6ea7d7696051",
+              "__guid": "68a8849b-8cfe-4ef4-ab19-27f972a13085",
               "__enabled": true,
-              "Flags": 512,
+              "Flags": 0,
               "EnableDebugHint": true,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
@@ -774,7 +787,7 @@
             },
             {
               "__type": "Sandbox.UI.Round.RoundHud",
-              "__guid": "cdcaa737-df87-42bf-aed6-7d5ab1f728dc",
+              "__guid": "6d03c305-c6f5-4b0a-8b05-c73039e34a4b",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
@@ -784,369 +797,135 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "ShowDuringWaiting": false
-            },
-            {
-              "__type": "Sandbox.UI.Ammo.AmmoHud",
-              "__guid": "4262b698-6276-42c0-9169-0dc6f49a579b",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
             }
           ],
           "Children": []
         },
         {
-          "__guid": "c3e8de8a-4542-4290-80c6-fcd6e2c361aa",
+          "__guid": "71746c2c-dcf8-4b88-ae06-47e3f33c6936",
           "__version": 2,
-          "Flags": 0,
-          "Name": "Crowbar",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "CrowbarWeapon",
-              "__guid": "2dd199ce-bf52-4a6c-9bee-53ce6af2ebe3",
-              "__enabled": true,
-              "Flags": 0,
-              "AnimationRenderer": null,
-              "BaseSpreadDegrees": 0.75,
-              "Damage": 10,
-              "DrawDebugTrace": true,
-              "HitSound": "sounds/hit.sound",
-              "HoldType": "mele_weapons",
-              "InventorySlot": 0,
-              "MaxSpreadDegrees": 4,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PlayAttackAnimation": true,
-              "PlayDeployAnimation": true,
-              "PrimaryFireRate": 0.5,
-              "Range": 85,
-              "RecoilPitch": 1.25,
-              "RecoilRecoveryRate": 8,
-              "RecoilYaw": 0.4,
-              "SecondaryFireRate": 0.5,
-              "SpreadPerShot": 0.35,
-              "SpreadRecoveryRate": 3,
-              "SwingSound": "sounds/swing.sound",
-              "TraceRadius": 8
-            },
-            {
-              "__type": "ViewModelWeapon",
-              "__guid": "46c6cbaf-9e49-4062-95db-4c85c9ebd0b2",
-              "__enabled": true,
-              "Flags": 0,
-              "ArmsModel": "models/first_person/v_first_person_arms_citizen.vmdl",
-              "AttackTrigger": "b_attack",
-              "DeployTrigger": "b_deploy",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PositionOffset": "3.66285872,0.354287833,0.97142458",
-              "ReloadTrigger": "b_reload",
-              "RotationOffset": "0,0,0",
-              "WeaponModel": "models/weapons/sbox_melee_crowbar/v_crowbar.vmdl"
-            },
-            {
-              "__type": "ThirdPersonWeaponModel",
-              "__guid": "52977e11-7e16-41ba-b52e-442518565e8d",
-              "__enabled": true,
-              "Flags": 0,
-              "AttackTrigger": "b_attack",
-              "DebugMuzzleFlashPrefab": null,
-              "DebugMuzzleFlashScale": 1,
-              "HandBoneName": "hand_R",
-              "HideForLocalPlayer": false,
-              "HoldType": 6,
-              "HoldTypeAttack": 0,
-              "HoldTypeHandedness": 1,
-              "HoldTypePose": 0,
-              "MuzzleLocalOffset": "8,0,0",
-              "MuzzleRotationOffset": "0,0,0",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PositionOffset": "5.96000767,4.28571129,-3.25714421",
-              "RotationOffset": "142.491348,-11.8972349,-100.086189",
-              "ShowDebugMuzzleFlash": false,
-              "WorldModel": "models/weapons/sbox_melee_crowbar/w_crowbar.vmdl"
-            }
-          ],
-          "Children": []
+          "__Prefab": "prefabs/weapons/crowbar.prefab",
+          "__PrefabInstancePatch": {
+            "AddedObjects": [],
+            "RemovedObjects": [],
+            "PropertyOverrides": [
+              {
+                "Target": {
+                  "Type": "GameObject",
+                  "IdValue": "21a55f5c-c5c9-4737-98e1-22d656df745e"
+                },
+                "Property": "Position",
+                "Value": "0,-172.337402,-9.87458038"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
+                },
+                "Property": "AttackTrigger",
+                "Value": "b_attack"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
+                },
+                "Property": "DeployTrigger",
+                "Value": "b_deploy"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
+                },
+                "Property": "DryAttackTrigger",
+                "Value": "b_attack_dry"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
+                },
+                "Property": "ReloadTrigger",
+                "Value": "b_reload"
+              }
+            ],
+            "MovedObjects": []
+          },
+          "__PrefabIdToInstanceId": {
+            "21a55f5c-c5c9-4737-98e1-22d656df745e": "71746c2c-dcf8-4b88-ae06-47e3f33c6936",
+            "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2": "417cc1fd-2f10-4250-86a1-c144bf88c5c0",
+            "d4af86fd-146b-44ec-a9f2-f9800d97fdef": "5f4418e9-1d47-46a0-a4a5-9304f07c7648",
+            "ca90dee2-d567-4207-ae8e-c31fff1da4f1": "3f4c9b31-56fa-4939-a21b-fec7aa5ec7ef"
+          }
         },
         {
-          "__guid": "c24b88b6-d6d5-4bfe-9387-b9ae01fde52a",
+          "__guid": "13b61eb4-fd3b-405d-847c-e76051ccf793",
           "__version": 2,
-          "Flags": 0,
-          "Name": "Pistol",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "UspWeapon",
-              "__guid": "71acd3e2-8545-4cb6-b624-651da99ad5c9",
-              "__enabled": true,
-              "Flags": 0,
-              "AmmoInClip": 12,
-              "AnimationRenderer": null,
-              "BaseSpreadDegrees": 0.75,
-              "BulletRadius": 1.5,
-              "BulletRange": 5000,
-              "ClipSize": 12,
-              "Damage": 18,
-              "DrawDebugTrace": true,
-              "DryFireSound": "sounds/pistoldryfire.sound",
-              "FireSound": "sounds/pistolshoot.sound",
-              "HasReserveAmmo": true,
-              "HoldType": "pistol",
-              "InfiniteAmmo": true,
-              "InventorySlot": 1,
-              "MaxSpreadDegrees": 4,
-              "MuzzleBoneName": "silencer",
-              "MuzzleFlashLifeTime": 0.2,
-              "MuzzleFlashPositionOffset": "0,0,0",
-              "MuzzleFlashPrefab": {
-                "_type": "gameobject",
-                "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+          "__Prefab": "prefabs/weapons/pistol.prefab",
+          "__PrefabInstancePatch": {
+            "AddedObjects": [],
+            "RemovedObjects": [],
+            "PropertyOverrides": [
+              {
+                "Target": {
+                  "Type": "GameObject",
+                  "IdValue": "871b7d60-5590-4a14-b1cf-c8c041f3c384"
+                },
+                "Property": "Position",
+                "Value": "0,-172.337402,-9.87458038"
               },
-              "MuzzleFlashRotationOffset": "0,0,0",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PlayAttackAnimation": true,
-              "PlayDeployAnimation": true,
-              "PrimaryFireRate": 0.5,
-              "RecoilPitch": 1.25,
-              "RecoilRecoveryRate": 8,
-              "RecoilYaw": 0.4,
-              "ReloadSound": "sounds/pistolreload.sound",
-              "ReloadTime": 1.4,
-              "ReserveAmmo": 48,
-              "SecondaryFireRate": 0.5,
-              "SpreadPerShot": 0.35,
-              "SpreadRecoveryRate": 3
-            },
-            {
-              "__type": "ViewModelWeapon",
-              "__guid": "c8c3b77d-ad6f-410d-b5ce-92d9abb16731",
-              "__enabled": true,
-              "Flags": 0,
-              "ArmsModel": "models/first_person/v_first_person_arms_citizen.vmdl",
-              "AttackTrigger": "b_attack",
-              "DeployTrigger": "b_deploy",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PositionOffset": "12.6170683,1.45141733,-3.31432462",
-              "ReloadTrigger": "b_reload",
-              "RotationOffset": "0,0,0",
-              "WeaponModel": "models/weapons/sbox_pistol_usp/v_usp.vmdl"
-            },
-            {
-              "__type": "ThirdPersonWeaponModel",
-              "__guid": "01cf52fd-d1ac-4093-b295-065e1ac7dc6e",
-              "__enabled": true,
-              "Flags": 0,
-              "AttackTrigger": "b_attack",
-              "DebugMuzzleFlashPrefab": {
-                "_type": "gameobject",
-                "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "AttackTrigger",
+                "Value": "b_attack"
               },
-              "DebugMuzzleFlashScale": 1,
-              "HandBoneName": "hold_R",
-              "HideForLocalPlayer": true,
-              "HoldType": 1,
-              "HoldTypeAttack": 0,
-              "HoldTypeHandedness": 0,
-              "HoldTypePose": 0,
-              "MuzzleLocalOffset": "4.4914403,-0.0514297523,4.82284784",
-              "MuzzleRotationOffset": "0,0,0",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "PositionOffset": "2.96571803,-0.268576056,-2.44000006",
-              "RotationOffset": "0,0,0",
-              "ShowDebugMuzzleFlash": false,
-              "WorldModel": "models/weapons/sbox_pistol_usp/w_usp.vmdl"
-            }
-          ],
-          "Children": []
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "DeployTrigger",
+                "Value": "b_deploy"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "DryAttackTrigger",
+                "Value": "b_attack_dry"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+                },
+                "Property": "ReloadTrigger",
+                "Value": "b_reload"
+              },
+              {
+                "Target": {
+                  "Type": "Component",
+                  "IdValue": "361807d2-5051-4623-abac-78ed123dcd26"
+                },
+                "Property": "DryAttackTrigger",
+                "Value": "b_attack_dry"
+              }
+            ],
+            "MovedObjects": []
+          },
+          "__PrefabIdToInstanceId": {
+            "871b7d60-5590-4a14-b1cf-c8c041f3c384": "13b61eb4-fd3b-405d-847c-e76051ccf793",
+            "6edf0594-8f70-4c1d-8651-95b7c68e7c62": "7fa4a613-2da1-42b5-9574-69afd5b4927b",
+            "361807d2-5051-4623-abac-78ed123dcd26": "14a0ada6-1dba-4803-bd48-febbf7779510",
+            "dcad2929-937e-4677-85b8-65f6b9e6514f": "bc8f410f-f0ed-43f3-8d5a-a3f37a1fd4dd"
+          }
         }
       ]
-    },
-    {
-      "__guid": "be41077a-00fa-4791-b057-7f555ad39acb",
-      "__version": 2,
-      "__Prefab": "boatpiece_test.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "a4d0c64d-a3df-4ec4-a0bf-40c5538ef82c"
-            },
-            "Property": "Position",
-            "Value": "16.9895344,142.468124,25.6778812"
-          },
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "a4d0c64d-a3df-4ec4-a0bf-40c5538ef82c"
-            },
-            "Property": "Enabled",
-            "Value": false
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "a4d0c64d-a3df-4ec4-a0bf-40c5538ef82c": "be41077a-00fa-4791-b057-7f555ad39acb",
-        "b3bdc09c-aca1-4454-9f76-a5708f6f09e4": "fab325e1-8817-4f79-adbc-bd4a3d023ea3",
-        "e354dae6-498d-488d-8f5f-ae7174f83b0d": "44e3474d-2d02-4417-8474-448356bd25ae",
-        "31af03bb-587b-4f0c-8a38-8ec60b0a7578": "49ba7b77-713e-4caf-b696-b29608edce46",
-        "5527c1aa-4ba4-439a-a9cd-9d5e0fff009b": "b74f2e8d-b94b-4650-acd1-5c54863e2f83",
-        "080e770c-c11d-43a1-b54e-fff6477fd6df": "c82d6a8b-2eac-4fc2-944d-d3535844ff12"
-      }
-    },
-    {
-      "__guid": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "PlayerRagdoll",
-      "Position": "-176.259079,51.001358,0",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": false,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.SkinnedModelRenderer",
-          "__guid": "4cd17e01-3c9d-4942-83ff-3c354cf24563",
-          "__enabled": true,
-          "Flags": 0,
-          "AnimationGraph": null,
-          "BodyGroups": 341,
-          "BoneMergeTarget": null,
-          "CreateAttachments": false,
-          "CreateBoneObjects": false,
-          "LodOverride": null,
-          "MaterialGroup": null,
-          "MaterialOverride": null,
-          "Materials": null,
-          "Model": "models/citizen/citizen.vmdl",
-          "Morphs": {},
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Parameters": {
-            "bools": {},
-            "ints": {},
-            "floats": {},
-            "vectors": {},
-            "rotations": {}
-          },
-          "PlaybackRate": 1,
-          "RenderOptions": {
-            "GameLayer": true,
-            "OverlayLayer": false,
-            "BloomLayer": false,
-            "AfterUILayer": false
-          },
-          "RenderType": "On",
-          "Sequence": {
-            "Name": null,
-            "Looping": true,
-            "Blending": false
-          },
-          "Tint": "1,1,1,1",
-          "UseAnimGraph": false
-        },
-        {
-          "__type": "Sandbox.ModelPhysics",
-          "__guid": "1c9bc9b8-520d-4aae-a1c1-deca97e6bddc",
-          "__enabled": true,
-          "Flags": 0,
-          "Bodies": [],
-          "IgnoreRoot": false,
-          "Joints": [],
-          "Locking": {
-            "X": false,
-            "Y": false,
-            "Z": false,
-            "Pitch": false,
-            "Yaw": false,
-            "Roll": false
-          },
-          "Model": "models/citizen/citizen.vmdl",
-          "MotionEnabled": true,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PhysicsWereCreated": false,
-          "Renderer": {
-            "_type": "component",
-            "component_id": "4cd17e01-3c9d-4942-83ff-3c354cf24563",
-            "go": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d",
-            "component_type": "SkinnedModelRenderer"
-          },
-          "RigidbodyFlags": 0,
-          "StartAsleep": false
-        }
-      ],
-      "Children": []
     },
     {
       "__guid": "e8a88a72-45b2-4e4c-9c40-a4f3e85bcbb4",
@@ -1475,64 +1254,6 @@
           "RemoveUnownedItems": true,
           "Source": "OwnerConnection",
           "WorkshopItems": []
-        },
-        {
-          "__type": "PlayerHealth",
-          "__guid": "0f97cea5-ca76-49eb-97e3-20a669c118be",
-          "__enabled": true,
-          "Flags": 0,
-          "HidePlayerModelOnDeath": true,
-          "MaxHealth": 100,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RagdollPrefab": {
-            "_type": "gameobject",
-            "go": "2bf21549-746a-49c0-a0d8-5d47ee1a7f1d"
-          },
-          "RequireBattlePhaseForDamage": true,
-          "SpawnRagdollOnDeath": true
-        },
-        {
-          "__type": "PlayerInventory",
-          "__guid": "98ab109b-ba94-4c81-ad3d-7c95bed2aa9c",
-          "__enabled": true,
-          "Flags": 0,
-          "MaxSlots": 4,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "FloodPlayer",
-          "__guid": "761011ef-6040-45e3-a6be-60cb69709e0b",
-          "__enabled": true,
-          "Flags": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null
-        },
-        {
-          "__type": "PlayerBuildResources",
-          "__guid": "b1d03b8b-3a9e-49bc-94ad-4e1df8be6236",
-          "__enabled": true,
-          "Flags": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "StartingResources": 500
         }
       ],
       "Children": [
@@ -1748,6 +1469,14 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
+            "Property": "AttackTrigger",
+            "Value": "b_attack"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
             "Property": "BaseSpreadDegrees",
             "Value": 0.75
           },
@@ -1756,8 +1485,16 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "HasReserveAmmo",
-            "Value": true
+            "Property": "DeployTrigger",
+            "Value": "b_deploy"
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
+            },
+            "Property": "DryAttackTrigger",
+            "Value": "b_attack_dry"
           },
           {
             "Target": {
@@ -1772,56 +1509,8 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "MuzzleBoneName",
-            "Value": "muzzle"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "MuzzleFlashLifeTime",
-            "Value": 0.08
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "MuzzleFlashPositionOffset",
-            "Value": "0,0,0"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "MuzzleFlashPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "MuzzleFlashRotationOffset",
-            "Value": "0,0,0"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
             "Property": "RecoilPitch",
             "Value": 1.25
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "RecoilRecoveryRate",
-            "Value": 8
           },
           {
             "Target": {
@@ -1836,32 +1525,8 @@
               "Type": "Component",
               "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
             },
-            "Property": "ReloadSound",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "ReloadTime",
-            "Value": 1.4
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "ReserveAmmo",
-            "Value": 48
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "4505511f-ac70-4f95-8e81-94a5cfd12d0e"
-            },
-            "Property": "SpreadPerShot",
-            "Value": 0.35
+            "Property": "ReloadTrigger",
+            "Value": "b_reload"
           },
           {
             "Target": {
@@ -1884,8 +1549,8 @@
               "Type": "Component",
               "IdValue": "540c582c-5f1d-4fae-b908-0d91bc1b8174"
             },
-            "Property": "ReloadTrigger",
-            "Value": "b_reload"
+            "Property": "DryAttackTrigger",
+            "Value": "b_attack_dry"
           },
           {
             "Target": {
@@ -1893,46 +1558,6 @@
               "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
             },
             "Property": "__enabled",
-            "Value": false
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
-            },
-            "Property": "DebugMuzzleFlashPrefab",
-            "Value": null
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
-            },
-            "Property": "DebugMuzzleFlashScale",
-            "Value": 1
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
-            },
-            "Property": "MuzzleLocalOffset",
-            "Value": "8,0,0"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
-            },
-            "Property": "MuzzleRotationOffset",
-            "Value": "0,0,0"
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "09a2991f-461c-4101-921f-6d0e4f299dd0"
-            },
-            "Property": "ShowDebugMuzzleFlash",
             "Value": false
           },
           {
@@ -1956,9 +1581,9 @@
       },
       "__PrefabIdToInstanceId": {
         "4faba1cc-3439-40b8-a525-f28eab73bacd": "f80ac79e-31c2-4161-85c1-dffe1ac3310f",
-        "4505511f-ac70-4f95-8e81-94a5cfd12d0e": "8af4e938-89a6-41bc-a212-e218f17983ca",
-        "540c582c-5f1d-4fae-b908-0d91bc1b8174": "2e92fdc0-535f-4d76-967f-c12f7b1941fe",
-        "09a2991f-461c-4101-921f-6d0e4f299dd0": "c3b552e8-8ad2-4487-81e9-09683b8ed2b7",
+        "a6b196de-8e48-47f4-9cf9-7204fef60cf1": "c61ab43c-5219-4739-9a5c-d7975b2f6c2d",
+        "eea555a1-5f42-496e-9437-26c529864d8e": "2038c4be-7eb8-4e96-9599-79bbc1e90818",
+        "503503f8-93b6-4683-ba47-202329c697d6": "c7b81a45-7431-4898-95fc-78127a7189aa",
         "d8314150-1fe5-450c-8681-2c68e00ab380": "6f7eec87-ff22-4365-85c6-36b7616c8c8f",
         "e277d751-e31f-4882-9ac0-22f55ad8c7c8": "d601bf11-9a3e-4a70-b97c-6572fc739af3",
         "44f7a710-21f7-4ae4-9241-5f9df8a3c2d7": "de3bd89f-8d8c-4f5e-b29c-85c71d46c80e",
@@ -1971,6 +1596,34 @@
         "bab9c829-2c24-484b-9a84-617d7a5ba20b": "a770e58b-997a-4e56-800b-00999f6ca2a2",
         "deb3338e-45d0-42bc-90b9-54c4730e1628": "14c36d00-3853-40f7-baf2-2a3f43cca694",
         "32440c17-8e0b-4512-abd4-4ba8d7cfaf52": "3881e52a-a89c-4b6e-a767-02f477877f07"
+      }
+    },
+    {
+      "__guid": "1bf44908-4040-49fc-ad10-279659da03c7",
+      "__version": 2,
+      "__Prefab": "prefabs/builder/boatpiece_test.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "1ff8c511-3e8e-4dfc-9d13-03d1b9ae0f21"
+            },
+            "Property": "Enabled",
+            "Value": false
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "1ff8c511-3e8e-4dfc-9d13-03d1b9ae0f21": "1bf44908-4040-49fc-ad10-279659da03c7",
+        "121ed009-1c47-4011-b575-e34362698281": "36a1bd32-51bd-40f7-8780-e7664a98e3dd",
+        "7b53b696-79d4-42c6-af3c-68ee0c2f6dbc": "09516b67-e49e-40f6-9774-eab1b94c3757",
+        "cd0ed4a3-0d62-4348-b552-4b76c8611234": "b7b010c8-fd73-4bc1-8613-d96a47dba8f6",
+        "a628dfa8-302c-4e50-9755-2b027676538a": "a63fbe21-161f-48a9-8c15-0d162ee29507",
+        "fbf53a30-3bce-46bc-a785-93c51c239ccc": "e97bb36b-4b9e-4a33-a28e-2db53c3280af"
       }
     }
   ],
@@ -1994,17 +1647,12 @@
       "CustomBounds": false
     },
     "GameObjectSystems": {
-      "Sandbox.SelectionSetsSystem": {
-        "Data": {
-          "SelectionSets": []
-        }
-      },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
         "DisableClientRecording": false
       },
-      "Sandbox.Clutter.ClutterGridSystem": {
-        "Storage": {
-          "$blob": "b6ced702-4d1e-41f7-9d95-d5ab2961a21a"
+      "Sandbox.SelectionSetsSystem": {
+        "Data": {
+          "SelectionSets": []
         }
       }
     }
@@ -2014,10 +1662,7 @@
   "Description": null,
   "__references": [
     "facepunch.v_crowbar#205801",
-    "facepunch.v_first_person_arms_citizen#205823",
-    "facepunch.v_usp#205818",
-    "facepunch.w_crowbar#144899",
-    "facepunch.w_usp#152497"
+    "facepunch.v_first_person_arms_citizen#205823"
   ],
   "__version": 3
 }

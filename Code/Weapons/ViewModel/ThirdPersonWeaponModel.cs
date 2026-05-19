@@ -90,12 +90,21 @@ public sealed class ThirdPersonWeaponModel : Component
 
 	public void PlayAttack()
 	{
+		PlayAnimation( AttackTrigger );
+	}
+
+	public void PlayAnimation( string triggerName )
+	{
 		if ( !EnsureBodyRenderer() )
 			return;
 
+		if ( string.IsNullOrWhiteSpace( triggerName ) )
+			return;
+
 		BodyRenderer.Set( "holdtype_attack", HoldTypeAttack );
-		BodyRenderer.Set( AttackTrigger, false );
-		BodyRenderer.Set( AttackTrigger, true );
+
+		BodyRenderer.Set( triggerName, false );
+		BodyRenderer.Set( triggerName, true );
 	}
 
 	private void CreateWorldModel()

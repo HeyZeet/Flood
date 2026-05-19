@@ -6,8 +6,13 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 	[Property] public float EyeHeight { get; set; } = 64f;
 	[Property] public bool DrawDebugAim { get; set; } = true;
 
+	[Header( "Recoil" )]
+	[Property] public float RecoilRecoveryRate { get; set; } = 10f;
+
 	public Vector3 EyePosition { get; private set; }
 	public Rotation EyeRotation { get; private set; }
+
+	private Angles RecoilOffset { get; set; }
 
 	public Vector3 AimForward => EyeRotation.Forward;
 	public Ray AimRay => new Ray( EyePosition, AimForward );
@@ -16,6 +21,16 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 	{
 		EyePosition = WorldPosition + Vector3.Up * EyeHeight;
 		EyeRotation = WorldRotation;
+	}
+
+	protected override void OnUpdate()
+	{
+		UpdateRecoilRecovery();
+	}
+
+	public void AddViewPunch( Angles punch )
+	{
+		RecoilOffset += punch;
 	}
 
 	public void OnEyeAngles( ref Angles angles )
@@ -60,6 +75,11 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 			return;
 		}
 
+		var baseRotation = camera.WorldRotation;
+		var recoilRotation = RecoilOffset.ToRotation();
+
+		camera.WorldRotation = baseRotation * recoilRotation;
+
 		EyePosition = camera.WorldPosition;
 		EyeRotation = camera.WorldRotation;
 
@@ -95,6 +115,23 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 			.Sphere( radius, EyePosition, end )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
+	}
+
+	private void UpdateRecoilRecovery()
+	{
+		if ( RecoilOffset == Angles.Zero )
+			return;
+
+		RecoilOffset = Angles.Lerp( RecoilOffset, Angles.Zero, RecoilRecoveryRate * Time.Delta );
+
+		if (
+			RecoilOffset.pitch.AlmostEqual( 0f, 0.01f ) &&
+			RecoilOffset.yaw.AlmostEqual( 0f, 0.01f ) &&
+			RecoilOffset.roll.AlmostEqual( 0f, 0.01f )
+		)
+		{
+			RecoilOffset = Angles.Zero;
+		}
 	}
 
 	private void DrawDebugAimLine()

@@ -327,12 +327,12 @@ public sealed class BoatBuilder : BaseCarryable
 	private void ValidateRequiredComponents()
 	{
 		if ( !Preview.IsValid() )
-			Log.Warning( "BoatBuilder needs BuildPreview on the same GameObject." );
+			Log.Warning( "BoatBuilder needs BuildPreview on itself or a child GameObject." );
 
 		if ( !Placement.IsValid() )
-			Log.Warning( "BoatBuilder needs BuildPlacement on the same GameObject." );
+			Log.Warning( "BoatBuilder needs BuildPlacement on itself or a child GameObject." );
 
 		if ( !Factory.IsValid() )
-			Log.Warning( "BoatBuilder needs BuildPieceFactory on the same GameObject." );
+			Log.Warning( "BoatBuilder needs BuildPieceFactory on itself or a child GameObject." );
 	}
 }

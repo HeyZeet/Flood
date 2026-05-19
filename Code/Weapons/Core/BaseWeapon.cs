@@ -12,21 +12,13 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public bool PlayDeployAnimation { get; set; } = true;
 	[Property] public bool PlayAttackAnimation { get; set; } = true;
 
-	[Header( "Accuracy" )]
-	[Property] public float BaseSpreadDegrees { get; set; } = 0.75f;
-	[Property] public float MaxSpreadDegrees { get; set; } = 4f;
-	[Property] public float SpreadPerShot { get; set; } = 0.35f;
-	[Property] public float SpreadRecoveryRate { get; set; } = 3f;
-
-	[Header( "Recoil" )]
-	[Property] public float RecoilPitch { get; set; } = 1.25f;
-	[Property] public float RecoilYaw { get; set; } = 0.4f;
-	[Property] public float RecoilRecoveryRate { get; set; } = 8f;
+[Property] public string DeployTrigger { get; set; } = "b_deploy";
+[Property] public string AttackTrigger { get; set; } = "b_attack";
+	[Property] public string DryAttackTrigger { get; set; } = "b_attack_dry";
+	[Property] public string ReloadTrigger { get; set; } = "b_reload";
 
 	private TimeSince TimeSincePrimaryAttack { get; set; }
 	private TimeSince TimeSinceSecondaryAttack { get; set; }
-	private float CurrentSpreadDegrees { get; set; }
-	private Angles ViewRecoilOffset { get; set; }
 	
 	protected FloodPlayer OwnerPlayer
 	{
@@ -50,6 +42,32 @@ public abstract class BaseWeapon : BaseCarryable
 		}
 	}
 
+	protected void PlayWeaponAnimation( string triggerName )
+	{
+		if ( string.IsNullOrWhiteSpace( triggerName ) )
+			return;
+
+		TriggerAnimationBool( triggerName );
+		TriggerViewModelAnimation( triggerName );
+		TriggerThirdPersonAnimation( triggerName );
+	}
+
+	protected void TriggerViewModelAnimation( string triggerName )
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( viewModel.IsValid() )
+			viewModel.PlayAnimation( triggerName );
+	}
+
+	protected void TriggerThirdPersonAnimation( string triggerName )
+	{
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( thirdPersonModel.IsValid() )
+			thirdPersonModel.PlayAnimation( triggerName );
+	}
+
 	public override void OnAddedToInventory( PlayerInventory inventory )
 	{
 		base.OnAddedToInventory( inventory );
@@ -68,7 +86,7 @@ public abstract class BaseWeapon : BaseCarryable
 		ApplyHoldType();
 
 		if ( PlayDeployAnimation )
-			TriggerAnimationBool( "b_deploy" );
+			PlayWeaponAnimation( DeployTrigger );
 	}
 
 	public override void OnHolster()
@@ -132,19 +150,7 @@ public abstract class BaseWeapon : BaseCarryable
 	public override void PrimaryAttack()
 	{
 		if ( PlayAttackAnimation )
-			TriggerAnimationBool( "b_attack" );
-
-		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( viewModel.IsValid() )
-			viewModel.PlayAttack();
-
-		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
-
-		if ( thirdPersonModel.IsValid() )
-			thirdPersonModel.PlayAttack();
-
-		Log.Info( $"{DisplayName} primary attack." );
+			PlayWeaponAnimation( AttackTrigger );
 	}
 
 	public override void SecondaryAttack()
@@ -191,9 +197,10 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !renderer.IsValid() )
 			return;
 
-		renderer.Set( "b_attack", false );
-		renderer.Set( "b_deploy", false );
-		renderer.Set( "b_reload", false );
+		renderer.Set( AttackTrigger, false );
+		renderer.Set( DryAttackTrigger, false );
+		renderer.Set( DeployTrigger, false );
+		renderer.Set( ReloadTrigger, false );
 	}
 
 	protected void TriggerAnimationBool( string parameterName )

@@ -8,19 +8,26 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public float BulletRadius { get; set; } = 1.5f;
 	[Property] public bool DrawDebugTrace { get; set; } = true;
 
-    [Header( "Ammo" )]
-    [Property] public int ReserveAmmo { get; set; } = 48;
-    [Property] public bool HasReserveAmmo { get; set; } = true;
-    [Property] public bool InfiniteAmmo { get; set; } = true;
+	[Header( "Ammo" )]
+	[Property] public int ReserveAmmo { get; set; } = 48;
+	[Property] public bool HasReserveAmmo { get; set; } = true;
+	[Property] public bool InfiniteAmmo { get; set; } = true;
 	[Property] public int ClipSize { get; set; } = 12;
 	[Property, Sync] public int AmmoInClip { get; set; } = 12;
 
-    [Header( "Reload" )]
-    [Property] public float ReloadTime { get; set; } = 1.4f;
-    [Property] public SoundEvent ReloadSound { get; set; }
+	[Header( "Reload" )]
+	[Property] public float ReloadTime { get; set; } = 1.4f;
+	[Property] public SoundEvent ReloadSound { get; set; }
 
-    public bool IsReloading { get; private set; }
-    private TimeSince TimeSinceReloadStarted { get; set; }
+	[Header( "Accuracy" )]
+	[Property] public float BaseSpreadDegrees { get; set; } = 0.5f;
+	[Property] public float MaxSpreadDegrees { get; set; } = 3f;
+	[Property] public float SpreadPerShot { get; set; } = 0.35f;
+	[Property] public float SpreadRecoveryRate { get; set; } = 4f;
+
+	[Header( "Recoil" )]
+	[Property] public float RecoilPitch { get; set; } = 1.1f;
+	[Property] public float RecoilYaw { get; set; } = 0.35f;
 
 	[Header( "Effects" )]
 	[Property] public SoundEvent FireSound { get; set; }
@@ -33,94 +40,24 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
 	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
-    protected virtual Vector3 GetBaseShootDirection()
-    {
-	    var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+	public bool IsReloading { get; private set; }
 
-	    if ( camera.IsValid() )
-		    return camera.AimForward;
+	private TimeSince TimeSinceReloadStarted { get; set; }
+	private float CurrentSpreadDegrees { get; set; }
 
-	    var sceneCamera = Scene.Camera;
+	public string AmmoDisplay
+	{
+		get
+		{
+			if ( InfiniteAmmo )
+				return $"{AmmoInClip} / ∞";
 
-	    if ( sceneCamera.IsValid() )
-		    return sceneCamera.WorldRotation.Forward;
+			if ( !HasReserveAmmo )
+				return $"{AmmoInClip} / --";
 
-	    return WorldRotation.Forward;
-    }
-
-    protected virtual void AddSpread()
-    {
-	    CurrentSpreadDegrees += SpreadPerShot;
-	    CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
-    }
-
-    protected virtual void UpdateSpreadRecovery()
-    {
-	    if ( CurrentSpreadDegrees <= BaseSpreadDegrees )
-	    {
-		    CurrentSpreadDegrees = BaseSpreadDegrees;
-		    return;
-	    }
-
-	    CurrentSpreadDegrees -= SpreadRecoveryRate * Time.Delta;
-	    CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
-    }
-
-    protected virtual void ApplyRecoil()
-    {
-	    var pitch = -RecoilPitch;
-	    var yaw = Game.Random.Float( -RecoilYaw, RecoilYaw );
-
-	    ViewRecoilOffset += new Angles( pitch, yaw, 0f );
-    }
-
-    protected virtual void UpdateRecoilRecovery()
-    {
-	    if ( ViewRecoilOffset == Angles.Zero )
-		    return;
-
-	    ViewRecoilOffset = Angles.Lerp( ViewRecoilOffset, Angles.Zero, RecoilRecoveryRate * Time.Delta );
-    }
-
-    public BaseGunWeapon ActiveGun
-    {
-	    get
-	    {
-		    var player = FloodPlayer.Local;
-
-		    if ( !player.IsValid() )
-			    return null;
-
-		    var inventory = player.Inventory;
-
-		    if ( !inventory.IsValid() )
-			return null;
-
-		    var activeCarryable = inventory.ActiveCarryable;
-
-		    if ( !activeCarryable.IsValid() )
-			return null;
-
-		    if ( activeCarryable is BaseGunWeapon activeGun )
-			return activeGun;
-
-		    return activeCarryable.GameObject.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
-	    }
-    }
-
-    public string AmmoDisplay
-    {
-	    get
-	    {
-		    if ( InfiniteAmmo )
-			    return $"{AmmoInClip} / ∞";
-
-		    if ( !HasReserveAmmo )
-			    return $"{AmmoInClip} / --";
-
-		    return $"{AmmoInClip} / {ReserveAmmo}";
-	    }
-    }
+			return $"{AmmoInClip} / {ReserveAmmo}";
+		}
+	}
 
 	protected override void OnStart()
 	{
@@ -128,50 +65,52 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 		if ( AmmoInClip <= 0 )
 			AmmoInClip = ClipSize;
+
+		CurrentSpreadDegrees = BaseSpreadDegrees;
 	}
 
-    public override void OnHolster()
-    {
-	    CancelReload();
+	public override void OnHolster()
+	{
+		CancelReload();
 
-	    base.OnHolster();
-    }
+		base.OnHolster();
+	}
 
-   public override void OnPlayerUpdate()
-    {
-	    base.OnPlayerUpdate();
+	public override void OnPlayerUpdate()
+	{
+		base.OnPlayerUpdate();
 
-	    if ( Input.Pressed( "reload" ) )
-		    StartReload();
+		if ( Input.Pressed( "reload" ) )
+			StartReload();
 
-	    UpdateReload();
-	    UpdateSpreadRecovery();
-	    UpdateRecoilRecovery();
-    }
+		UpdateReload();
+		UpdateSpreadRecovery();
+	}
 
-    public override void PrimaryAttack()
-    {
-	    if ( IsReloading )
-		    return;
+	public override void PrimaryAttack()
+	{
+		if ( IsReloading )
+			return;
 
-	    if ( !HasAmmo() )
-	    {
-		    PlayDryFireEffects();
-		    return;
-	    }
+		if ( !HasAmmo() )
+		{
+			PlayDryFireEffects();
+			return;
+		}
 
-	    ConsumeAmmo();
+		ConsumeAmmo();
 
-	    PlayFireEffects();
-	    FireBullet();
-        AddSpread();
-        ApplyRecoil();
+		PlayFireEffects();
+		FireBullet();
 
-	    base.PrimaryAttack();
+		AddSpread();
+		ApplyRecoil();
 
-	    if ( AmmoInClip <= 0 && HasReserveAmmo )
-		    StartReload();
-    }
+		base.PrimaryAttack();
+
+		if ( AmmoInClip <= 0 && HasReserveAmmo )
+			StartReload();
+	}
 
 	protected virtual bool HasAmmo()
 	{
@@ -201,138 +140,135 @@ public abstract class BaseGunWeapon : BaseWeapon
 	{
 		if ( DryFireSound is not null )
 			Sound.Play( DryFireSound, WorldPosition );
+
+		ClearOneShotAnimationParams();
+		PlayWeaponAnimation( DryAttackTrigger );
 	}
 
-    protected virtual void PlayMuzzleFlash()
-    {
-	    if ( !MuzzleFlashPrefab.IsValid() )
-		    return;
+	protected virtual void PlayMuzzleFlash()
+	{
+		if ( !MuzzleFlashPrefab.IsValid() )
+			return;
 
-	    PlayFirstPersonMuzzleFlash();
-	    PlayThirdPersonMuzzleFlash();
-    }
+		PlayFirstPersonMuzzleFlash();
+		PlayThirdPersonMuzzleFlash();
+	}
 
-    protected virtual bool CanReload()
-{
-	if ( IsReloading )
-		return false;
+	protected virtual bool CanReload()
+	{
+		if ( IsReloading )
+			return false;
 
-	if ( InfiniteAmmo )
-		return false;
+		if ( InfiniteAmmo )
+			return false;
 
-	if ( AmmoInClip >= ClipSize )
-		return false;
+		if ( AmmoInClip >= ClipSize )
+			return false;
 
-	if ( HasReserveAmmo && ReserveAmmo <= 0 )
-		return false;
+		if ( HasReserveAmmo && ReserveAmmo <= 0 )
+			return false;
 
-	return true;
-}
+		return true;
+	}
 
-    protected virtual void StartReload()
-    {
-	    if ( !CanReload() )
-		    return;
+	protected virtual void StartReload()
+	{
+		if ( !CanReload() )
+			return;
 
-	    IsReloading = true;
-	    TimeSinceReloadStarted = 0f;
+		IsReloading = true;
+		TimeSinceReloadStarted = 0f;
 
-	    PlayReloadEffects();
-    }
+		PlayReloadEffects();
+	}
 
-    protected virtual void UpdateReload()
-    {
-	    if ( !IsReloading )
-		    return;
+	protected virtual void UpdateReload()
+	{
+		if ( !IsReloading )
+			return;
 
-	    if ( TimeSinceReloadStarted < ReloadTime )
-		    return;
+		if ( TimeSinceReloadStarted < ReloadTime )
+			return;
 
-	    FinishReload();
-    }
+		FinishReload();
+	}
 
-    protected virtual void FinishReload()
-    {
-	    IsReloading = false;
+	protected virtual void FinishReload()
+	{
+		IsReloading = false;
 
-	    var ammoNeeded = ClipSize - AmmoInClip;
+		var ammoNeeded = ClipSize - AmmoInClip;
 
-	    if ( ammoNeeded <= 0 )
-		    return;
+		if ( ammoNeeded <= 0 )
+			return;
 
-	    if ( !HasReserveAmmo )
-	    {
-		    AmmoInClip = ClipSize;
-		    return;
-	    }
+		if ( !HasReserveAmmo )
+		{
+			AmmoInClip = ClipSize;
+			return;
+		}
 
-	    var ammoToLoad = System.Math.Min( ammoNeeded, ReserveAmmo );
+		var ammoToLoad = System.Math.Min( ammoNeeded, ReserveAmmo );
 
-	    AmmoInClip += ammoToLoad;
-	    ReserveAmmo -= ammoToLoad;
-    }
+		AmmoInClip += ammoToLoad;
+		ReserveAmmo -= ammoToLoad;
+	}
 
-    protected virtual void PlayReloadEffects()
-    {
-	    if ( ReloadSound is not null )
-		    Sound.Play( ReloadSound, WorldPosition );
+	protected virtual void PlayReloadEffects()
+	{
+		if ( ReloadSound is not null )
+			Sound.Play( ReloadSound, WorldPosition );
 
-	    ClearOneShotAnimationParams();
-	    TriggerAnimationBool( "b_reload" );
+		ClearOneShotAnimationParams();
+		PlayWeaponAnimation( ReloadTrigger );
+	}
 
-	    var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+	private void PlayFirstPersonMuzzleFlash()
+	{
+		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
-	    if ( viewModel.IsValid() )
-		    viewModel.PlayReload();
-    }
+		if ( !viewModel.IsValid() )
+			return;
 
-    private void PlayFirstPersonMuzzleFlash()
-    {
-	    var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
+		if ( !viewModel.TryGetBoneTransform( MuzzleBoneName, out var muzzleTransform ) )
+			return;
 
-	    if ( !viewModel.IsValid() )
-		    return;
+		SpawnMuzzleFlash( muzzleTransform );
+	}
 
-	    if ( !viewModel.TryGetBoneTransform( MuzzleBoneName, out var muzzleTransform ) )
-		    return;
+	private void PlayThirdPersonMuzzleFlash()
+	{
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
 
-	    SpawnMuzzleFlash( muzzleTransform );
-    }
+		if ( !thirdPersonModel.IsValid() )
+			return;
 
-    private void PlayThirdPersonMuzzleFlash()
-    {
-	    var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+		if ( thirdPersonModel.ShouldHideForLocalPlayer() )
+			return;
 
-	    if ( !thirdPersonModel.IsValid() )
-		    return;
+		var muzzleTransform = thirdPersonModel.GetMuzzleTransform();
 
-	    if ( thirdPersonModel.ShouldHideForLocalPlayer() )
-		    return;
+		SpawnMuzzleFlash( muzzleTransform );
+	}
 
-	    var muzzleTransform = thirdPersonModel.GetMuzzleTransform();
+	private void SpawnMuzzleFlash( Transform muzzleTransform )
+	{
+		var flash = MuzzleFlashPrefab.Clone();
 
-	    SpawnMuzzleFlash( muzzleTransform );
-    }
+		flash.WorldPosition =
+			muzzleTransform.Position +
+			muzzleTransform.Rotation.Forward * MuzzleFlashPositionOffset.x +
+			muzzleTransform.Rotation.Right * MuzzleFlashPositionOffset.y +
+			muzzleTransform.Rotation.Up * MuzzleFlashPositionOffset.z;
 
-    private void SpawnMuzzleFlash( Transform muzzleTransform )
-    {
-	    var flash = MuzzleFlashPrefab.Clone();
+		flash.WorldRotation = muzzleTransform.Rotation * MuzzleFlashRotationOffset.ToRotation();
 
-	    flash.WorldPosition =
-		    muzzleTransform.Position +
-		    muzzleTransform.Rotation.Forward * MuzzleFlashPositionOffset.x +
-		    muzzleTransform.Rotation.Right * MuzzleFlashPositionOffset.y +
-		    muzzleTransform.Rotation.Up * MuzzleFlashPositionOffset.z;
-
-	    flash.WorldRotation = muzzleTransform.Rotation * MuzzleFlashRotationOffset.ToRotation();
-
-	    if ( MuzzleFlashLifeTime > 0f )
-	    {
-		    var destroyAfterTime = flash.Components.Create<DestroyAfterTime>();
-		    destroyAfterTime.LifeTime = MuzzleFlashLifeTime;
-	    }
-    }
-
+		if ( MuzzleFlashLifeTime > 0f )
+		{
+			var destroyAfterTime = flash.Components.Create<DestroyAfterTime>();
+			destroyAfterTime.LifeTime = MuzzleFlashLifeTime;
+		}
+	}
 
 	protected virtual void FireBullet()
 	{
@@ -377,23 +313,36 @@ public abstract class BaseGunWeapon : BaseWeapon
 	}
 
 	protected virtual Vector3 GetShootDirection()
-    {
-	    var baseDirection = GetBaseShootDirection();
+	{
+		var baseDirection = GetBaseShootDirection();
 
-	    if ( CurrentSpreadDegrees <= 0f )
-		    return baseDirection;
+		if ( CurrentSpreadDegrees <= 0f )
+			return baseDirection;
 
-	    var spread = CurrentSpreadDegrees.DegreeToRadian();
+		var randomYaw = Game.Random.Float( -CurrentSpreadDegrees, CurrentSpreadDegrees );
+		var randomPitch = Game.Random.Float( -CurrentSpreadDegrees, CurrentSpreadDegrees );
 
-	    var randomYaw = Game.Random.Float( -spread, spread );
-	    var randomPitch = Game.Random.Float( -spread, spread );
+		var rotation = Rotation.LookAt( baseDirection );
+		rotation *= Rotation.FromYaw( randomYaw );
+		rotation *= Rotation.FromPitch( randomPitch );
 
-	    var rotation = Rotation.LookAt( baseDirection );
-	    rotation *= Rotation.FromYaw( randomYaw.RadianToDegree() );
-	    rotation *= Rotation.FromPitch( randomPitch.RadianToDegree() );
+		return rotation.Forward;
+	}
 
-	    return rotation.Forward;
-    }
+	protected virtual Vector3 GetBaseShootDirection()
+	{
+		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+
+		if ( camera.IsValid() )
+			return camera.AimForward;
+
+		var sceneCamera = Scene.Camera;
+
+		if ( sceneCamera.IsValid() )
+			return sceneCamera.WorldRotation.Forward;
+
+		return WorldRotation.Forward;
+	}
 
 	protected virtual void TryDamageHitObject( SceneTraceResult trace )
 	{
@@ -409,13 +358,44 @@ public abstract class BaseGunWeapon : BaseWeapon
 		Log.Info( $"{DisplayName} shot {trace.GameObject.Name} for {Damage} damage." );
 	}
 
-    protected virtual void CancelReload()
-    {
-	    if ( !IsReloading )
-		    return;
+	protected virtual void AddSpread()
+	{
+		CurrentSpreadDegrees += SpreadPerShot;
+		CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
+	}
 
-	    IsReloading = false;
+	protected virtual void UpdateSpreadRecovery()
+	{
+		if ( CurrentSpreadDegrees <= BaseSpreadDegrees )
+		{
+			CurrentSpreadDegrees = BaseSpreadDegrees;
+			return;
+		}
 
-	    ClearOneShotAnimationParams();
-    }
+		CurrentSpreadDegrees -= SpreadRecoveryRate * Time.Delta;
+		CurrentSpreadDegrees = CurrentSpreadDegrees.Clamp( BaseSpreadDegrees, MaxSpreadDegrees );
+	}
+
+	protected virtual void ApplyRecoil()
+	{
+		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+
+		if ( !camera.IsValid() )
+			return;
+
+		var pitch = -RecoilPitch;
+		var yaw = Game.Random.Float( -RecoilYaw, RecoilYaw );
+
+		camera.AddViewPunch( new Angles( pitch, yaw, 0f ) );
+	}
+
+	protected virtual void CancelReload()
+	{
+		if ( !IsReloading )
+			return;
+
+		IsReloading = false;
+
+		ClearOneShotAnimationParams();
+	}
 }

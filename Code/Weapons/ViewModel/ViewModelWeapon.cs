@@ -23,6 +23,9 @@ public sealed class ViewModelWeapon : Component
 	[Property, Group( "Animation" )]
 	public string ReloadTrigger { get; set; } = "b_reload";
 
+	[Property, Group( "Animation" )]
+	public string DryAttackTrigger { get; set; } = "b_attack_dry";
+
 	private GameObject ViewModelObject { get; set; }
 	private SkinnedModelRenderer WeaponRenderer { get; set; }
 	private SkinnedModelRenderer ArmsRenderer { get; set; }
@@ -63,17 +66,27 @@ public sealed class ViewModelWeapon : Component
 
 	public void PlayDeploy()
 	{
-		SetAnimationTrigger( DeployTrigger );
+		PlayAnimation( DeployTrigger );
 	}
 
 	public void PlayAttack()
 	{
-		SetAnimationTrigger( AttackTrigger );
+		PlayAnimation( AttackTrigger );
 	}
 
 	public void PlayReload()
 	{
-		SetAnimationTrigger( ReloadTrigger );
+		PlayAnimation( ReloadTrigger );
+	}
+
+	public void PlayDryAttack()
+	{
+		PlayAnimation( DryAttackTrigger );
+	}
+
+	public void PlayAnimation( string triggerName )
+	{
+		SetAnimationTrigger( triggerName );
 	}
 
 	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
@@ -165,8 +178,9 @@ public sealed class ViewModelWeapon : Component
 		if ( !WeaponRenderer.IsValid() )
 			return;
 
-		WeaponRenderer.Set( "b_attack", false );
-		WeaponRenderer.Set( "b_deploy", false );
-		WeaponRenderer.Set( "b_reload", false );
+		WeaponRenderer.Set( AttackTrigger, false );
+		WeaponRenderer.Set( DryAttackTrigger, false );
+		WeaponRenderer.Set( DeployTrigger, false );
+		WeaponRenderer.Set( ReloadTrigger, false );
 	}
 }
