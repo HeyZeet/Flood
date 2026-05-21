@@ -142,6 +142,40 @@
             }
           ],
           "Children": []
+        },
+        {
+          "__guid": "4bd7ee1e-53f9-47ab-a051-e78a068c3c64",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "WaterDamageVolume",
+          "Position": "2380.60645,312.331177,309.487488",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "WaterDamageVolume",
+              "__guid": "76ec7c1e-8992-498f-a942-075e7176dc83",
+              "__enabled": true,
+              "Flags": 0,
+              "DamagePerSecond": 10,
+              "DamageStartDepth": 8,
+              "LogDebug": false,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            }
+          ],
+          "Children": []
         }
       ]
     },
@@ -167,14 +201,14 @@
           "__enabled": true,
           "Flags": 0,
           "AutoRunRoundLoop": true,
-          "BattleDuration": 60,
+          "BattleDuration": 5,
           "BuildDuration": 60,
           "DebugPlayerDamageAmount": 25,
           "EnableDebugControls": true,
           "EnableDebugDamageKey": true,
           "EnableDebugPhaseKeys": true,
           "EnableDebugResetKey": true,
-          "FloodDuration": 60,
+          "FloodDuration": 15,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -1521,12 +1555,20 @@
           "__guid": "12a11246-440c-496f-abeb-92097e13837e",
           "__enabled": true,
           "Flags": 0,
-          "Body": null,
+          "ApplyPresetOnStart": true,
+          "Body": {
+            "_type": "component",
+            "component_id": "684be9c5-1146-4d28-a45e-4991fee25cf4",
+            "go": "d69cb15c-427a-44c0-91bb-c3ff8302ac1d",
+            "component_type": "Rigidbody"
+          },
           "DrawDebug": true,
           "EnabledDuringBuildPhase": true,
           "LiftAcceleration": 900,
           "LogDebug": false,
+          "MaterialPreset": "Wood",
           "MaxSampleDepth": 48,
+          "MinSplashSpeed": 80,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -1536,6 +1578,12 @@
           "PointVelocityDrag": 0.15,
           "RelativeDensity": 0.75,
           "SampleGridSize": 2,
+          "SplashCooldown": 0.35,
+          "SplashLifeTime": 1.5,
+          "SplashPrefab": {
+            "_type": "gameobject",
+            "go": "752de60c-a71a-4547-b5f1-7f9f71fcc5ff"
+          },
           "StabilizeRollPitch": true,
           "SurfaceTouchDepth": 0,
           "UprightStabilization": 0.15,
@@ -1689,12 +1737,20 @@
           "__guid": "128dd5c2-969f-409f-99aa-255152fc076e",
           "__enabled": true,
           "Flags": 0,
-          "Body": null,
+          "ApplyPresetOnStart": true,
+          "Body": {
+            "_type": "component",
+            "component_id": "8427580a-741a-45f2-9a2a-cc6baea4eb04",
+            "go": "2c73f61c-cd4b-44ec-84ff-07083a5943d2",
+            "component_type": "Rigidbody"
+          },
           "DrawDebug": true,
           "EnabledDuringBuildPhase": true,
-          "LiftAcceleration": 900,
+          "LiftAcceleration": 500,
           "LogDebug": false,
+          "MaterialPreset": "Metal",
           "MaxSampleDepth": 48,
+          "MinSplashSpeed": 80,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -1702,8 +1758,14 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "PointVelocityDrag": 0.15,
-          "RelativeDensity": 0.75,
+          "RelativeDensity": 2.2,
           "SampleGridSize": 2,
+          "SplashCooldown": 0.35,
+          "SplashLifeTime": 1.5,
+          "SplashPrefab": {
+            "_type": "gameobject",
+            "go": "752de60c-a71a-4547-b5f1-7f9f71fcc5ff"
+          },
           "StabilizeRollPitch": true,
           "SurfaceTouchDepth": 0,
           "UprightStabilization": 0.15,
@@ -1720,7 +1782,7 @@
       "__version": 2,
       "Flags": 0,
       "Name": "plasticblock(test)",
-      "Position": "-30.4130497,122.541092,24.9726448",
+      "Position": "-30.4110947,375.764404,24.9110527",
       "Rotation": "-0.000121625155,0.000191304192,-3.89630122E-06,1",
       "Scale": "1,1,1",
       "Tags": "metal",
@@ -1857,12 +1919,20 @@
           "__guid": "be3a24c2-751e-428b-8a5e-138abdbd349d",
           "__enabled": true,
           "Flags": 0,
-          "Body": null,
+          "ApplyPresetOnStart": true,
+          "Body": {
+            "_type": "component",
+            "component_id": "ca43b190-e0bd-460a-a63d-6800922c830a",
+            "go": "56032d55-2402-48f9-93d2-d70404aa1c5c",
+            "component_type": "Rigidbody"
+          },
           "DrawDebug": true,
           "EnabledDuringBuildPhase": true,
           "LiftAcceleration": 900,
           "LogDebug": false,
+          "MaterialPreset": "LightPlastic",
           "MaxSampleDepth": 48,
+          "MinSplashSpeed": 80,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -1872,6 +1942,12 @@
           "PointVelocityDrag": 0.15,
           "RelativeDensity": 0.75,
           "SampleGridSize": 2,
+          "SplashCooldown": 0.35,
+          "SplashLifeTime": 1.5,
+          "SplashPrefab": {
+            "_type": "gameobject",
+            "go": "752de60c-a71a-4547-b5f1-7f9f71fcc5ff"
+          },
           "StabilizeRollPitch": true,
           "SurfaceTouchDepth": 0,
           "UprightStabilization": 0.15,
@@ -2098,6 +2174,32 @@
         }
       ],
       "Children": []
+    },
+    {
+      "__guid": "752de60c-a71a-4547-b5f1-7f9f71fcc5ff",
+      "__version": 2,
+      "__Prefab": "particles/surfaces/impact_water.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "229a4d2a-16cf-46c9-90c0-3122060722bc": "752de60c-a71a-4547-b5f1-7f9f71fcc5ff",
+        "8e406df3-3e76-476a-9f36-5c8411739653": "928b4442-68aa-464f-8086-37149b0c8b07",
+        "449c142a-ea9a-47c7-b655-a74c584037a9": "ad8fff52-d262-43e5-b3bf-97eb2cd7a86f",
+        "15f858e6-503f-47de-b392-2c23350fca71": "4027ceba-2d82-4197-bd4f-7fb68596ec58",
+        "00015d9f-1212-4b1c-b0cf-f777a2bb4bb0": "15e018b2-c099-4192-989a-1f87110eba2b",
+        "2141fdaa-06bc-4a4c-9cb4-e35377c6db99": "1a6e06a2-095d-416e-aa32-b6d0efbf66f3",
+        "4dfd6c51-6455-4e34-a277-550287e092ff": "517570a0-c339-48d5-b18c-2cf455ff0c19",
+        "8a3a016a-c1f0-45f4-bce3-123ba4ad516a": "55eb1db1-3516-4048-b35b-3f06bdf7a376",
+        "4f02d2bb-0c9c-41bb-a448-4af2f216575e": "4e758a36-67ca-4e2f-b18f-5828b717ed55",
+        "5cfde144-6078-4ce9-b039-e9e2a2b7daaf": "ca7fe5a8-af5a-4221-ac64-43cc1c7a324e",
+        "3ee7630c-c18a-442a-a8ba-6550503cf1be": "28ba801e-6f30-4fa5-b16b-1785adffc75f",
+        "2addc6b8-f006-4b3a-9ee2-063b06b28cca": "ec6a7ea9-c093-4c6e-a9be-c50290d78549",
+        "07971de8-ff9d-440b-80ac-b0813e458a21": "b628d0a9-b3ce-4bbc-9274-973944bdc638"
+      }
     }
   ],
   "SceneProperties": {
@@ -2129,9 +2231,6 @@
         "Data": {
           "SelectionSets": []
         }
-      },
-      "Sandbox.MovieMaker.MovieRecorderSystem": {
-        "DisableClientRecording": false
       }
     }
   },

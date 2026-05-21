@@ -1,6 +1,16 @@
 using Sandbox;
 using System.Collections.Generic;
 
+public enum BuoyancyMaterialPreset
+{
+	Custom,
+	LightPlastic,
+	Wood,
+	HeavyWood,
+	Metal,
+	Stone
+}
+
 public sealed class FloodBuoyancy : Component
 {
 	[Header( "References" )]
@@ -15,6 +25,11 @@ public sealed class FloodBuoyancy : Component
 	// 0.75 = wood-like, floats well.
 	// 1.0 = neutral, sits low.
 	// 1.5+ = heavy, sinks.
+
+    [Property] public BuoyancyMaterialPreset MaterialPreset { get; set; } = BuoyancyMaterialPreset.Custom;
+
+    [Property] public bool ApplyPresetOnStart { get; set; } = true;
+
 	[Property] public float RelativeDensity { get; set; } = 0.75f;
 
 	[Property] public bool UseBuiltInApplyBuoyancy { get; set; } = true;
@@ -39,9 +54,76 @@ public sealed class FloodBuoyancy : Component
 	[Property] public bool DrawDebug { get; set; } = true;
 	[Property] public bool LogDebug { get; set; } = false;
 
+    [Header( "Water Effects" )]
+    [Property] public GameObject SplashPrefab { get; set; }
+    [Property] public float SplashLifeTime { get; set; } = 1.5f;
+    [Property] public float MinSplashSpeed { get; set; } = 80f;
+    [Property] public float SplashCooldown { get; set; } = 0.35f;
+
 	public float LastWetness { get; private set; }
 	public bool IsTouchingWater => LastWetness > 0f;
 	public Vector3 LastWaterContactPoint { get; private set; }
+    private bool WasTouchingWater { get; set; }
+    private TimeSince TimeSinceLastSplash { get; set; } = 999f;
+
+    private void ApplyMaterialPreset()
+    {
+	    switch ( MaterialPreset )
+	    {
+		    case BuoyancyMaterialPreset.Custom:
+			    return;
+
+		    case BuoyancyMaterialPreset.LightPlastic:
+			    RelativeDensity = 0.35f;
+			    LiftAcceleration = 1000f;
+			    MaxSampleDepth = 40f;
+			    WaterLinearDrag = 0.7f;
+			    WaterAngularDrag = 1.2f;
+			    PointVelocityDrag = 0.12f;
+			    UprightStabilization = 0.1f;
+			    break;
+
+		    case BuoyancyMaterialPreset.Wood:
+			    RelativeDensity = 0.65f;
+			    LiftAcceleration = 900f;
+			    MaxSampleDepth = 48f;
+			    WaterLinearDrag = 0.8f;
+			    WaterAngularDrag = 1.5f;
+			    PointVelocityDrag = 0.15f;
+			    UprightStabilization = 0.15f;
+			    break;
+
+		    case BuoyancyMaterialPreset.HeavyWood:
+			    RelativeDensity = 0.9f;
+			    LiftAcceleration = 850f;
+			    MaxSampleDepth = 56f;
+			    WaterLinearDrag = 0.9f;
+			    WaterAngularDrag = 1.7f;
+			    PointVelocityDrag = 0.18f;
+			    UprightStabilization = 0.12f;
+			    break;
+
+		    case BuoyancyMaterialPreset.Metal:
+			    RelativeDensity = 1.8f;
+			    LiftAcceleration = 650f;
+			    MaxSampleDepth = 64f;
+			    WaterLinearDrag = 1.0f;
+			    WaterAngularDrag = 2.0f;
+			    PointVelocityDrag = 0.22f;
+			    UprightStabilization = 0.05f;
+			    break;
+
+		    case BuoyancyMaterialPreset.Stone:
+			    RelativeDensity = 2.4f;
+			    LiftAcceleration = 500f;
+			    MaxSampleDepth = 64f;
+			    WaterLinearDrag = 1.1f;
+			    WaterAngularDrag = 2.2f;
+			    PointVelocityDrag = 0.25f;
+			    UprightStabilization = 0.02f;
+			    break;
+	    }
+    } 
 
 	protected override void OnStart()
 	{
@@ -50,6 +132,9 @@ public sealed class FloodBuoyancy : Component
 
 		if ( !Body.IsValid() )
 			Log.Warning( $"{GameObject.Name} has FloodBuoyancy but no Rigidbody." );
+
+        if ( ApplyPresetOnStart )
+	        ApplyMaterialPreset();
 	}
 
 	protected override void OnFixedUpdate()
@@ -96,17 +181,22 @@ public sealed class FloodBuoyancy : Component
 
 		LastWetness = wholeBodyWetness;
 
-		if ( wholeBodyWetness <= 0f )
-			return;
+        if ( wholeBodyWetness <= 0f )
+        {
+	        WasTouchingWater = false;
+	        return;
+        }
 
-		if ( UseBuiltInApplyBuoyancy )
-			Body.ApplyBuoyancy( water.WaterPlane, Time.Delta );
+        if ( UseBuiltInApplyBuoyancy )
+	        Body.ApplyBuoyancy( water.WaterPlane, Time.Delta );
 
-		if ( UseManualSampleBuoyancy )
-			ApplySampleBuoyancy( water, bounds );
+        if ( UseManualSampleBuoyancy )
+	        ApplySampleBuoyancy( water, bounds );
 
-		ApplyWaterDrag( wholeBodyWetness );
+        UpdateWaterContactEffects( water, wholeBodyWetness );
 
+        ApplyWaterDrag( wholeBodyWetness );
+        
 		if ( StabilizeRollPitch )
 			ApplyUprightStabilization( wholeBodyWetness );
 
@@ -117,6 +207,48 @@ public sealed class FloodBuoyancy : Component
 			);
 		}
 	}
+
+    private void UpdateWaterContactEffects( FloodWaterController water, float wetness )
+    {
+	    var isTouchingWater = wetness > 0f;
+
+	    if ( isTouchingWater && !WasTouchingWater )
+		    PlayEnterWaterSplash( water );
+
+	    WasTouchingWater = isTouchingWater;
+    }
+
+    private void PlayEnterWaterSplash( FloodWaterController water )
+    {
+	    if ( !SplashPrefab.IsValid() )
+		    return;
+
+	    if ( TimeSinceLastSplash < SplashCooldown )
+		    return;
+
+	    if ( Body.Velocity.Length < MinSplashSpeed )
+		    return;
+
+	    TimeSinceLastSplash = 0f;
+
+	    var splash = SplashPrefab.Clone();
+
+	    var position = LastWaterContactPoint;
+
+	    if ( position == Vector3.Zero )
+		    position = Body.WorldPosition;
+
+	    position.z = water.SurfaceHeight;
+
+	    splash.WorldPosition = position;
+	    splash.WorldRotation = Rotation.Identity;
+
+	    if ( SplashLifeTime > 0f )
+	    {
+		    var destroyAfterTime = splash.Components.Create<DestroyAfterTime>();
+		    destroyAfterTime.LifeTime = SplashLifeTime;
+	    }
+    }
 
 	private void ApplySampleBuoyancy( FloodWaterController water, BBox bounds )
 	{
