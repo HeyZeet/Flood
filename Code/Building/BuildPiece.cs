@@ -35,7 +35,6 @@ public sealed class BuildPiece : Component
 			AllPieces.Add( this );
 
 		CacheComponents();
-		ValidateRequiredComponents();
 	}
 
 	protected override void OnDestroy()
@@ -72,6 +71,9 @@ public sealed class BuildPiece : Component
 			return;
 
 		IsPlaced = true;
+
+		CacheComponents();
+		ValidateRequiredComponents();
 	}
 
 	public void MarkUnplaced()
@@ -95,8 +97,14 @@ public sealed class BuildPiece : Component
 
 	private void CacheComponents()
 	{
-		Health = Components.Get<BoatPieceHealth>();
-		Rigidbody = Components.Get<Rigidbody>();
+		Health = Components.Get<BoatPieceHealth>( FindMode.EverythingInSelfAndDescendants );
+		Rigidbody = Components.Get<Rigidbody>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !Health.IsValid() )
+			Health = GameObject.Parent?.Components.Get<BoatPieceHealth>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !Rigidbody.IsValid() )
+			Rigidbody = GameObject.Parent?.Components.Get<Rigidbody>( FindMode.EverythingInSelfAndDescendants );
 	}
 
 	private void ValidateRequiredComponents()
@@ -110,11 +118,11 @@ public sealed class BuildPiece : Component
 
 	private void ApplyHealthData( BuildPieceData data )
 	{
-		var health = Components.Get<BoatPieceHealth>();
+		CacheComponents();
 
-		if ( !health.IsValid() )
+		if ( !Health.IsValid() )
 			return;
 
-		health.MaxHealth = data.MaxHealth;
+		Health.MaxHealth = data.MaxHealth;
 	}
 }

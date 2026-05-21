@@ -34,6 +34,28 @@ public sealed class BuildPlacement : Component
 		return BuildPlacementResult.Valid( position, rotation );
 	}
 
+	public BuildPlacementResult ValidateRequestedPlacement(
+		Vector3 position,
+		Rotation rotation,
+		GameObject ignoreObject,
+		BuildPieceData pieceData,
+		Vector3 builderPosition )
+	{
+		if ( pieceData is null )
+			return BuildPlacementResult.Invalid( position, rotation, "No selected piece." );
+
+		var distance = (builderPosition - position).Length;
+		var maxDistance = MaxBuildDistance + MathF.Max( GridSize, 0f );
+
+		if ( distance > maxDistance )
+			return BuildPlacementResult.Invalid( position, rotation, "Too far away." );
+
+		if ( CheckOverlap && IsOverlappingBlockedObject( position, rotation, pieceData, ignoreObject ) )
+			return BuildPlacementResult.Invalid( position, rotation, "Blocked by another object." );
+
+		return BuildPlacementResult.Valid( position, rotation );
+	}
+
 	public Vector3 GetPlacementPosition(
 		FloodPlayerCamera camera,
 		GameObject ignoreObject,

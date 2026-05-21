@@ -14,7 +14,7 @@ public sealed class BoatBuilder : BaseCarryable
 	public BuildPlacementResult PlacementResult => CurrentPlacement;
 
 	[Property] public List<BuildPieceData> AvailablePieces { get; set; } = new();
-	[Property] public int SelectedPieceIndex { get; set; } = 0;
+	[Property, Sync] public int SelectedPieceIndex { get; set; } = 0;
 
 	public BuildPieceData SelectedPiece
 	{
@@ -23,8 +23,8 @@ public sealed class BoatBuilder : BaseCarryable
 			if ( AvailablePieces is null || AvailablePieces.Count == 0 )
 				return null;
 
-			SelectedPieceIndex = SelectedPieceIndex.Clamp( 0, AvailablePieces.Count - 1 );
-			return AvailablePieces[SelectedPieceIndex];
+			var clampedIndex = SelectedPieceIndex.Clamp( 0, AvailablePieces.Count - 1 );
+			return AvailablePieces[clampedIndex];
 		}
 	}
 
@@ -145,34 +145,48 @@ public sealed class BoatBuilder : BaseCarryable
 
 		if ( !Networking.IsHost )
 		{
-			RequestPlacePiece( placementResult.Position, placementResult.Rotation );
+			RequestPlacePiece( SelectedPieceIndex, placementResult.Position, placementResult.Rotation );
 			return;
 		}
 
-		TryPlacePieceHost( placementResult.Position, placementResult.Rotation );
+		TryPlacePieceHost( SelectedPieceIndex, placementResult.Position, placementResult.Rotation );
 	}
 
 	[Rpc.Host]
-	private void RequestPlacePiece( Vector3 position, Rotation rotation )
+	private void RequestPlacePiece( int selectedPieceIndex, Vector3 position, Rotation rotation )
 	{
-		TryPlacePieceHost( position, rotation );
+		TryPlacePieceHost( selectedPieceIndex, position, rotation );
 	}
 
-	private void TryPlacePieceHost( Vector3 position, Rotation rotation )
+	private void TryPlacePieceHost( int selectedPieceIndex, Vector3 position, Rotation rotation )
 	{
-		if ( !CanUseSelectedPiece() )
-			return;
-
 		if ( !IsBuildingAllowed() )
 		{
 			Log.Info( "Cannot place piece: building is disabled." );
 			return;
 		}
 
-		var selectedPiece = SelectedPiece;
+		if ( !IsActive )
+		{
+			Log.Info( "Cannot place piece: boat builder is not active." );
+			return;
+		}
+
+		if ( !TrySelectPieceHost( selectedPieceIndex ) )
+			return;
+
+		var selectedPiece = GetPieceAtIndex( selectedPieceIndex );
 
 		if ( selectedPiece is null )
 			return;
+
+		var placementResult = ValidateRequestedPlacementHost( selectedPiece, position, rotation );
+
+		if ( !placementResult.IsValid )
+		{
+			Log.Info( $"Cannot place piece: {placementResult.Reason}" );
+			return;
+		}
 
 		var resources = BuildResources;
 
@@ -182,28 +196,40 @@ public sealed class BoatBuilder : BaseCarryable
 			return;
 		}
 
-		if ( !resources.TrySpend( selectedPiece.Cost ) )
+		if ( !resources.CanAfford( selectedPiece.Cost ) )
 		{
 			Log.Info( $"Cannot afford {selectedPiece.DisplayName}. Cost: {selectedPiece.Cost}, Resources: {resources.Resources}" );
 			return;
 		}
 
-		PlacePiece( position, rotation );
+		var placedPiece = PlacePiece( selectedPiece, placementResult.Position, placementResult.Rotation );
+
+		if ( !placedPiece.IsValid() )
+		{
+			Log.Warning( $"Failed to place {selectedPiece.DisplayName}; resources were not spent." );
+			return;
+		}
+
+		if ( !resources.TrySpend( selectedPiece.Cost ) )
+		{
+			placedPiece.Destroy();
+			Log.Warning( $"Failed to spend resources for {selectedPiece.DisplayName}; removed spawned piece." );
+		}
 	}
 
-	private void PlacePiece( Vector3 position, Rotation rotation )
+	private GameObject PlacePiece( BuildPieceData pieceData, Vector3 position, Rotation rotation )
 	{
-		if ( !CanUseSelectedPiece() )
-			return;
+		if ( pieceData is null )
+			return null;
 
 		var factory = Factory;
 
 		if ( !factory.IsValid() )
-			return;
+			return null;
 
 		var owner = Inventory.IsValid() ? Inventory.GameObject : GameObject;
 
-		factory.SpawnPiece( SelectedPiece, position, rotation, owner );
+		return factory.SpawnPiece( pieceData, position, rotation, owner );
 	}
 
 	private BuildPlacementResult GetPlacementResult()
@@ -265,21 +291,71 @@ public sealed class BoatBuilder : BaseCarryable
 
 	private bool CanUseSelectedPiece()
 	{
-		var selectedPiece = SelectedPiece;
+		return CanUsePiece( SelectedPiece );
+	}
 
-		if ( selectedPiece is null )
+	private bool CanUsePiece( BuildPieceData pieceData )
+	{
+		if ( pieceData is null )
 		{
 			Log.Warning( "BoatBuilder has no selected piece. Add pieces to AvailablePieces." );
 			return false;
 		}
 
-		if ( !selectedPiece.Prefab.IsValid() )
+		if ( !pieceData.Prefab.IsValid() )
 		{
-			Log.Warning( $"Selected piece {selectedPiece.DisplayName} has no valid prefab." );
+			Log.Warning( $"Selected piece {pieceData.DisplayName} has no valid prefab." );
 			return false;
 		}
 
 		return true;
+	}
+
+	private BuildPieceData GetPieceAtIndex( int pieceIndex )
+	{
+		if ( AvailablePieces is null || AvailablePieces.Count == 0 )
+			return null;
+
+		if ( pieceIndex < 0 || pieceIndex >= AvailablePieces.Count )
+			return null;
+
+		return AvailablePieces[pieceIndex];
+	}
+
+	private bool TrySelectPieceHost( int pieceIndex )
+	{
+		if ( !Networking.IsHost )
+			return false;
+
+		var pieceData = GetPieceAtIndex( pieceIndex );
+
+		if ( !CanUsePiece( pieceData ) )
+			return false;
+
+		SelectedPieceIndex = pieceIndex;
+		return true;
+	}
+
+	private BuildPlacementResult ValidateRequestedPlacementHost(
+		BuildPieceData selectedPiece,
+		Vector3 position,
+		Rotation rotation )
+	{
+		var placement = Placement;
+
+		if ( !placement.IsValid() )
+			return BuildPlacementResult.Invalid( position, rotation, "No BuildPlacement component." );
+
+		var ignoreObject = Inventory.IsValid() ? Inventory.GameObject : GameObject;
+		var builderPosition = Inventory.IsValid() ? Inventory.WorldPosition : WorldPosition;
+
+		return placement.ValidateRequestedPlacement(
+			position,
+			rotation,
+			ignoreObject,
+			selectedPiece,
+			builderPosition
+		);
 	}
 
 	private void SelectNextPiece()
@@ -292,6 +368,7 @@ public sealed class BoatBuilder : BaseCarryable
 		if ( SelectedPieceIndex >= AvailablePieces.Count )
 			SelectedPieceIndex = 0;
 
+		RequestSelectedPieceIndex( SelectedPieceIndex );
 		OnSelectedPieceChanged();
 	}
 
@@ -305,7 +382,25 @@ public sealed class BoatBuilder : BaseCarryable
 		if ( SelectedPieceIndex < 0 )
 			SelectedPieceIndex = AvailablePieces.Count - 1;
 
+		RequestSelectedPieceIndex( SelectedPieceIndex );
 		OnSelectedPieceChanged();
+	}
+
+	private void RequestSelectedPieceIndex( int pieceIndex )
+	{
+		if ( Networking.IsHost )
+		{
+			TrySelectPieceHost( pieceIndex );
+			return;
+		}
+
+		SetSelectedPieceIndexRpc( pieceIndex );
+	}
+
+	[Rpc.Host]
+	private void SetSelectedPieceIndexRpc( int pieceIndex )
+	{
+		TrySelectPieceHost( pieceIndex );
 	}
 
 	private void OnSelectedPieceChanged()
