@@ -229,6 +229,23 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null
+        },
+        {
+          "__type": "WinConditionController",
+          "__guid": "0c54f750-513f-45ab-baf3-11e5df63bbff",
+          "__enabled": true,
+          "Flags": 0,
+          "CheckInterval": 0.5,
+          "CombatStartGracePeriod": 2,
+          "LogWinChecks": false,
+          "MinPlayersRequiredToEndRound": 2,
+          "OnlyCheckDuringCombatPhase": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         }
       ],
       "Children": []
