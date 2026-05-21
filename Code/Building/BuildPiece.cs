@@ -124,5 +124,6 @@ public sealed class BuildPiece : Component
 			return;
 
 		Health.MaxHealth = data.MaxHealth;
+		Health.ResetHealth();
 	}
 }

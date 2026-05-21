@@ -202,30 +202,32 @@ public sealed class BoatBuilder : BaseCarryable
 			return;
 		}
 
-		var placedPiece = PlacePiece( selectedPiece, placementResult.Position, placementResult.Rotation );
+		var spawnResult = PlacePiece( selectedPiece, placementResult.Position, placementResult.Rotation );
 
-		if ( !placedPiece.IsValid() )
+		if ( !spawnResult.Success )
 		{
-			Log.Warning( $"Failed to place {selectedPiece.DisplayName}; resources were not spent." );
+			Log.Warning( $"Failed to place {selectedPiece.DisplayName}: {spawnResult.Reason}" );
 			return;
 		}
 
 		if ( !resources.TrySpend( selectedPiece.Cost ) )
 		{
-			placedPiece.Destroy();
+			if ( spawnResult.PieceObject.IsValid() )
+				spawnResult.PieceObject.Destroy();
+
 			Log.Warning( $"Failed to spend resources for {selectedPiece.DisplayName}; removed spawned piece." );
 		}
 	}
 
-	private GameObject PlacePiece( BuildPieceData pieceData, Vector3 position, Rotation rotation )
+	private BuildPieceSpawnResult PlacePiece( BuildPieceData pieceData, Vector3 position, Rotation rotation )
 	{
 		if ( pieceData is null )
-			return null;
+			return BuildPieceSpawnResult.Failed( "No selected piece." );
 
 		var factory = Factory;
 
 		if ( !factory.IsValid() )
-			return null;
+			return BuildPieceSpawnResult.Failed( "No BuildPieceFactory component." );
 
 		var owner = Inventory.IsValid() ? Inventory.GameObject : GameObject;
 

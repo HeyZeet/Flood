@@ -2,58 +2,61 @@ using Sandbox;
 
 public sealed class BuildPieceFactory : Component
 {
-	public GameObject SpawnPiece(
+	public BuildPieceSpawnResult SpawnPiece(
 		BuildPieceData pieceData,
 		Vector3 position,
 		Rotation rotation,
 		GameObject owner )
 	{
 		if ( !Networking.IsHost )
-			return null;
+			return BuildPieceSpawnResult.Failed( "Only the host can spawn build pieces." );
 
-		if ( !IsValidPieceData( pieceData ) )
-			return null;
+		var validationError = GetPieceDataValidationError( pieceData );
+
+		if ( !string.IsNullOrWhiteSpace( validationError ) )
+			return BuildPieceSpawnResult.Failed( validationError );
 
 		var pieceObject = pieceData.Prefab.Clone( position, rotation );
+		var buildPiece = SetupBuildPieceComponent( pieceObject, pieceData, owner );
 
-		SetupBuildPieceComponent( pieceObject, pieceData, owner );
+		if ( !buildPiece.IsValid() )
+		{
+			pieceObject.Destroy();
+			return BuildPieceSpawnResult.Failed( $"{pieceData.DisplayName} prefab needs a BuildPiece component." );
+		}
 
 		pieceObject.NetworkSpawn();
 
 		Log.Info( $"Placed build piece: {pieceData.DisplayName} at {position}" );
 
-		return pieceObject;
+		return BuildPieceSpawnResult.Succeeded( pieceObject, buildPiece );
 	}
 
-	private bool IsValidPieceData( BuildPieceData pieceData )
+	private string GetPieceDataValidationError( BuildPieceData pieceData )
 	{
 		if ( pieceData is null )
-		{
-			Log.Warning( "BuildPieceFactory tried to spawn a null piece data." );
-			return false;
-		}
+			return "BuildPieceFactory tried to spawn a null piece data.";
 
 		if ( !pieceData.Prefab.IsValid() )
-		{
-			Log.Warning( $"{pieceData.DisplayName} has no prefab assigned." );
-			return false;
-		}
+			return $"{pieceData.DisplayName} has no prefab assigned.";
 
-		return true;
+		return "";
 	}
 
-	private void SetupBuildPieceComponent( GameObject pieceObject, BuildPieceData pieceData, GameObject owner )
+	private BuildPiece SetupBuildPieceComponent( GameObject pieceObject, BuildPieceData pieceData, GameObject owner )
 	{
 		var buildPiece = pieceObject.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( !buildPiece.IsValid() )
 		{
 			Log.Warning( $"Spawned {pieceData.DisplayName}, but it has no BuildPiece component." );
-			return;
+			return null;
 		}
 
 		buildPiece.ApplyData( pieceData );
 		buildPiece.SetOwner( owner );
 		buildPiece.MarkPlaced();
+
+		return buildPiece;
 	}
 }
