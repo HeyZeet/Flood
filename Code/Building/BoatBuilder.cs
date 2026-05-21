@@ -240,7 +240,7 @@ public sealed class BoatBuilder : BaseCarryable
 
 	private bool IsBuildingAllowed()
 	{
-		var roundManager = FloodRoundManager.Instance;
+		var roundManager = FloodGameManager.Instance;
 
 		if ( !roundManager.IsValid() )
 			return true;

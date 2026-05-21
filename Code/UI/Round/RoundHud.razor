@@ -32,7 +32,7 @@
 
 	private void UpdateHudText()
 	{
-		var roundManager = FloodRoundManager.Instance;
+		var roundManager = FloodGameManager.Instance;
 
 		if ( !roundManager.IsValid() )
 		{
@@ -41,7 +41,7 @@
 		}
 
 		var phase = roundManager.CurrentPhase;
-		var shouldShow = ShowDuringWaiting || phase != GamePhase.Waiting;
+		var shouldShow = ShowDuringWaiting || phase != GamePhase.WaitingForPlayers;
 
 		var phaseText = GetPhaseText( phase );
 		var timeText = GetTimeText( roundManager.GetCurrentPhaseTimeRemaining() );
@@ -53,10 +53,10 @@
 	{
 		return phase switch
 		{
-			GamePhase.Waiting => "Waiting",
-			GamePhase.Build => "Build Phase",
-			GamePhase.Flood => "Flood Phase",
-			GamePhase.Battle => "Battle Phase",
+			GamePhase.WaitingForPlayers => "Waiting",
+			GamePhase.BuildPhase => "Build Phase",
+			GamePhase.FloodPhase => "Flood Phase",
+			GamePhase.CombatPhase => "Combat Phase",
 			GamePhase.RoundEnd => "Round End",
 			_ => phase.ToString()
 		};

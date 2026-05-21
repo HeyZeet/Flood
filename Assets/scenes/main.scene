@@ -196,12 +196,12 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "FloodRoundManager",
+          "__type": "FloodGameManager",
           "__guid": "012b4ae4-23ec-4121-91ea-5a469a246033",
           "__enabled": true,
           "Flags": 0,
           "AutoRunRoundLoop": true,
-          "BattleDuration": 5,
+          "CombatDuration": 5,
           "BuildDuration": 60,
           "DebugPlayerDamageAmount": 25,
           "EnableDebugControls": true,

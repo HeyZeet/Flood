@@ -2,23 +2,30 @@ using Sandbox;
 using System;
 using System.Linq;
 
-public sealed class FloodRoundManager : Component
+public sealed class FloodGameManager : Component
 {
-	public static FloodRoundManager Instance { get; private set; }
+	public static FloodGameManager Instance { get; private set; }
 
 	public event Action<GamePhase, GamePhase> OnPhaseChanged;
 	public event Action OnBuildPhaseStarted;
 	public event Action OnFloodPhaseStarted;
+	public event Action OnCombatPhaseStarted;
 	public event Action OnBattlePhaseStarted;
 	public event Action OnRoundEndPhaseStarted;
 
-	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.Build;
+	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.BuildPhase;
 
 	[Property, Group( "Round" )]
 	public bool AutoRunRoundLoop { get; set; } = true;
 
 	[Property, Group( "Round" )]
 	public bool StartInBuildPhase { get; set; } = true;
+
+	[Property, Group( "Round" )]
+	public bool AutoStartWhenEnoughPlayers { get; set; } = true;
+
+	[Property, Group( "Round" )]
+	public int MinPlayersToStart { get; set; } = 1;
 
 	[Property, Group( "Round Timers" )]
 	public float BuildDuration { get; set; } = 60f;
@@ -27,7 +34,7 @@ public sealed class FloodRoundManager : Component
 	public float FloodDuration { get; set; } = 20f;
 
 	[Property, Group( "Round Timers" )]
-	public float BattleDuration { get; set; } = 120f;
+	public float CombatDuration { get; set; } = 120f;
 
 	[Property, Group( "Round Timers" )]
 	public float RoundEndDuration { get; set; } = 8f;
@@ -55,11 +62,11 @@ public sealed class FloodRoundManager : Component
 
 		if ( Networking.IsHost )
 		{
-			var startingPhase = StartInBuildPhase ? GamePhase.Build : GamePhase.Waiting;
+			var startingPhase = StartInBuildPhase ? GamePhase.BuildPhase : GamePhase.WaitingForPlayers;
 			SetPhase( startingPhase, true );
 		}
 
-		Log.Info( $"Flood round manager started. Phase: {CurrentPhase}" );
+		Log.Info( $"Flood game manager started. Phase: {CurrentPhase}" );
 	}
 
 	protected override void OnDestroy()
@@ -79,22 +86,27 @@ public sealed class FloodRoundManager : Component
 
 	public bool IsBuildPhase()
 	{
-		return CurrentPhase == GamePhase.Build;
+		return CurrentPhase == GamePhase.BuildPhase;
 	}
 
 	public bool IsFloodPhase()
 	{
-		return CurrentPhase == GamePhase.Flood;
+		return CurrentPhase == GamePhase.FloodPhase;
 	}
 
 	public bool IsBattlePhase()
 	{
-		return CurrentPhase == GamePhase.Battle;
+		return IsCombatPhase();
+	}
+
+	public bool IsCombatPhase()
+	{
+		return CurrentPhase == GamePhase.CombatPhase;
 	}
 
 	public bool IsWaitingPhase()
 	{
-		return CurrentPhase == GamePhase.Waiting;
+		return CurrentPhase == GamePhase.WaitingForPlayers;
 	}
 
 	public bool IsRoundEndPhase()
@@ -135,10 +147,30 @@ public sealed class FloodRoundManager : Component
 		CurrentPhase = phase;
 		TimeSincePhaseStarted = 0f;
 
-		Log.Info( $"Game phase changed: {previousPhase} -> {CurrentPhase}" );
+		Log.Info( $"Round phase changed: {previousPhase} -> {CurrentPhase} (duration: {GetCurrentPhaseDuration():0.##}s)" );
 
 		HandleWaterForPhase( CurrentPhase );
 		NotifyPhaseChanged( previousPhase, CurrentPhase );
+	}
+
+	public void StartWaitingForPlayers()
+	{
+		SetPhase( GamePhase.WaitingForPlayers );
+	}
+
+	public void StartBuildPhase()
+	{
+		SetPhase( GamePhase.BuildPhase );
+	}
+
+	public void StartFloodPhase()
+	{
+		SetPhase( GamePhase.FloodPhase );
+	}
+
+	public void StartCombatPhase()
+	{
+		SetPhase( GamePhase.CombatPhase );
 	}
 
 	public void ResetRound()
@@ -151,7 +183,7 @@ public sealed class FloodRoundManager : Component
 		DeletePlacedBuildPieces();
 		ResetPlayers();
 
-		SetPhase( GamePhase.Build, true );
+		SetPhase( GamePhase.BuildPhase, true );
 
 		Log.Info( "Round reset complete." );
 	}
@@ -170,21 +202,21 @@ public sealed class FloodRoundManager : Component
 
 		if ( !water.IsValid() )
 		{
-			Log.Warning( "FloodRoundManager could not find FloodWaterController.Instance." );
+			Log.Warning( "FloodGameManager could not find FloodWaterController.Instance." );
 			return;
 		}
 
 		switch ( phase )
 		{
-			case GamePhase.Build:
+			case GamePhase.BuildPhase:
 				water.ResetWater();
 				break;
 
-			case GamePhase.Flood:
+			case GamePhase.FloodPhase:
 				water.StartFlood();
 				break;
 
-			case GamePhase.Battle:
+			case GamePhase.CombatPhase:
 				water.StopFlood();
 				break;
 
@@ -192,7 +224,7 @@ public sealed class FloodRoundManager : Component
 				water.StartDrain();
 				break;
 
-			case GamePhase.Waiting:
+			case GamePhase.WaitingForPlayers:
 				water.ResetWater();
 				break;
 		}
@@ -204,15 +236,16 @@ public sealed class FloodRoundManager : Component
 
 		switch ( newPhase )
 		{
-			case GamePhase.Build:
+			case GamePhase.BuildPhase:
 				OnBuildPhaseStarted?.Invoke();
 				break;
 
-			case GamePhase.Flood:
+			case GamePhase.FloodPhase:
 				OnFloodPhaseStarted?.Invoke();
 				break;
 
-			case GamePhase.Battle:
+			case GamePhase.CombatPhase:
+				OnCombatPhaseStarted?.Invoke();
 				OnBattlePhaseStarted?.Invoke();
 				break;
 
@@ -229,27 +262,41 @@ public sealed class FloodRoundManager : Component
 
 		switch ( CurrentPhase )
 		{
-			case GamePhase.Waiting:
+			case GamePhase.WaitingForPlayers:
+				if ( AutoStartWhenEnoughPlayers && HasEnoughPlayersToStart() )
+					StartBuildPhase();
 				break;
 
-			case GamePhase.Build:
+			case GamePhase.BuildPhase:
 				if ( HasPhaseExpired() )
-					SetPhase( GamePhase.Flood );
+				{
+					Log.Info( "Build phase expired. Starting flood phase." );
+					StartFloodPhase();
+				}
 				break;
 
-			case GamePhase.Flood:
+			case GamePhase.FloodPhase:
 				if ( HasPhaseExpired() )
-					SetPhase( GamePhase.Battle );
+				{
+					Log.Info( "Flood phase expired. Starting combat phase." );
+					StartCombatPhase();
+				}
 				break;
 
-			case GamePhase.Battle:
+			case GamePhase.CombatPhase:
 				if ( HasPhaseExpired() )
-					SetPhase( GamePhase.RoundEnd );
+				{
+					Log.Info( "Combat phase expired. Ending round." );
+					EndRound();
+				}
 				break;
 
 			case GamePhase.RoundEnd:
 				if ( HasPhaseExpired() )
+				{
+					Log.Info( "Round end phase expired. Resetting round." );
 					ResetRound();
+				}
 				break;
 		}
 	}
@@ -264,13 +311,18 @@ public sealed class FloodRoundManager : Component
 		return TimeSincePhaseStarted >= duration;
 	}
 
+	private bool HasEnoughPlayersToStart()
+	{
+		return FloodPlayer.All.Count >= MinPlayersToStart;
+	}
+
 	private float GetPhaseDuration( GamePhase phase )
 	{
 		return phase switch
 		{
-			GamePhase.Build => BuildDuration,
-			GamePhase.Flood => FloodDuration,
-			GamePhase.Battle => BattleDuration,
+			GamePhase.BuildPhase => BuildDuration,
+			GamePhase.FloodPhase => FloodDuration,
+			GamePhase.CombatPhase => CombatDuration,
 			GamePhase.RoundEnd => RoundEndDuration,
 			_ => 0f
 		};
@@ -331,13 +383,13 @@ public sealed class FloodRoundManager : Component
 			return;
 
 		if ( Input.Pressed( "Slot8" ) )
-			SetPhase( GamePhase.Build, true );
+			SetPhase( GamePhase.BuildPhase, true );
 
 		if ( Input.Pressed( "Slot9" ) )
-			SetPhase( GamePhase.Flood, true );
+			SetPhase( GamePhase.FloodPhase, true );
 		
 		if ( Input.Pressed( "Slot0" ) )
-			SetPhase( GamePhase.Battle, true );
+			SetPhase( GamePhase.CombatPhase, true );
 	}
 
 	private void HandleDebugResetInput()

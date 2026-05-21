@@ -1,8 +1,8 @@
 public enum GamePhase
 {
-	Waiting,
-	Build,
-	Flood,
-	Battle,
+	WaitingForPlayers,
+	BuildPhase,
+	FloodPhase,
+	CombatPhase,
 	RoundEnd
 }

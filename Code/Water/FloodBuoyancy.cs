@@ -158,7 +158,7 @@ public sealed class FloodBuoyancy : Component
 		if ( EnabledDuringBuildPhase )
 			return true;
 
-		var roundManager = FloodRoundManager.Instance;
+		var roundManager = FloodGameManager.Instance;
 
 		if ( !roundManager.IsValid() )
 			return true;

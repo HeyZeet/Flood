@@ -2,22 +2,22 @@ using Sandbox;
 
 public sealed class RoundPhaseDebugListener : Component
 {
-	private FloodRoundManager RoundManager { get; set; }
+	private FloodGameManager RoundManager { get; set; }
 
 	protected override void OnStart()
 	{
-		RoundManager = FloodRoundManager.Instance;
+		RoundManager = FloodGameManager.Instance;
 
 		if ( !RoundManager.IsValid() )
 		{
-			Log.Warning( "RoundPhaseDebugListener could not find FloodRoundManager.Instance." );
+			Log.Warning( "RoundPhaseDebugListener could not find FloodGameManager.Instance." );
 			return;
 		}
 
 		RoundManager.OnPhaseChanged += HandlePhaseChanged;
 		RoundManager.OnBuildPhaseStarted += HandleBuildPhaseStarted;
 		RoundManager.OnFloodPhaseStarted += HandleFloodPhaseStarted;
-		RoundManager.OnBattlePhaseStarted += HandleBattlePhaseStarted;
+		RoundManager.OnCombatPhaseStarted += HandleCombatPhaseStarted;
 		RoundManager.OnRoundEndPhaseStarted += HandleRoundEndPhaseStarted;
 
 		Log.Info( "RoundPhaseDebugListener subscribed to round phase events." );
@@ -31,7 +31,7 @@ public sealed class RoundPhaseDebugListener : Component
 		RoundManager.OnPhaseChanged -= HandlePhaseChanged;
 		RoundManager.OnBuildPhaseStarted -= HandleBuildPhaseStarted;
 		RoundManager.OnFloodPhaseStarted -= HandleFloodPhaseStarted;
-		RoundManager.OnBattlePhaseStarted -= HandleBattlePhaseStarted;
+		RoundManager.OnCombatPhaseStarted -= HandleCombatPhaseStarted;
 		RoundManager.OnRoundEndPhaseStarted -= HandleRoundEndPhaseStarted;
 	}
 
@@ -50,9 +50,9 @@ public sealed class RoundPhaseDebugListener : Component
 		Log.Info( "[Phase Event] Flood phase started." );
 	}
 
-	private void HandleBattlePhaseStarted()
+	private void HandleCombatPhaseStarted()
 	{
-		Log.Info( "[Phase Event] Battle phase started." );
+		Log.Info( "[Phase Event] Combat phase started." );
 	}
 
 	private void HandleRoundEndPhaseStarted()
