@@ -5,11 +5,12 @@ public sealed class PlayerBuildResources : Component
 	[Property] public int StartingResources { get; set; } = 500;
 
 	[Sync] public int Resources { get; private set; }
+	[Sync] public int AwardedResources { get; private set; }
 
 	protected override void OnStart()
 	{
 		if ( Networking.IsHost )
-			Resources = StartingResources;
+			ResetResources();
 	}
 
 	public bool CanAfford( int amount )
@@ -46,11 +47,23 @@ public sealed class PlayerBuildResources : Component
 		Resources += amount;
 	}
 
+	public void AddRoundAward( int amount )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( amount <= 0 )
+			return;
+
+		AwardedResources += amount;
+		Resources += amount;
+	}
+
 	public void ResetResources()
 	{
 		if ( !Networking.IsHost )
 			return;
 
-		Resources = StartingResources;
+		Resources = StartingResources + AwardedResources;
 	}
 }

@@ -36,7 +36,18 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		}
 	}
 
-public bool IsDead => !IsAlive;
+	public bool IsDead => !IsAlive;
+
+	public bool IsEliminated
+	{
+		get
+		{
+			if ( !Health.IsValid() )
+				return false;
+
+			return Health.IsEliminated;
+		}
+	}
 
 	protected override void OnDestroy()
 	{

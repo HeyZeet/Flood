@@ -27,6 +27,12 @@ public sealed class FloodGameManager : Component
 	[Property, Group( "Round" )]
 	public int MinPlayersToStart { get; set; } = 1;
 
+	[Property, Group( "Player Reset" )]
+	public bool MovePlayersToSpawnPointsOnReset { get; set; } = true;
+
+	[Property, Group( "Player Reset" )]
+	public Vector3 FallbackSpawnOffset { get; set; } = Vector3.Up * 8f;
+
 	[Property, Group( "Round Timers" )]
 	public float BuildDuration { get; set; } = 60f;
 
@@ -348,19 +354,64 @@ public sealed class FloodGameManager : Component
 
 	private void ResetPlayers()
 	{
-		foreach ( var player in FloodPlayer.All.ToArray() )
+		var players = FloodPlayer.All
+			.Where( player => player.IsValid() )
+			.ToArray();
+
+		var spawnPoints = FloodPlayerSpawnPoint.All
+			.Where( spawnPoint => spawnPoint.IsValid() )
+			.OrderBy( spawnPoint => spawnPoint.SpawnOrder )
+			.ToArray();
+
+		for ( var i = 0; i < players.Length; i++ )
 		{
-			if ( !player.IsValid() )
-				continue;
+			var player = players[i];
 
 			if ( player.Health.IsValid() )
 				player.Health.Respawn();
 
 			if ( player.BuildResources.IsValid() )
 				player.BuildResources.ResetResources();
+
+			if ( MovePlayersToSpawnPointsOnReset )
+				MovePlayerToSpawnPoint( player, spawnPoints, i );
 		}
 
-		Log.Info( $"Reset {FloodPlayer.All.Count} players." );
+		Log.Info( $"Reset {players.Length} players." );
+	}
+
+	private void MovePlayerToSpawnPoint( FloodPlayer player, FloodPlayerSpawnPoint[] spawnPoints, int playerIndex )
+	{
+		if ( !player.IsValid() )
+			return;
+
+		if ( spawnPoints.Length == 0 )
+		{
+			player.WorldPosition += FallbackSpawnOffset;
+			ClearPlayerVelocity( player );
+			Log.Warning( "No FloodPlayerSpawnPoint components found; nudged player upward at current position." );
+			return;
+		}
+
+		var spawnPoint = spawnPoints[playerIndex % spawnPoints.Length];
+
+		player.WorldPosition = spawnPoint.WorldPosition;
+		player.WorldRotation = spawnPoint.WorldRotation;
+
+		ClearPlayerVelocity( player );
+
+		Log.Info( $"Moved {player.GameObject.Name} to spawn point {spawnPoint.GameObject.Name}." );
+	}
+
+	private void ClearPlayerVelocity( FloodPlayer player )
+	{
+		var body = player.Components.Get<Rigidbody>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !body.IsValid() )
+			return;
+
+		body.Velocity = Vector3.Zero;
+		body.AngularVelocity = Vector3.Zero;
 	}
 
 	// -----------------------------

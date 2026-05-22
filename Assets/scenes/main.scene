@@ -235,6 +235,7 @@
           "__guid": "0c54f750-513f-45ab-baf3-11e5df63bbff",
           "__enabled": true,
           "Flags": 0,
+          "AwardWinnerResources": true,
           "CheckInterval": 0.5,
           "CombatStartGracePeriod": 2,
           "LogWinChecks": false,
@@ -245,7 +246,8 @@
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
-          "OnComponentUpdate": null
+          "OnComponentUpdate": null,
+          "WinnerResourceAward": 250
         }
       ],
       "Children": []
@@ -360,6 +362,38 @@
           "Static": true,
           "Surface": null,
           "SurfaceVelocity": "0,0,0"
+        }
+      ],
+      "Children": []
+    },
+    {
+      "__guid": "d39f6a3d-9100-4fd2-9e08-d7620cfd0220",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Build Spawn 1",
+      "Position": "0,172.337402,9.87458038",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 0,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 0,
+      "Components": [
+        {
+          "__type": "FloodPlayerSpawnPoint",
+          "__guid": "d7968786-b7f9-4e95-b20e-5e22e32ef6e0",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "SpawnOrder": 0
         }
       ],
       "Children": []

@@ -1,7 +1,10 @@
 using Sandbox;
+using System;
 
 public sealed class PlayerHealth : DamageableComponent
 {
+	public event Action<PlayerHealth> OnEliminated;
+
 	[Property] public float MaxHealth { get; set; } = 100f;
 
 	[Property, Group( "Death" )]
@@ -14,6 +17,7 @@ public sealed class PlayerHealth : DamageableComponent
 	public bool SpawnRagdollOnDeath { get; set; } = true;
 
 	[Sync] public float Health { get; private set; }
+	[Sync] public bool IsEliminated { get; private set; }
 
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
@@ -128,6 +132,7 @@ public sealed class PlayerHealth : DamageableComponent
 			return;
 
 		ResetHealth();
+		ClearEliminated();
 		ClearMovement();
 		DestroyRagdoll();
 		SetPlayerModelVisible( true );
@@ -145,6 +150,7 @@ public sealed class PlayerHealth : DamageableComponent
 
 	private void Die( DamageInfo damageInfo )
 	{
+		MarkEliminated();
 		ClearMovement();
 
 		if ( HidePlayerModelOnDeath )
@@ -154,6 +160,22 @@ public sealed class PlayerHealth : DamageableComponent
 			SpawnRagdoll( damageInfo );
 
 		Log.Info( $"{GameObject.Name} died." );
+	}
+
+	private void MarkEliminated()
+	{
+		if ( IsEliminated )
+			return;
+
+		IsEliminated = true;
+		OnEliminated?.Invoke( this );
+
+		Log.Info( $"{GameObject.Name} eliminated from the round." );
+	}
+
+	private void ClearEliminated()
+	{
+		IsEliminated = false;
 	}
 
 	private void LockDeadPlayerMovement()

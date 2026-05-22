@@ -18,6 +18,12 @@ public sealed class WinConditionController : Component
 	[Property, Group( "Rules" )]
 	public float CheckInterval { get; set; } = 0.5f;
 
+	[Property, Group( "Rewards" )]
+	public bool AwardWinnerResources { get; set; } = true;
+
+	[Property, Group( "Rewards" )]
+	public int WinnerResourceAward { get; set; } = 250;
+
 	[Property, Group( "Debug" )]
 	public bool LogWinChecks { get; set; } = false;
 
@@ -28,6 +34,7 @@ public sealed class WinConditionController : Component
 	private TimeSince TimeSinceCombatStarted { get; set; }
 	private int CombatStartPlayerCount { get; set; }
 	private bool HasEndedCurrentCombatRound { get; set; }
+	private bool HasAwardedWinner { get; set; }
 
 	protected override void OnStart()
 	{
@@ -70,8 +77,7 @@ public sealed class WinConditionController : Component
 		TimeSinceLastCheck = 0f;
 
 		var alivePlayers = FloodPlayer.All
-			.Where( IsEligiblePlayer )
-			.Where( player => player.IsAlive )
+			.Where( IsActiveCompetitor )
 			.ToArray();
 
 		if ( LogWinChecks )
@@ -120,6 +126,17 @@ public sealed class WinConditionController : Component
 		return true;
 	}
 
+	private bool IsActiveCompetitor( FloodPlayer player )
+	{
+		if ( !IsEligiblePlayer( player ) )
+			return false;
+
+		if ( player.IsEliminated )
+			return false;
+
+		return player.IsAlive;
+	}
+
 	private void HandleCombatPhaseStarted()
 	{
 		if ( !Networking.IsHost )
@@ -127,12 +144,12 @@ public sealed class WinConditionController : Component
 
 		WinningPlayerObject = null;
 		HasEndedCurrentCombatRound = false;
+		HasAwardedWinner = false;
 		TimeSinceCombatStarted = 0f;
 		TimeSinceLastCheck = CheckInterval;
 
 		CombatStartPlayerCount = FloodPlayer.All
-			.Where( IsEligiblePlayer )
-			.Count( player => player.IsAlive );
+			.Count( IsActiveCompetitor );
 
 		Log.Info( $"WinConditionController watching combat round. Starting alive players: {CombatStartPlayerCount}." );
 	}
@@ -143,6 +160,7 @@ public sealed class WinConditionController : Component
 			return;
 
 		HasEndedCurrentCombatRound = true;
+		AwardWinningPlayer();
 	}
 
 	private void EndRoundWithWinner( FloodPlayer winner )
@@ -162,5 +180,43 @@ public sealed class WinConditionController : Component
 		}
 
 		RoundManager.EndRound();
+	}
+
+	private void AwardWinningPlayer()
+	{
+		if ( HasAwardedWinner )
+			return;
+
+		HasAwardedWinner = true;
+
+		if ( !AwardWinnerResources )
+			return;
+
+		if ( WinnerResourceAward <= 0 )
+			return;
+
+		var winner = GetWinningPlayer();
+
+		if ( !winner.IsValid() )
+			return;
+
+		var resources = winner.BuildResources;
+
+		if ( !resources.IsValid() )
+		{
+			Log.Warning( $"Could not award {winner.GameObject.Name}: missing PlayerBuildResources." );
+			return;
+		}
+
+		resources.AddRoundAward( WinnerResourceAward );
+		Log.Info( $"Awarded {WinnerResourceAward} resources to {winner.GameObject.Name}." );
+	}
+
+	private FloodPlayer GetWinningPlayer()
+	{
+		if ( !WinningPlayerObject.IsValid() )
+			return null;
+
+		return WinningPlayerObject.Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndDescendants );
 	}
 }

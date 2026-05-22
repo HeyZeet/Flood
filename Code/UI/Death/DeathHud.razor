@@ -8,7 +8,7 @@
 	{
 		<div class="death-hud">
 			<div class="death-hud__panel">
-				<div class="death-hud__title">You Died</div>
+				<div class="death-hud__title">@TitleText</div>
 				<div class="death-hud__subtitle">Waiting for the next round...</div>
 
 				@if ( EnableDebugHint )
@@ -27,6 +27,7 @@
 	[Property] public bool EnableDebugHint { get; set; } = true;
 
 	private bool ShouldShow { get; set; }
+	private string TitleText { get; set; } = "You Died";
 	private int HudBuildVersion { get; set; }
 
 	protected override void OnUpdate()
@@ -35,16 +36,18 @@
 
 		var player = FloodPlayer.Local;
 		var shouldShow = player.IsValid() && player.IsDead;
+		var titleText = player.IsValid() && player.IsEliminated ? "Eliminated" : "You Died";
 
-		SetShouldShow( shouldShow );
+		SetHudState( shouldShow, titleText );
 	}
 
-	private void SetShouldShow( bool shouldShow )
+	private void SetHudState( bool shouldShow, string titleText )
 	{
-		if ( ShouldShow == shouldShow )
+		if ( ShouldShow == shouldShow && TitleText == titleText )
 			return;
 
 		ShouldShow = shouldShow;
+		TitleText = titleText;
 		HudBuildVersion++;
 	}
 
@@ -53,6 +56,7 @@
 		return HashCode.Combine(
 			HudBuildVersion,
 			ShouldShow,
+			TitleText,
 			EnableDebugHint
 		);
 	}
