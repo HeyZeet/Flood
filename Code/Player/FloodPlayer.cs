@@ -22,7 +22,13 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		ValidateRequiredComponents();
 		UpdateLocalPlayerReference();
 
-		Log.Info( "FloodPlayer started." );
+		if ( Networking.IsHost )
+		{
+			FloodGameManager.Instance?.RegisterPlayer( this );
+			Log.Info( $"FloodPlayer registered with round manager. Name={GameObject.Name}" );
+		}
+
+		Log.Info( $"FloodPlayer started. Host={Networking.IsHost}, Proxy={IsProxy}, Name={GameObject.Name}" );
 	}
 
 	public bool IsAlive

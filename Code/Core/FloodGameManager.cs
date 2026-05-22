@@ -14,6 +14,7 @@ public sealed class FloodGameManager : Component
 	public event Action OnRoundEndPhaseStarted;
 
 	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.BuildPhase;
+	[Sync] public float SyncedPhaseTimeRemaining { get; private set; }
 
 	[Property, Group( "Round" )]
 	public bool AutoRunRoundLoop { get; set; } = true;
@@ -32,6 +33,12 @@ public sealed class FloodGameManager : Component
 
 	[Property, Group( "Player Reset" )]
 	public Vector3 FallbackSpawnOffset { get; set; } = Vector3.Up * 8f;
+
+	[Property, Group( "Player Reset" )]
+	public bool ResetPlayersWhenManagerStarts { get; set; } = true;
+
+	[Property, Group( "Player Reset" )]
+	public bool SpawnLateJoinersDuringBuildPhase { get; set; } = true;
 
 	[Property, Group( "Round Timers" )]
 	public float BuildDuration { get; set; } = 60f;
@@ -60,7 +67,10 @@ public sealed class FloodGameManager : Component
 	[Property, Group( "Debug" )]
 	public float DebugPlayerDamageAmount { get; set; } = 25f;
 
-	private TimeSince TimeSincePhaseStarted { get; set; }
+	[Property, Group( "Debug" )]
+	public bool LogRoundLoopDiagnostics { get; set; } = false;
+
+	private float PhaseElapsedSeconds { get; set; }
 
 	protected override void OnStart()
 	{
@@ -70,9 +80,12 @@ public sealed class FloodGameManager : Component
 		{
 			var startingPhase = StartInBuildPhase ? GamePhase.BuildPhase : GamePhase.WaitingForPlayers;
 			SetPhase( startingPhase, true );
+
+			if ( ResetPlayersWhenManagerStarts )
+				ResetPlayers();
 		}
 
-		Log.Info( $"Flood game manager started. Phase: {CurrentPhase}" );
+		Log.Info( $"Flood game manager started. Host={Networking.IsHost}, Phase={CurrentPhase}, AutoRun={AutoRunRoundLoop}" );
 	}
 
 	protected override void OnDestroy()
@@ -86,7 +99,9 @@ public sealed class FloodGameManager : Component
 		if ( !Networking.IsHost )
 			return;
 
+		AdvancePhaseTimer();
 		HandleRoundLoop();
+		UpdateSyncedPhaseTime();
 		HandleDebugControls();
 	}
 
@@ -127,17 +142,20 @@ public sealed class FloodGameManager : Component
 
 	public float GetCurrentPhaseTimeElapsed()
 	{
-		return TimeSincePhaseStarted;
+		return PhaseElapsedSeconds;
 	}
 
 	public float GetCurrentPhaseTimeRemaining()
 	{
+		if ( !Networking.IsHost )
+			return SyncedPhaseTimeRemaining;
+
 		var duration = GetCurrentPhaseDuration();
 
 		if ( duration <= 0f )
 			return 0f;
 
-		return (duration - TimeSincePhaseStarted).Clamp( 0f, duration );
+		return (duration - PhaseElapsedSeconds).Clamp( 0f, duration );
 	}
 
 	public void SetPhase( GamePhase phase, bool force = false )
@@ -151,7 +169,8 @@ public sealed class FloodGameManager : Component
 		var previousPhase = CurrentPhase;
 
 		CurrentPhase = phase;
-		TimeSincePhaseStarted = 0f;
+		PhaseElapsedSeconds = 0f;
+		UpdateSyncedPhaseTime();
 
 		Log.Info( $"Round phase changed: {previousPhase} -> {CurrentPhase} (duration: {GetCurrentPhaseDuration():0.##}s)" );
 
@@ -192,6 +211,24 @@ public sealed class FloodGameManager : Component
 		SetPhase( GamePhase.BuildPhase, true );
 
 		Log.Info( "Round reset complete." );
+	}
+
+	public void RegisterPlayer( FloodPlayer player )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( !player.IsValid() )
+			return;
+
+		if ( !ShouldResetJoiningPlayer() )
+		{
+			Log.Info( $"Registered player {player.GameObject.Name} without reset. Phase={CurrentPhase}" );
+			return;
+		}
+
+		ResetPlayerForCurrentRound( player );
+		Log.Info( $"Registered and reset joining player {player.GameObject.Name}. Phase={CurrentPhase}" );
 	}
 
 	public void EndRound()
@@ -266,6 +303,13 @@ public sealed class FloodGameManager : Component
 		if ( !AutoRunRoundLoop )
 			return;
 
+		if ( LogRoundLoopDiagnostics )
+		{
+			Log.Info(
+				$"Round loop. Phase={CurrentPhase}, Elapsed={PhaseElapsedSeconds:0.00}, Remaining={GetCurrentPhaseTimeRemaining():0.00}, Players={FloodPlayer.All.Count}"
+			);
+		}
+
 		switch ( CurrentPhase )
 		{
 			case GamePhase.WaitingForPlayers:
@@ -314,7 +358,36 @@ public sealed class FloodGameManager : Component
 		if ( duration <= 0f )
 			return false;
 
-		return TimeSincePhaseStarted >= duration;
+		return PhaseElapsedSeconds >= duration;
+	}
+
+	private void AdvancePhaseTimer()
+	{
+		var duration = GetCurrentPhaseDuration();
+
+		if ( duration <= 0f )
+		{
+			PhaseElapsedSeconds = 0f;
+			return;
+		}
+
+		PhaseElapsedSeconds += Time.Delta;
+		PhaseElapsedSeconds = PhaseElapsedSeconds.Clamp( 0f, duration );
+	}
+
+	private void UpdateSyncedPhaseTime()
+	{
+		SyncedPhaseTimeRemaining = CalculateCurrentPhaseTimeRemaining();
+	}
+
+	private float CalculateCurrentPhaseTimeRemaining()
+	{
+		var duration = GetCurrentPhaseDuration();
+
+		if ( duration <= 0f )
+			return 0f;
+
+		return (duration - PhaseElapsedSeconds).Clamp( 0f, duration );
 	}
 
 	private bool HasEnoughPlayersToStart()
@@ -365,19 +438,51 @@ public sealed class FloodGameManager : Component
 
 		for ( var i = 0; i < players.Length; i++ )
 		{
-			var player = players[i];
-
-			if ( player.Health.IsValid() )
-				player.Health.Respawn();
-
-			if ( player.BuildResources.IsValid() )
-				player.BuildResources.ResetResources();
-
-			if ( MovePlayersToSpawnPointsOnReset )
-				MovePlayerToSpawnPoint( player, spawnPoints, i );
+			ResetPlayerForCurrentRound( players[i], spawnPoints, i );
 		}
 
 		Log.Info( $"Reset {players.Length} players." );
+	}
+
+	private void ResetPlayerForCurrentRound( FloodPlayer player )
+	{
+		var spawnPoints = FloodPlayerSpawnPoint.All
+			.Where( spawnPoint => spawnPoint.IsValid() )
+			.OrderBy( spawnPoint => spawnPoint.SpawnOrder )
+			.ToArray();
+
+		var playerIndex = FloodPlayer.All
+			.Where( existingPlayer => existingPlayer.IsValid() )
+			.ToList()
+			.IndexOf( player );
+
+		if ( playerIndex < 0 )
+			playerIndex = 0;
+
+		ResetPlayerForCurrentRound( player, spawnPoints, playerIndex );
+	}
+
+	private void ResetPlayerForCurrentRound( FloodPlayer player, FloodPlayerSpawnPoint[] spawnPoints, int playerIndex )
+	{
+		if ( !player.IsValid() )
+			return;
+
+		if ( player.Health.IsValid() )
+			player.Health.Respawn();
+
+		if ( player.BuildResources.IsValid() )
+			player.BuildResources.ResetResources();
+
+		if ( MovePlayersToSpawnPointsOnReset )
+			MovePlayerToSpawnPoint( player, spawnPoints, playerIndex );
+	}
+
+	private bool ShouldResetJoiningPlayer()
+	{
+		if ( !SpawnLateJoinersDuringBuildPhase )
+			return false;
+
+		return CurrentPhase is GamePhase.WaitingForPlayers or GamePhase.BuildPhase;
 	}
 
 	private void MovePlayerToSpawnPoint( FloodPlayer player, FloodPlayerSpawnPoint[] spawnPoints, int playerIndex )

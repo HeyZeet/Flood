@@ -7,7 +7,18 @@ public sealed class PlayerInventory : Component
 	[Property] public int MaxSlots { get; set; } = 4;
 	private bool WasOwnerDead { get; set; }
 
-	[Sync] public BaseCarryable ActiveCarryable { get; private set; }
+	[Sync] public int ActiveSlot { get; private set; } = -1;
+
+	public BaseCarryable ActiveCarryable
+	{
+		get
+		{
+			if ( ActiveSlot < 0 )
+				return null;
+
+			return GetCarryableInSlot( ActiveSlot );
+		}
+	}
 
 	public string ActiveCarryableName
 	{
@@ -33,21 +44,25 @@ public sealed class PlayerInventory : Component
 
 	protected override void OnStart()
 	{
-		if ( !Networking.IsHost )
-			return;
-
 		SetupStartingCarryables();
 
-		var firstCarryable = GetCarryableInSlot( 0 );
+		if ( Networking.IsHost )
+		{
+			var firstCarryable = GetCarryableInSlot( 0 );
 
-		if ( firstCarryable.IsValid() )
-			SetActiveCarryable( firstCarryable );
+			if ( firstCarryable.IsValid() )
+				SetActiveCarryable( firstCarryable );
+		}
 
 		RefreshActiveState();
+
+		Log.Info( $"PlayerInventory started. Host={Networking.IsHost}, Proxy={IsProxy}, Carryables={Carryables.Count}, ActiveSlot={ActiveSlot}" );
 	}
 
 	protected override void OnUpdate()
 	{
+		RefreshActiveState();
+
 		if ( IsProxy )
 			return;
 
@@ -240,7 +255,9 @@ public sealed class PlayerInventory : Component
 
 			carryable.Inventory = this;
 			carryable.OnAddedToInventory( this );
-			carryable.GameObject.Enabled = false;
+
+			if ( Networking.IsHost )
+				carryable.GameObject.Enabled = false;
 		}
 	}
 
@@ -282,12 +299,17 @@ public sealed class PlayerInventory : Component
 			return;
 		}
 
-		SetActiveCarryableRpc( carryable );
+		SetActiveCarryableRpc( carryable.InventorySlot );
 	}
 
 	[Rpc.Host]
-	private void SetActiveCarryableRpc( BaseCarryable carryable )
+	private void SetActiveCarryableRpc( int slot )
 	{
+		var carryable = GetCarryableInSlot( slot );
+
+		if ( !IsCarryableOwnedByInventory( carryable ) )
+			return;
+
 		SetActiveCarryable( carryable );
 	}
 
@@ -299,11 +321,14 @@ public sealed class PlayerInventory : Component
 		if ( !carryable.IsValid() )
 			return;
 
-		if ( ActiveCarryable == carryable )
+		if ( !IsCarryableOwnedByInventory( carryable ) )
+			return;
+
+		if ( ActiveSlot == carryable.InventorySlot )
 			return;
 
 		var oldCarryable = ActiveCarryable;
-		ActiveCarryable = carryable;
+		ActiveSlot = carryable.InventorySlot;
 
 		if ( oldCarryable.IsValid() )
 			oldCarryable.OnHolster();
@@ -315,6 +340,9 @@ public sealed class PlayerInventory : Component
 
 	private void RefreshActiveState()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		foreach ( var carryable in Carryables )
 		{
 			if ( !carryable.IsValid() )
@@ -322,5 +350,26 @@ public sealed class PlayerInventory : Component
 
 			carryable.GameObject.Enabled = carryable == ActiveCarryable;
 		}
+	}
+
+	private bool IsCarryableOwnedByInventory( BaseCarryable carryable )
+	{
+		if ( !carryable.IsValid() )
+			return false;
+
+		if ( carryable.Inventory != this )
+			return false;
+
+		var current = carryable.GameObject;
+
+		while ( current.IsValid() )
+		{
+			if ( current == GameObject )
+				return true;
+
+			current = current.Parent;
+		}
+
+		return false;
 	}
 }

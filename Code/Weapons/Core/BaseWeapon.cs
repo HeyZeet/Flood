@@ -6,6 +6,10 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public float PrimaryFireRate { get; set; } = 0.5f;
 	[Property] public float SecondaryFireRate { get; set; } = 0.5f;
 
+	[Header( "Input" )]
+	[Property] public bool RepeatPrimaryAttackWhileHeld { get; set; } = true;
+	[Property] public bool RepeatSecondaryAttackWhileHeld { get; set; } = true;
+
 	[Header( "Animation" )]
 	[Property] public SkinnedModelRenderer AnimationRenderer { get; set; }
 	[Property] public string HoldType { get; set; } = "holditem";
@@ -17,8 +21,8 @@ public abstract class BaseWeapon : BaseCarryable
 	[Property] public string DryAttackTrigger { get; set; } = "b_attack_dry";
 	[Property] public string ReloadTrigger { get; set; } = "b_reload";
 
-	private TimeSince TimeSincePrimaryAttack { get; set; }
-	private TimeSince TimeSinceSecondaryAttack { get; set; }
+	protected TimeSince TimeSincePrimaryAttack { get; private set; }
+	protected TimeSince TimeSinceSecondaryAttack { get; private set; }
 	
 	protected FloodPlayer OwnerPlayer
 	{
@@ -100,10 +104,10 @@ public abstract class BaseWeapon : BaseCarryable
 
 	public override void OnPlayerUpdate()
 	{
-		if ( Input.Down( "attack1" ) )
+		if ( IsPrimaryAttackInputActive() )
 			TryPrimaryAttack();
 
-		if ( Input.Down( "attack2" ) )
+		if ( IsSecondaryAttackInputActive() )
 			TrySecondaryAttack();
 	}
 
@@ -112,7 +116,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !CanPrimaryAttack() )
 			return;
 
-		TimeSincePrimaryAttack = 0f;
+		ResetPrimaryAttackCooldown();
 		PrimaryAttack();
 	}
 
@@ -121,7 +125,7 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( !CanSecondaryAttack() )
 			return;
 
-		TimeSinceSecondaryAttack = 0f;
+		ResetSecondaryAttackCooldown();
 		SecondaryAttack();
 	}
 
@@ -258,5 +262,78 @@ public abstract class BaseWeapon : BaseCarryable
 		AnimationRenderer = owner.Components.Get<SkinnedModelRenderer>( FindMode.EverythingInSelfAndDescendants );
 
 		return AnimationRenderer;
+	}
+
+	protected Vector3 GetOwnerEyePosition()
+	{
+		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+
+		if ( camera.IsValid() )
+			return camera.EyePosition;
+
+		var sceneCamera = Scene.Camera;
+
+		if ( sceneCamera.IsValid() )
+			return sceneCamera.WorldPosition;
+
+		return WorldPosition;
+	}
+
+	protected Vector3 GetOwnerAimDirection()
+	{
+		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
+
+		if ( camera.IsValid() )
+			return camera.AimForward;
+
+		var sceneCamera = Scene.Camera;
+
+		if ( sceneCamera.IsValid() )
+			return sceneCamera.WorldRotation.Forward;
+
+		return WorldRotation.Forward;
+	}
+
+	protected SceneTraceResult TraceFromOwnerAim( float range, float radius )
+	{
+		return TraceFromAim( GetOwnerEyePosition(), GetOwnerAimDirection(), range, radius );
+	}
+
+	protected SceneTraceResult TraceFromAim( Vector3 start, Vector3 direction, float range, float radius )
+	{
+		direction = direction.Normal;
+
+		if ( direction.Length.AlmostEqual( 0f ) )
+			direction = WorldRotation.Forward;
+
+		var end = start + direction * range;
+		var trace = Scene.Trace.Sphere( radius, start, end );
+
+		var owner = OwnerPlayer;
+
+		if ( owner.IsValid() )
+			trace = trace.IgnoreGameObjectHierarchy( owner.GameObject );
+
+		return trace.Run();
+	}
+
+	protected void ResetPrimaryAttackCooldown()
+	{
+		TimeSincePrimaryAttack = 0f;
+	}
+
+	protected void ResetSecondaryAttackCooldown()
+	{
+		TimeSinceSecondaryAttack = 0f;
+	}
+
+	private bool IsPrimaryAttackInputActive()
+	{
+		return RepeatPrimaryAttackWhileHeld ? Input.Down( "attack1" ) : Input.Pressed( "attack1" );
+	}
+
+	private bool IsSecondaryAttackInputActive()
+	{
+		return RepeatSecondaryAttackWhileHeld ? Input.Down( "attack2" ) : Input.Pressed( "attack2" );
 	}
 }

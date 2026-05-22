@@ -11,6 +11,9 @@ public sealed class BuildPlacement : Component
 	[Property] public float MaxBuildDistance { get; set; } = 350f;
 	[Property] public float BuildDistance { get; set; } = 150f;
 
+	[Property, Group( "Build Area" )]
+	public bool RequireBuildArea { get; set; } = true;
+
 	[Property] public bool DrawDebugPlacement { get; set; } = true;
 
 	public Rotation PlacementRotationOffset { get; private set; } = Rotation.Identity;
@@ -30,6 +33,9 @@ public sealed class BuildPlacement : Component
 
 		if ( CheckOverlap && IsOverlappingBlockedObject( position, rotation, pieceData, ignoreObject ) )
 			return BuildPlacementResult.Invalid( position, rotation, "Blocked by another object." );
+
+		if ( !IsInsideAllowedBuildArea( position ) )
+			return BuildPlacementResult.Invalid( position, rotation, "Outside build area." );
 
 		return BuildPlacementResult.Valid( position, rotation );
 	}
@@ -52,6 +58,9 @@ public sealed class BuildPlacement : Component
 
 		if ( CheckOverlap && IsOverlappingBlockedObject( position, rotation, pieceData, ignoreObject ) )
 			return BuildPlacementResult.Invalid( position, rotation, "Blocked by another object." );
+
+		if ( !IsInsideAllowedBuildArea( position ) )
+			return BuildPlacementResult.Invalid( position, rotation, "Outside build area." );
 
 		return BuildPlacementResult.Valid( position, rotation );
 	}
@@ -203,6 +212,17 @@ public sealed class BuildPlacement : Component
 			.Run();
 
 		return tr.Hit;
+	}
+
+	private bool IsInsideAllowedBuildArea( Vector3 position )
+	{
+		if ( !RequireBuildArea )
+			return true;
+
+		if ( !BuildAreaVolume.HasAnyBuildAreas() )
+			return true;
+
+		return BuildAreaVolume.IsInsideAnyBuildArea( position );
 	}
 
 	private float GetPlacementSurfaceOffset( BuildPieceData pieceData )

@@ -25,7 +25,7 @@
 			</div>
 
 			<div class="build-hud__hint">
-				LMB: Place &nbsp; RMB: Next Piece &nbsp; R: Rotate
+				@HintText
 			</div>
 		</div>
 	}
@@ -36,6 +36,7 @@
 	private string ToolName { get; set; } = "None";
 	private string PieceName { get; set; } = "None";
 	private string ResourceText { get; set; } = "--";
+	private string HintText { get; set; } = "";
 
 	private bool ShouldShowHud { get; set; }
 
@@ -54,13 +55,13 @@
 
 		if ( !player.IsValid() )
 		{
-			SetHudState( false, "No Player", "None", "--" );
+			SetHudState( false, "No Player", "None", "--", "" );
 			return;
 		}
 
 		if ( player.IsDead )
 		{
-			SetHudState( false, "Dead", "None", "--" );
+			SetHudState( false, "Dead", "None", "--", "" );
 			return;
 		}
 
@@ -68,7 +69,7 @@
 
 		if ( roundManager.IsValid() && !roundManager.IsBuildPhase() )
 		{
-			SetHudState( false, "Not Build Phase", "None", "--" );
+			SetHudState( false, "Not Build Phase", "None", "--", "" );
 			return;
 		}
 
@@ -76,34 +77,49 @@
 
 		if ( !inventory.IsValid() )
 		{
-			SetHudState( false, "No Inventory", "None", "--" );
+			SetHudState( false, "No Inventory", "None", "--", "" );
 			return;
 		}
 
 		var activeCarryable = inventory.ActiveCarryable;
 
-		if ( activeCarryable is not BoatBuilder boatBuilder )
+		if ( !activeCarryable.IsValid() )
 		{
-			SetHudState( false, "None", "None", "--" );
+			SetHudState( false, "None", "None", "--", "" );
 			return;
 		}
 
 		var resources = player.BuildResources;
-
-		var toolName = boatBuilder.DisplayName;
-		var pieceName = boatBuilder.SelectedPiece?.DisplayName ?? "None";
 		var resourceText = resources.IsValid() ? resources.Resources.ToString() : "--";
 
-		SetHudState( true, toolName, pieceName, resourceText );
+		if ( activeCarryable is BoatBuilder boatBuilder )
+		{
+			var toolName = boatBuilder.DisplayName;
+			var pieceName = boatBuilder.SelectedPiece?.DisplayName ?? "None";
+
+			SetHudState( true, toolName, pieceName, resourceText, "LMB: Place   RMB: Next Piece   R: Rotate" );
+			return;
+		}
+
+		var weldTool = activeCarryable.Components.Get<WeldToolWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( weldTool.IsValid() )
+		{
+			SetHudState( true, weldTool.DisplayName, weldTool.FirstWeldTargetName, resourceText, "LMB: Select/Weld   RMB: Unweld" );
+			return;
+		}
+
+		SetHudState( false, "None", "None", "--", "" );
 	}
 
-	private void SetHudState( bool shouldShow, string toolName, string pieceName, string resourceText )
+	private void SetHudState( bool shouldShow, string toolName, string pieceName, string resourceText, string hintText )
 	{
 		if (
 			ShouldShowHud == shouldShow &&
 			ToolName == toolName &&
 			PieceName == pieceName &&
-			ResourceText == resourceText
+			ResourceText == resourceText &&
+			HintText == hintText
 		)
 		{
 			return;
@@ -113,6 +129,7 @@
 		ToolName = toolName;
 		PieceName = pieceName;
 		ResourceText = resourceText;
+		HintText = hintText;
 
 		HudBuildVersion++;
 	}
@@ -124,7 +141,8 @@
 			ShouldShowHud,
 			ToolName,
 			PieceName,
-			ResourceText
+			ResourceText,
+			HintText
 		);
 	}
 }

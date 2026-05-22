@@ -10,10 +10,34 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 	{
 		base.PrimaryAttack();
 
+		if ( !Networking.IsHost )
+		{
+			RequestMeleeAttack( GetAttackStart(), GetAttackDirection() );
+			return;
+		}
+
 		DoMeleeAttack();
 	}
 
+	[Rpc.Host]
+	private void RequestMeleeAttack( Vector3 start, Vector3 direction )
+	{
+		if ( !CanPrimaryAttack() )
+			return;
+
+		if ( !IsAimRequestReasonable( start, direction ) )
+			return;
+
+		ResetPrimaryAttackCooldown();
+		DoMeleeAttack( start, direction );
+	}
+
 	protected virtual void DoMeleeAttack()
+	{
+		DoMeleeAttack( GetAttackStart(), GetAttackDirection() );
+	}
+
+	protected virtual void DoMeleeAttack( Vector3 start, Vector3 direction )
 	{
 		var owner = OwnerPlayer;
 
@@ -23,13 +47,7 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 			return;
 		}
 
-		var start = GetAttackStart();
-		var end = start + GetAttackDirection() * Range;
-
-		var tr = Scene.Trace
-			.Sphere( TraceRadius, start, end )
-			.IgnoreGameObjectHierarchy( owner.GameObject )
-			.Run();
+		var tr = TraceFromAim( start, direction, Range, TraceRadius );
 
 		if ( DrawDebugTrace )
 			DebugOverlay.Trace( tr, 1f );
@@ -48,32 +66,12 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 
 	protected virtual Vector3 GetAttackStart()
 	{
-		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
-
-		if ( camera.IsValid() )
-			return camera.EyePosition;
-
-		var sceneCamera = Scene.Camera;
-
-		if ( sceneCamera.IsValid() )
-			return sceneCamera.WorldPosition;
-
-		return WorldPosition;
+		return GetOwnerEyePosition();
 	}
 
 	protected virtual Vector3 GetAttackDirection()
 	{
-		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
-
-		if ( camera.IsValid() )
-			return camera.AimForward;
-
-		var sceneCamera = Scene.Camera;
-
-		if ( sceneCamera.IsValid() )
-			return sceneCamera.WorldRotation.Forward;
-
-		return WorldRotation.Forward;
+		return GetOwnerAimDirection();
 	}
 
 	protected virtual void TryDamageHitObject( SceneTraceResult trace )
@@ -88,6 +86,20 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 		damageable.TakeDamage( damageInfo );
 
 		Log.Info( $"{DisplayName} damaged {trace.GameObject.Name} for {Damage}." );
+	}
+
+	private bool IsAimRequestReasonable( Vector3 start, Vector3 direction )
+	{
+		var owner = OwnerPlayer;
+
+		if ( !owner.IsValid() )
+			return false;
+
+		if ( direction.Length < 0.1f )
+			return false;
+
+		var maxEyeDistance = 160f;
+		return (start - owner.WorldPosition).Length <= maxEyeDistance;
 	}
 
 	private void LogBuildPieceHit( SceneTraceResult trace )

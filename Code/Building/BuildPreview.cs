@@ -4,6 +4,7 @@ public sealed class BuildPreview : Component
 {
 	[Property] public bool DisablePhysicsOnPreview { get; set; } = true;
 	[Property] public bool DisableBuildPieceOnPreview { get; set; } = true;
+	[Property] public bool UseTransparentPreviewTint { get; set; } = false;
 	[Property] public Color ValidColor { get; set; } = new Color( 0f, 1f, 0f, 0.45f );
 	[Property] public Color InvalidColor { get; set; } = new Color( 1f, 0f, 0f, 0.45f );
 
@@ -104,7 +105,8 @@ public sealed class BuildPreview : Component
 
 		foreach ( var renderer in PreviewObject.Components.GetAll<ModelRenderer>( FindMode.EverythingInSelfAndDescendants ) )
 		{
-			renderer.Tint = color;
+			// Some prop materials disappear when tinted with partial alpha but still cast shadows.
+			renderer.Tint = UseTransparentPreviewTint ? color : color.WithAlpha( 1f );
 		}
 	}
 }

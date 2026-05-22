@@ -99,6 +99,33 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	public override void PrimaryAttack()
 	{
+		if ( !Networking.IsHost )
+		{
+			if ( PlayAttackAnimation )
+				PlayWeaponAnimation( AttackTrigger );
+
+			RequestPrimaryAttack( GetOwnerEyePosition(), GetOwnerAimDirection() );
+			return;
+		}
+
+		PrimaryAttackHost( GetShootStart(), GetBaseShootDirection() );
+	}
+
+	[Rpc.Host]
+	private void RequestPrimaryAttack( Vector3 start, Vector3 direction )
+	{
+		if ( !CanPrimaryAttack() )
+			return;
+
+		if ( !IsAimRequestReasonable( start, direction ) )
+			return;
+
+		ResetPrimaryAttackCooldown();
+		PrimaryAttackHost( start, direction );
+	}
+
+	private void PrimaryAttackHost( Vector3 start, Vector3 baseDirection )
+	{
 		if ( IsReloading )
 			return;
 
@@ -111,7 +138,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		ConsumeAmmo();
 
 		PlayFireEffects();
-		FireBullet();
+		FireBullet( start, GetShootDirection( baseDirection ) );
 
 		AddSpread();
 		ApplyRecoil();
@@ -183,6 +210,12 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	protected virtual void StartReload()
 	{
+		if ( !Networking.IsHost )
+		{
+			RequestReload();
+			return;
+		}
+
 		if ( !CanReload() )
 			return;
 
@@ -190,6 +223,12 @@ public abstract class BaseGunWeapon : BaseWeapon
 		TimeSinceReloadStarted = 0f;
 
 		PlayReloadEffects();
+	}
+
+	[Rpc.Host]
+	private void RequestReload()
+	{
+		StartReload();
 	}
 
 	protected virtual void UpdateReload()
@@ -280,7 +319,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		}
 	}
 
-	protected virtual void FireBullet()
+	protected virtual void FireBullet( Vector3 start, Vector3 direction )
 	{
 		var owner = OwnerPlayer;
 
@@ -290,11 +329,8 @@ public abstract class BaseGunWeapon : BaseWeapon
 			return;
 		}
 
-		var start = GetShootStart();
-		var end = start + GetShootDirection() * BulletRange;
-
-		var tr = Scene.Trace
-			.Sphere( BulletRadius, start, end )
+		var end = start + direction.Normal * BulletRange;
+		var tr = Scene.Trace.Sphere( BulletRadius, start, end )
 			.IgnoreGameObjectHierarchy( owner.GameObject )
 			.Run();
 
@@ -310,30 +346,23 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	protected virtual Vector3 GetShootStart()
 	{
-		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
-
-		if ( camera.IsValid() )
-			return camera.EyePosition;
-
-		var sceneCamera = Scene.Camera;
-
-		if ( sceneCamera.IsValid() )
-			return sceneCamera.WorldPosition;
-
-		return WorldPosition;
+		return GetOwnerEyePosition();
 	}
 
 	protected virtual Vector3 GetShootDirection()
 	{
-		var baseDirection = GetBaseShootDirection();
+		return GetShootDirection( GetBaseShootDirection() );
+	}
 
+	protected virtual Vector3 GetShootDirection( Vector3 baseDirection )
+	{
 		if ( CurrentSpreadDegrees <= 0f )
-			return baseDirection;
+			return baseDirection.Normal;
 
 		var randomYaw = Game.Random.Float( -CurrentSpreadDegrees, CurrentSpreadDegrees );
 		var randomPitch = Game.Random.Float( -CurrentSpreadDegrees, CurrentSpreadDegrees );
 
-		var rotation = Rotation.LookAt( baseDirection );
+		var rotation = Rotation.LookAt( baseDirection.Normal );
 		rotation *= Rotation.FromYaw( randomYaw );
 		rotation *= Rotation.FromPitch( randomPitch );
 
@@ -342,17 +371,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	protected virtual Vector3 GetBaseShootDirection()
 	{
-		var camera = OwnerPlayer?.Components.Get<FloodPlayerCamera>();
-
-		if ( camera.IsValid() )
-			return camera.AimForward;
-
-		var sceneCamera = Scene.Camera;
-
-		if ( sceneCamera.IsValid() )
-			return sceneCamera.WorldRotation.Forward;
-
-		return WorldRotation.Forward;
+		return GetOwnerAimDirection();
 	}
 
 	protected virtual void TryDamageHitObject( SceneTraceResult trace )
@@ -485,5 +504,19 @@ public abstract class BaseGunWeapon : BaseWeapon
 		IsReloading = false;
 
 		ClearOneShotAnimationParams();
+	}
+
+	private bool IsAimRequestReasonable( Vector3 start, Vector3 direction )
+	{
+		var owner = OwnerPlayer;
+
+		if ( !owner.IsValid() )
+			return false;
+
+		if ( direction.Length < 0.1f )
+			return false;
+
+		var maxEyeDistance = 160f;
+		return (start - owner.WorldPosition).Length <= maxEyeDistance;
 	}
 }

@@ -16,7 +16,7 @@ public sealed class PlayerHealth : DamageableComponent
 	[Property, Group( "Death" )]
 	public bool SpawnRagdollOnDeath { get; set; } = true;
 
-	[Sync] public float Health { get; private set; }
+	[Sync] public float Health { get; private set; } = 100f;
 	[Sync] public bool IsEliminated { get; private set; }
 
 	public override bool IsAlive => Health > 0f;
@@ -39,6 +39,9 @@ public sealed class PlayerHealth : DamageableComponent
 	protected override void OnStart()
 	{
 		Controller = Components.Get<PlayerController>();
+
+		if ( Health <= 0f )
+			Health = MaxHealth;
 
 		if ( Networking.IsHost )
 			ResetHealth();

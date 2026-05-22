@@ -261,7 +261,7 @@ public sealed class BoatBuilder : BaseCarryable
 
 		if ( !Networking.IsHost )
 		{
-			RequestSellPiece( buildPiece );
+			RequestSellPiece( buildPiece.GameObject );
 			return;
 		}
 
@@ -284,8 +284,13 @@ public sealed class BoatBuilder : BaseCarryable
 	}
 
 	[Rpc.Host]
-	private void RequestSellPiece( BuildPiece buildPiece )
+	private void RequestSellPiece( GameObject buildPieceObject )
 	{
+		if ( !buildPieceObject.IsValid() )
+			return;
+
+		var buildPiece = buildPieceObject.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+
 		TrySellPieceHost( buildPiece );
 	}
 

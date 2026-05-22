@@ -1,4 +1,5 @@
 using Sandbox;
+using System;
 
 public sealed class BoatPieceHealth : DamageableComponent
 {
@@ -7,8 +8,12 @@ public sealed class BoatPieceHealth : DamageableComponent
 
 	[Sync] public float Health { get; private set; }
 
+	public event Action<BoatPieceHealth, DamageInfo> Damaged;
+	public event Action<BoatPieceHealth, DamageInfo> Died;
+
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
+	public float HealthFraction => MaxHealth <= 0f ? 0f : (Health / MaxHealth).Clamp( 0f, 1f );
 
 	protected override void OnStart()
 	{
@@ -33,6 +38,8 @@ public sealed class BoatPieceHealth : DamageableComponent
 		Health = Health.Clamp( 0f, MaxHealth );
 
 		Log.Info( $"{GameObject.Name} boat piece took {amount} damage. Health: {Health}" );
+
+		Damaged?.Invoke( this, damageInfo );
 
 		if ( Health <= 0f )
 			Die( damageInfo );
@@ -63,6 +70,8 @@ public sealed class BoatPieceHealth : DamageableComponent
 	private void Die( DamageInfo damageInfo )
 	{
 		Log.Info( $"{GameObject.Name} boat piece destroyed." );
+
+		Died?.Invoke( this, damageInfo );
 
 		if ( DestroyOnDeath )
 			GameObject.Destroy();

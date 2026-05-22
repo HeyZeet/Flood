@@ -27,9 +27,8 @@ public sealed class WinConditionController : Component
 	[Property, Group( "Debug" )]
 	public bool LogWinChecks { get; set; } = false;
 
-	[Sync] public GameObject WinningPlayerObject { get; private set; }
-
 	private FloodGameManager RoundManager { get; set; }
+	private GameObject WinningPlayerObject { get; set; }
 	private TimeSince TimeSinceLastCheck { get; set; }
 	private TimeSince TimeSinceCombatStarted { get; set; }
 	private int CombatStartPlayerCount { get; set; }
