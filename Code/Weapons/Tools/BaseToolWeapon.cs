@@ -22,12 +22,31 @@ public abstract class BaseToolWeapon : BaseWeapon
 
 	protected SceneTraceResult TraceTool()
 	{
-		var trace = TraceFromOwnerAim( ToolRange, ToolTraceRadius );
+		return TraceTool( GetOwnerEyePosition(), GetOwnerAimDirection() );
+	}
+
+	protected SceneTraceResult TraceTool( Vector3 start, Vector3 direction )
+	{
+		var trace = TraceFromAim( start, direction, ToolRange, ToolTraceRadius );
 
 		if ( DrawDebugToolTrace )
 			DebugOverlay.Trace( trace, 1f );
 
 		return trace;
+	}
+
+	protected bool IsToolAimRequestReasonable( Vector3 start, Vector3 direction )
+	{
+		var owner = OwnerPlayer;
+
+		if ( !owner.IsValid() )
+			return false;
+
+		if ( direction.Length < 0.1f )
+			return false;
+
+		var maxEyeDistance = 160f;
+		return (start - owner.WorldPosition).Length <= maxEyeDistance;
 	}
 
 	protected void PlayUseSound()

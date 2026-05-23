@@ -35,13 +35,13 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 		if ( Networking.IsHost )
 		{
-			TryPrimaryUseHost();
+			TryPrimaryUseHost( GetOwnerEyePosition(), GetOwnerAimDirection() );
 			BroadcastWeaponAnimation( AttackTrigger, true );
 			BroadcastToolSound( UseSound, true );
 			return;
 		}
 
-		RequestPrimaryUse();
+		RequestPrimaryUse( GetOwnerEyePosition(), GetOwnerAimDirection() );
 	}
 
 	public override void SecondaryAttack()
@@ -51,13 +51,13 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 		if ( Networking.IsHost )
 		{
-			TrySecondaryUseHost();
+			TrySecondaryUseHost( GetOwnerEyePosition(), GetOwnerAimDirection() );
 			BroadcastWeaponAnimation( AttackTrigger, true );
 			BroadcastToolSound( UseSound, true );
 			return;
 		}
 
-		RequestSecondaryUse();
+		RequestSecondaryUse( GetOwnerEyePosition(), GetOwnerAimDirection() );
 	}
 
 	public override void OnHolster()
@@ -69,22 +69,28 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 	}
 
 	[Rpc.Host]
-	private void RequestPrimaryUse()
+	private void RequestPrimaryUse( Vector3 start, Vector3 direction )
 	{
-		TryPrimaryUseHost();
+		if ( !IsToolAimRequestReasonable( start, direction ) )
+			return;
+
+		TryPrimaryUseHost( start, direction );
 		BroadcastWeaponAnimation( AttackTrigger, true );
 		BroadcastToolSound( UseSound, true );
 	}
 
 	[Rpc.Host]
-	private void RequestSecondaryUse()
+	private void RequestSecondaryUse( Vector3 start, Vector3 direction )
 	{
-		TrySecondaryUseHost();
+		if ( !IsToolAimRequestReasonable( start, direction ) )
+			return;
+
+		TrySecondaryUseHost( start, direction );
 		BroadcastWeaponAnimation( AttackTrigger, true );
 		BroadcastToolSound( UseSound, true );
 	}
 
-	private void TryPrimaryUseHost()
+	private void TryPrimaryUseHost( Vector3 start, Vector3 direction )
 	{
 		if ( !CanUseToolNow() )
 		{
@@ -92,7 +98,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 			return;
 		}
 
-		var trace = TraceTool();
+		var trace = TraceTool( start, direction );
 		var target = GetBuildPieceFromTrace( trace );
 
 		if ( !target.IsValid() )
@@ -119,7 +125,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		TryWeldSelectedPieces( firstPiece, target, trace.HitPosition );
 	}
 
-	private void TrySecondaryUseHost()
+	private void TrySecondaryUseHost( Vector3 start, Vector3 direction )
 	{
 		if ( !CanUseToolNow() )
 		{
@@ -127,7 +133,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 			return;
 		}
 
-		var trace = TraceTool();
+		var trace = TraceTool( start, direction );
 		var target = GetBuildPieceFromTrace( trace );
 
 		if ( !target.IsValid() )

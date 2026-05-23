@@ -62,8 +62,15 @@ public sealed class ThirdPersonWeaponModel : Component
 	{
 		EnsureBodyRenderer();
 
+		UpdateWorldModelVisibility();
+
+		if ( !ShouldShowWorldModel() )
+		{
+			DestroyDebugMuzzleFlash();
+			return;
+		}
+
 		UpdateBodyHoldType();
-		UpdateVisibilityForOwner();
 		FollowHandBone();
 		UpdateDebugMuzzleFlash();
 	}
@@ -78,7 +85,7 @@ public sealed class ThirdPersonWeaponModel : Component
 
 	public void Show()
 	{
-		SetVisible( true );
+		UpdateWorldModelVisibility();
 		UpdateBodyHoldType();
 	}
 
@@ -132,6 +139,11 @@ public sealed class ThirdPersonWeaponModel : Component
 		if ( !inventory.IsValid() )
 			return false;
 
+		var player = inventory.Components.Get<FloodPlayer>();
+
+		if ( player.IsValid() )
+			return player.IsLocalPlayer;
+
 		return !inventory.IsProxy;
 	}
 
@@ -176,21 +188,25 @@ public sealed class ThirdPersonWeaponModel : Component
 		WorldModelObject.WorldRotation = handRotation * RotationOffset.ToRotation();
 	}
 
-	private void UpdateVisibilityForOwner()
+	private void UpdateWorldModelVisibility()
 	{
 		if ( !WorldModelObject.IsValid() )
 			return;
 
-		if ( !HideForLocalPlayer )
-			return;
+		WorldModelObject.Enabled = ShouldShowWorldModel();
+	}
 
-		var inventory = Inventory;
+	private bool ShouldShowWorldModel()
+	{
+		var carryable = Carryable;
 
-		if ( !inventory.IsValid() )
-			return;
+		if ( !carryable.IsValid() )
+			return false;
 
-		if ( !inventory.IsProxy )
-			WorldModelObject.Enabled = false;
+		if ( !carryable.IsActive )
+			return false;
+
+		return !ShouldHideForLocalPlayer();
 	}
 
 	private bool EnsureBodyRenderer()
@@ -217,7 +233,7 @@ public sealed class ThirdPersonWeaponModel : Component
 	{
 		get
 		{
-			var carryable = Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndAncestors );
+			var carryable = Carryable;
 
 			if ( !carryable.IsValid() )
 				return null;
@@ -225,6 +241,9 @@ public sealed class ThirdPersonWeaponModel : Component
 			return carryable.Inventory;
 		}
 	}
+
+	private BaseCarryable Carryable =>
+		Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndAncestors );
 
 	private void SetVisible( bool visible )
 	{

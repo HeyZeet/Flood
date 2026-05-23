@@ -225,6 +225,11 @@ public abstract class BaseWeapon : BaseCarryable
 
 	protected bool IsLocallyControlled()
 	{
+		var owner = OwnerPlayer;
+
+		if ( owner.IsValid() )
+			return owner.IsLocalPlayer;
+
 		return Inventory.IsValid() && !Inventory.IsProxy;
 	}
 

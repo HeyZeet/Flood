@@ -106,6 +106,14 @@ public abstract class BaseGunWeapon : BaseWeapon
 			StartReload();
 	}
 
+	public override bool CanPrimaryAttack()
+	{
+		if ( IsReloading )
+			return false;
+
+		return base.CanPrimaryAttack();
+	}
+
 	public override void PrimaryAttack()
 	{
 		if ( !Networking.IsHost )
@@ -168,7 +176,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		BroadcastWeaponAnimation( AttackTrigger, true );
 
 		if ( AmmoInClip <= 0 && HasReserveAmmo )
-			StartReload();
+			StartReload( false );
 	}
 
 	protected virtual bool HasAmmo()
@@ -264,7 +272,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		return true;
 	}
 
-	protected virtual void StartReload()
+	protected virtual void StartReload( bool ownerAlreadyPredicted = true )
 	{
 		if ( !Networking.IsHost )
 		{
@@ -282,7 +290,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		TimeSinceReloadStarted = 0f;
 
 		PlayReloadEffects();
-		BroadcastReloadEffects( true );
+		BroadcastReloadEffects( ownerAlreadyPredicted );
 	}
 
 	[Rpc.Host]
@@ -346,6 +354,9 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Rpc.Broadcast]
 	private void PlayReloadEffectsBroadcast( bool skipLocalOwner )
 	{
+		if ( Networking.IsHost && IsLocallyControlled() )
+			return;
+
 		if ( skipLocalOwner && IsLocallyControlled() )
 			return;
 

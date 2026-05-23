@@ -34,8 +34,10 @@ public sealed class FloodWaterController : Component
 	[Header( "Debug" )]
 	[Property] public bool DrawDebugSurface { get; set; } = true;
 	[Property] public float DebugLineSize { get; set; } = 512f;
+	[Property] public bool LogNetworkState { get; set; } = false;
 
-	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public float SurfaceHeight { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query ), Change( nameof( OnSurfaceHeightSynced ) )]
+	public float SurfaceHeight { get; private set; }
 
 	// Compatibility for older code that may still ask for WaterHeight.
 	public float WaterHeight => SurfaceHeight;
@@ -44,6 +46,8 @@ public sealed class FloodWaterController : Component
 
 	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public bool IsRising { get; private set; }
 	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public bool IsDraining { get; private set; }
+
+	private float LastAppliedSurfaceHeight { get; set; } = float.MinValue;
 
 	protected override void OnStart()
 	{
@@ -77,8 +81,7 @@ public sealed class FloodWaterController : Component
 		}
 		else
 		{
-			UpdateSurfaceMarker();
-			UpdateVisualWaterObject();
+			ApplySyncedSurfaceHeight();
 		}
 
 		if ( DrawDebugSurface )
@@ -174,6 +177,26 @@ public sealed class FloodWaterController : Component
 	private void SetSurfaceHeight( float height )
 	{
 		SurfaceHeight = height;
+		ApplySyncedSurfaceHeight();
+	}
+
+	private void OnSurfaceHeightSynced( float oldHeight, float newHeight )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		ApplySyncedSurfaceHeight( true );
+
+		if ( LogNetworkState )
+			Log.Info( $"Water height synced: {oldHeight:0.00} -> {newHeight:0.00}" );
+	}
+
+	private void ApplySyncedSurfaceHeight( bool force = false )
+	{
+		if ( !force && LastAppliedSurfaceHeight.AlmostEqual( SurfaceHeight, 0.01f ) )
+			return;
+
+		LastAppliedSurfaceHeight = SurfaceHeight;
 
 		UpdateSurfaceMarker();
 		UpdateVisualWaterObject();

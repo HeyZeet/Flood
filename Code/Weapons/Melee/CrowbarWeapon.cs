@@ -20,13 +20,14 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 		PrimaryFireRate = 0.6f;
 		Range = 90f;
 		TraceRadius = 10f;
+		HoldType = "melee_weapons";
 	}
 
 	public override void OnDeploy()
 	{
 		base.OnDeploy();
 
-		if ( Inventory.IsValid() && !Inventory.IsProxy )
+		if ( IsLocallyControlled() )
 			ViewModel?.Show();
 
 		ThirdPersonModel?.Show();

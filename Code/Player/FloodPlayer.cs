@@ -13,6 +13,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 	public PlayerHealth Health { get; private set; }
 	public PlayerInventory Inventory { get; private set; }
 	public PlayerBuildResources BuildResources { get; private set; }
+	public bool IsLocalPlayer => GameObject.Network.IsOwner;
 
 	[Sync( SyncFlags.FromHost | SyncFlags.Query ), Change( nameof( OnSyncedRoundPhaseChanged ) )]
 	public GamePhase SyncedRoundPhase { get; private set; } = GamePhase.WaitingForPlayers;
@@ -125,7 +126,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 
 	private void UpdateLocalPlayerReference()
 	{
-		if ( IsProxy )
+		if ( !IsLocalPlayer )
 			return;
 
 		Local = this;
@@ -142,7 +143,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 
 	private void UpdateLocalPresentationState( bool force = false )
 	{
-		var isLocalPlayer = !IsProxy;
+		var isLocalPlayer = IsLocalPlayer;
 
 		if ( !force && LastLocalPresentationState == isLocalPlayer )
 			return;

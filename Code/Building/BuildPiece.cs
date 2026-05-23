@@ -48,6 +48,8 @@ public sealed class BuildPiece : Component
 	public bool BreakWeldsWhenDestroyed { get; set; } = true;
 
 	public GameObject Owner { get; private set; }
+	[Sync( SyncFlags.FromHost )] public Guid OwnerConnectionId { get; private set; }
+	[Sync( SyncFlags.FromHost )] public string OwnerName { get; private set; } = "";
 	[Sync( SyncFlags.FromHost )] public bool IsPlaced { get; private set; }
 	public GameObject AttachedTo { get; private set; }
 
@@ -96,6 +98,11 @@ public sealed class BuildPiece : Component
 			return;
 
 		Owner = owner;
+		OwnerConnectionId = GetOwnerConnectionId( owner );
+		OwnerName = owner.IsValid() ? owner.Name : "";
+
+		if ( OwnerConnectionId == Guid.Empty )
+			Log.Warning( $"{DisplayName} was assigned an owner without a network owner id: {OwnerName}" );
 	}
 
 	public void MarkPlaced()
@@ -136,7 +143,10 @@ public sealed class BuildPiece : Component
 		if ( other == this )
 			return false;
 
-		if ( Owner.IsValid() && other.Owner.IsValid() && Owner != other.Owner )
+		if ( !HasOwner() || !other.HasOwner() )
+			return false;
+
+		if ( !HasSameOwner( other ) )
 			return false;
 
 		return true;
@@ -231,10 +241,49 @@ public sealed class BuildPiece : Component
 		if ( !player.IsValid() )
 			return false;
 
-		if ( !Owner.IsValid() )
-			return true;
+		if ( !HasOwner() )
+			return false;
+
+		var playerOwnerId = GetOwnerConnectionId( player );
+
+		if ( OwnerConnectionId != Guid.Empty && playerOwnerId != Guid.Empty )
+			return OwnerConnectionId == playerOwnerId;
 
 		return Owner == player;
+	}
+
+	public bool HasOwner()
+	{
+		return Owner.IsValid() || OwnerConnectionId != Guid.Empty;
+	}
+
+	private bool HasSameOwner( BuildPiece other )
+	{
+		if ( !other.IsValid() )
+			return false;
+
+		if ( OwnerConnectionId != Guid.Empty && other.OwnerConnectionId != Guid.Empty )
+			return OwnerConnectionId == other.OwnerConnectionId;
+
+		return Owner.IsValid() && other.Owner.IsValid() && Owner == other.Owner;
+	}
+
+	private Guid GetOwnerConnectionId( GameObject owner )
+	{
+		if ( !owner.IsValid() )
+			return Guid.Empty;
+
+		var current = owner;
+
+		while ( current.IsValid() )
+		{
+			if ( current.Network.Active && current.Network.OwnerId != Guid.Empty )
+				return current.Network.OwnerId;
+
+			current = current.Parent;
+		}
+
+		return Guid.Empty;
 	}
 
 	private void CacheComponents()

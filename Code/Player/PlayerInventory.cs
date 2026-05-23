@@ -65,7 +65,7 @@ public sealed class PlayerInventory : Component
 	{
 		UpdateActiveCarryablePresentation();
 
-		if ( IsProxy )
+		if ( !IsLocallyControlled() )
 			return;
 
 		OnControl();
@@ -112,6 +112,16 @@ public sealed class PlayerInventory : Component
 			return false;
 
 		return player.IsDead;
+	}
+
+	private bool IsLocallyControlled()
+	{
+		var player = Components.Get<FloodPlayer>();
+
+		if ( player.IsValid() )
+			return player.IsLocalPlayer;
+
+		return !IsProxy;
 	}
 
 	public bool AddCarryable( BaseCarryable carryable, int slot = -1, bool makeActive = true )

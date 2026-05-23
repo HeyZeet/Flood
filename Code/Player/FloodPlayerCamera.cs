@@ -25,7 +25,7 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 
 	protected override void OnUpdate()
 	{
-		if ( IsProxy )
+		if ( !IsLocalPlayer() )
 			return;
 
 		UpdateRecoilRecovery();
@@ -67,7 +67,7 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 		if ( !camera.IsValid() )
 			return;
 
-		if ( IsProxy )
+		if ( !IsLocalPlayer() )
 		{
 			camera.Enabled = false;
 			return;
@@ -93,6 +93,16 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 		EyeRotation = camera.WorldRotation;
 
 		DrawDebugAimLine();
+	}
+
+	private bool IsLocalPlayer()
+	{
+		var player = Components.Get<FloodPlayer>();
+
+		if ( player.IsValid() )
+			return player.IsLocalPlayer;
+
+		return !IsProxy;
 	}
 
 	public Vector3 GetPointInFront( float distance )

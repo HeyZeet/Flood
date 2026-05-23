@@ -26,12 +26,10 @@ public abstract class BaseCarryable : Component
 
 	public virtual void OnDeploy()
 	{
-		GameObject.Enabled = true;
 	}
 
 	public virtual void OnHolster()
 	{
-		GameObject.Enabled = false;
 	}
 
 	public virtual void OnPlayerUpdate()

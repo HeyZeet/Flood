@@ -25,7 +25,7 @@
         "Damage": 10,
         "DrawDebugTrace": true,
         "HitSound": "sounds/hit.sound",
-        "HoldType": "melee",
+        "HoldType": "melee_weapons",
         "InventorySlot": 1,
         "MaxSpreadDegrees": 4,
         "OnComponentDestroy": null,

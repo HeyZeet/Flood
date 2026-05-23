@@ -72,6 +72,8 @@ public sealed class FloodBuoyancy : Component
 	public Vector3 LastWaterContactPoint { get; private set; }
 	public int LastRaftPieceCount { get; private set; } = 1;
 	public float LastRaftHealthFraction { get; private set; } = 1f;
+	[Sync( SyncFlags.FromHost )] public bool IsInWater { get; private set; }
+	[Sync( SyncFlags.FromHost )] public float SyncedWetness { get; private set; }
     private bool WasTouchingWater { get; set; }
     private TimeSince TimeSinceLastSplash { get; set; } = 999f;
 	private BuildPiece BuildPiece { get; set; }
@@ -204,12 +206,15 @@ public sealed class FloodBuoyancy : Component
 		var raftStability = GetRaftStabilityState();
 
 		LastWetness = wholeBodyWetness;
+		SyncedWetness = wholeBodyWetness;
+		IsInWater = wholeBodyWetness > 0f;
 		LastRaftPieceCount = raftStability.PieceCount;
 		LastRaftHealthFraction = raftStability.HealthFraction;
 
         if ( wholeBodyWetness <= 0f )
         {
 	        WasTouchingWater = false;
+	        IsInWater = false;
 	        return;
         }
 

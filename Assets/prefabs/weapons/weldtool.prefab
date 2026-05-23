@@ -90,7 +90,7 @@
         "PositionOffset": "3.5,0,-2",
         "RotationOffset": "0,0,0",
         "ShowDebugMuzzleFlash": false,
-        "WorldModel": "models/weapons/sbox_toolgun/w_toolgun.vmdl"
+        "WorldModel": "models/weapons/sbox_toolgun/v_toolgun.vmdl"
       }
     ],
     "Children": [],

@@ -43,6 +43,12 @@ public sealed class ViewModelWeapon : Component
 	{
 		if ( !ShouldUseViewModel() )
 		{
+			DestroyViewModel();
+			return;
+		}
+
+		if ( !IsCarryableActive() )
+		{
 			SetVisible( false );
 			return;
 		}
@@ -53,8 +59,7 @@ public sealed class ViewModelWeapon : Component
 
 	protected override void OnDestroy()
 	{
-		if ( ViewModelObject.IsValid() )
-			ViewModelObject.Destroy();
+		DestroyViewModel();
 	}
 
 	public void Show()
@@ -128,8 +133,8 @@ public sealed class ViewModelWeapon : Component
 			return;
 		}
 
-		ViewModelObject = new GameObject( $"{GameObject.Name} ViewModel" );
-		ViewModelObject.SetParent( GameObject );
+		ViewModelObject = new GameObject( true, $"{GameObject.Name} ViewModel" );
+		ViewModelObject.NetworkMode = NetworkMode.Never;
 
 		WeaponRenderer = ViewModelObject.Components.Create<SkinnedModelRenderer>();
 		WeaponRenderer.Model = WeaponModel;
@@ -146,12 +151,24 @@ public sealed class ViewModelWeapon : Component
 		SetVisible( false );
 	}
 
+	private void DestroyViewModel()
+	{
+		if ( !ViewModelObject.IsValid() )
+			return;
+
+		ViewModelObject.Destroy();
+		ViewModelObject = null;
+		WeaponRenderer = null;
+		ArmsRenderer = null;
+	}
+
 	private void CreateArmsRenderer()
 	{
 		if ( !ArmsModel.IsValid() )
 			return;
 
-		var armsObject = new GameObject( $"{GameObject.Name} ViewModel Arms" );
+		var armsObject = new GameObject( true, $"{GameObject.Name} ViewModel Arms" );
+		armsObject.NetworkMode = NetworkMode.Never;
 		armsObject.SetParent( ViewModelObject );
 
 		ArmsRenderer = armsObject.Components.Create<SkinnedModelRenderer>();
@@ -212,7 +229,25 @@ public sealed class ViewModelWeapon : Component
 
 		var inventory = carryable.Inventory;
 
-		return inventory.IsValid() && !inventory.IsProxy;
+		if ( !inventory.IsValid() )
+			return false;
+
+		var player = inventory.Components.Get<FloodPlayer>();
+
+		if ( player.IsValid() )
+			return player.IsLocalPlayer;
+
+		return !inventory.IsProxy;
+	}
+
+	private bool IsCarryableActive()
+	{
+		var carryable = Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( !carryable.IsValid() )
+			return false;
+
+		return carryable.IsActive;
 	}
 
 	private void ClearViewModelOneShotParams()
