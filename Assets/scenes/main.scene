@@ -11,7 +11,7 @@
       "Scale": "1,1,1",
       "Tags": "",
       "Enabled": true,
-      "NetworkMode": 2,
+      "NetworkMode": 1,
       "NetworkFlags": 0,
       "NetworkOrphaned": 0,
       "NetworkTransmit": true,
@@ -189,7 +189,7 @@
       "Scale": "1,1,1",
       "Tags": "",
       "Enabled": true,
-      "NetworkMode": 2,
+      "NetworkMode": 1,
       "NetworkFlags": 0,
       "NetworkOrphaned": 0,
       "NetworkTransmit": true,
@@ -220,6 +220,7 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "RoundEndDuration": 60,
+          "SpawnSeparation": 80,
           "StartInBuildPhase": true
         },
         {
@@ -252,6 +253,26 @@
           "OnComponentUpdate": null,
           "OnlyCheckDuringCombatPhase": true,
           "WinnerResourceAward": 250
+        },
+        {
+          "__type": "FloodNetworkManager",
+          "__guid": "65d2d2d8-7ec0-4e7d-8f26-68fb8db1fa64",
+          "__enabled": true,
+          "Flags": 0,
+          "DestroyUnownedScenePlayersOnStart": true,
+          "FallbackSpawnOffset": "0,0,8",
+          "LogDebug": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PlayerPrefab": {
+            "_type": "gameobject",
+            "prefab": "prefabs/player/flood_player.prefab"
+          },
+          "SpawnSeparation": 80
         }
       ],
       "Children": []
@@ -1144,6 +1165,20 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "ShowDuringWaiting": false
+            },
+            {
+              "__type": "Sandbox.UI.Flood.FloodHud",
+              "__guid": "f2f2dc40-9355-43cd-a75b-aed4cdd32a91",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "ShowRoundDebugValues": false,
+              "ShowRoundDuringWaiting": false
             }
           ],
           "Children": []

@@ -3,6 +3,7 @@ using Sandbox;
 public abstract class BaseWeapon : BaseCarryable
 {
 	[Property] public float Damage { get; set; } = 10f;
+	[Property, Group( "Damage" )] public bool IgnoreRoundDamageRules { get; set; } = false;
 	[Property] public float PrimaryFireRate { get; set; } = 0.5f;
 	[Property] public float SecondaryFireRate { get; set; } = 0.5f;
 
@@ -56,8 +57,31 @@ public abstract class BaseWeapon : BaseCarryable
 		TriggerThirdPersonAnimation( triggerName );
 	}
 
+	protected void BroadcastWeaponAnimation( string triggerName, bool skipLocalOwner = true )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( string.IsNullOrWhiteSpace( triggerName ) )
+			return;
+
+		PlayWeaponAnimationBroadcast( triggerName, skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayWeaponAnimationBroadcast( string triggerName, bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayWeaponAnimation( triggerName );
+	}
+
 	protected void TriggerViewModelAnimation( string triggerName )
 	{
+		if ( !ShouldShowViewModel() )
+			return;
+
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( viewModel.IsValid() )
@@ -166,7 +190,7 @@ public abstract class BaseWeapon : BaseCarryable
 	{
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
-		if ( viewModel.IsValid() )
+		if ( viewModel.IsValid() && ShouldShowViewModel() )
 		{
 			viewModel.GameObject.Enabled = true;
 			viewModel.Show();
@@ -192,6 +216,16 @@ public abstract class BaseWeapon : BaseCarryable
 
 		if ( thirdPersonModel.IsValid() )
 			thirdPersonModel.Hide();
+	}
+
+	protected bool ShouldShowViewModel()
+	{
+		return IsLocallyControlled();
+	}
+
+	protected bool IsLocallyControlled()
+	{
+		return Inventory.IsValid() && !Inventory.IsProxy;
 	}
 
 	protected void ClearOneShotAnimationParams()
@@ -306,8 +340,9 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( direction.Length.AlmostEqual( 0f ) )
 			direction = WorldRotation.Forward;
 
-		var end = start + direction * range;
-		var trace = Scene.Trace.Sphere( radius, start, end );
+		var traceStart = start + direction * 4f;
+		var end = traceStart + direction * range;
+		var trace = Scene.Trace.Sphere( radius, traceStart, end );
 
 		var owner = OwnerPlayer;
 

@@ -17,6 +17,7 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 		}
 
 		DoMeleeAttack();
+		OnMeleeAttackApproved( true );
 	}
 
 	[Rpc.Host]
@@ -30,6 +31,13 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 
 		ResetPrimaryAttackCooldown();
 		DoMeleeAttack( start, direction );
+		OnMeleeAttackApproved( true );
+	}
+
+	protected virtual void OnMeleeAttackApproved( bool skipLocalOwner )
+	{
+		if ( PlayAttackAnimation )
+			BroadcastWeaponAnimation( AttackTrigger, skipLocalOwner );
 	}
 
 	protected virtual void DoMeleeAttack()

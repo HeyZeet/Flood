@@ -11,6 +11,9 @@ public sealed class WaterDamageVolume : Component
 
 	protected override void OnUpdate()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		var water = FloodWaterController.Instance;
 
 		if ( !water.IsValid() )

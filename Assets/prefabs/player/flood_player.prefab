@@ -9,7 +9,7 @@
     "Scale": "1,1,1",
     "Tags": "",
     "Enabled": true,
-    "NetworkMode": 2,
+    "NetworkMode": 1,
     "NetworkFlags": 0,
     "NetworkOrphaned": 0,
     "NetworkTransmit": true,
@@ -626,6 +626,20 @@
             "OnComponentStart": null,
             "OnComponentUpdate": null,
             "ShowDuringWaiting": false
+          },
+          {
+            "__type": "Sandbox.UI.Flood.FloodHud",
+            "__guid": "bbf1e4bf-b6ab-44d0-a410-27d5bcb1231e",
+            "__enabled": true,
+            "Flags": 0,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "ShowRoundDebugValues": false,
+            "ShowRoundDuringWaiting": false
           }
         ],
         "Children": []

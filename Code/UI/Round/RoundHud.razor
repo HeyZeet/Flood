@@ -4,30 +4,24 @@
 @inherits PanelComponent
 
 <root>
-	@if ( ShouldShow )
-	{
-		<div class="round-hud">
-			<div class="round-hud__phase">@PhaseText</div>
-			<div class="round-hud__time">@TimeText</div>
-		</div>
-	}
 </root>
 
 @code
 {
 	[Property] public bool ShowDuringWaiting { get; set; } = false;
+	[Property] public bool ShowDebugValues { get; set; } = false;
 
 	private bool ShouldShow { get; set; }
 	private string PhaseText { get; set; } = "Waiting";
 	private string TimeText { get; set; } = "--:--";
 
 	private int HudBuildVersion { get; set; }
+	private GamePhase LastDisplayedPhase { get; set; }
+	private float DisplaySecondsRemaining { get; set; }
 
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
-
-		UpdateHudText();
 	}
 
 	private void UpdateHudText()
@@ -42,11 +36,42 @@
 
 		var phase = roundManager.CurrentPhase;
 		var shouldShow = ShowDuringWaiting || phase != GamePhase.WaitingForPlayers;
+		var syncedSeconds = roundManager.GetCurrentPhaseTimeRemaining();
 
 		var phaseText = GetPhaseText( phase );
-		var timeText = GetTimeText( roundManager.GetCurrentPhaseTimeRemaining() );
+		var displaySeconds = GetDisplaySecondsRemaining( roundManager, phase, syncedSeconds );
+		var timeText = GetTimeText( displaySeconds );
+
+		if ( ShowDebugValues )
+			timeText = $"{timeText} | raw:{syncedSeconds:0.0}";
 
 		SetHudState( shouldShow, phaseText, timeText );
+	}
+
+	private float GetDisplaySecondsRemaining( FloodGameManager roundManager, GamePhase phase, float syncedSeconds )
+	{
+		syncedSeconds = syncedSeconds.Clamp( 0f, float.MaxValue );
+
+		if ( LastDisplayedPhase != phase )
+		{
+			LastDisplayedPhase = phase;
+			DisplaySecondsRemaining = syncedSeconds > 0f
+				? syncedSeconds
+				: roundManager.GetCurrentPhaseDuration();
+
+			return DisplaySecondsRemaining;
+		}
+
+		if ( syncedSeconds > DisplaySecondsRemaining || MathF.Abs( syncedSeconds - DisplaySecondsRemaining ) > 1.25f )
+		{
+			DisplaySecondsRemaining = syncedSeconds;
+			return DisplaySecondsRemaining;
+		}
+
+		DisplaySecondsRemaining -= Time.Delta;
+		DisplaySecondsRemaining = DisplaySecondsRemaining.Clamp( 0f, float.MaxValue );
+
+		return DisplaySecondsRemaining;
 	}
 
 	private string GetPhaseText( GamePhase phase )
@@ -98,7 +123,8 @@
 			ShouldShow,
 			PhaseText,
 			TimeText,
-			ShowDuringWaiting
+			ShowDuringWaiting,
+			ShowDebugValues
 		);
 	}
 }

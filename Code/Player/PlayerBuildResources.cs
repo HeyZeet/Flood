@@ -4,8 +4,8 @@ public sealed class PlayerBuildResources : Component
 {
 	[Property] public int StartingResources { get; set; } = 500;
 
-	[Sync] public int Resources { get; private set; }
-	[Sync] public int AwardedResources { get; private set; }
+	[Sync( SyncFlags.FromHost )] public int Resources { get; private set; }
+	[Sync( SyncFlags.FromHost )] public int AwardedResources { get; private set; }
 
 	protected override void OnStart()
 	{

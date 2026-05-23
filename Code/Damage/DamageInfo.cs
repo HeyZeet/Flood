@@ -27,7 +27,7 @@ public struct DamageInfo
 			HitPosition = trace.HitPosition,
 			HitNormal = trace.Normal,
 			Force = weapon.WorldRotation.Forward * weapon.Damage,
-			IsDebugDamage = false
+			IsDebugDamage = weapon.IgnoreRoundDamageRules
 		};
 	}
 

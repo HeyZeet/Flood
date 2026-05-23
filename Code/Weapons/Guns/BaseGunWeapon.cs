@@ -9,11 +9,11 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public bool DrawDebugTrace { get; set; } = true;
 
 	[Header( "Ammo" )]
-	[Property] public int ReserveAmmo { get; set; } = 48;
+	[Property, Sync( SyncFlags.FromHost )] public int ReserveAmmo { get; set; } = 48;
 	[Property] public bool HasReserveAmmo { get; set; } = true;
 	[Property] public bool InfiniteAmmo { get; set; } = true;
 	[Property] public int ClipSize { get; set; } = 12;
-	[Property, Sync] public int AmmoInClip { get; set; } = 12;
+	[Property, Sync( SyncFlags.FromHost )] public int AmmoInClip { get; set; } = 12;
 
 	[Header( "Reload" )]
 	[Property] public float ReloadTime { get; set; } = 1.4f;
@@ -50,17 +50,18 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
 	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
-	public bool IsReloading { get; private set; }
+	[Sync( SyncFlags.FromHost )] public bool IsReloading { get; private set; }
 
 	private TimeSince TimeSinceReloadStarted { get; set; }
 	private float CurrentSpreadDegrees { get; set; }
+	private bool WasReloadingLastFrame { get; set; }
 
 	public string AmmoDisplay
 	{
 		get
 		{
 			if ( InfiniteAmmo )
-				return $"{AmmoInClip} / ∞";
+				return $"{AmmoInClip} / INF";
 
 			if ( !HasReserveAmmo )
 				return $"{AmmoInClip} / --";
@@ -79,6 +80,17 @@ public abstract class BaseGunWeapon : BaseWeapon
 		CurrentSpreadDegrees = BaseSpreadDegrees;
 	}
 
+	protected override void OnUpdate()
+	{
+		UpdateReloadPresentation();
+
+		if ( !Networking.IsHost )
+			return;
+
+		UpdateReload();
+		UpdateSpreadRecovery();
+	}
+
 	public override void OnHolster()
 	{
 		CancelReload();
@@ -92,17 +104,24 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 		if ( Input.Pressed( "reload" ) )
 			StartReload();
-
-		UpdateReload();
-		UpdateSpreadRecovery();
 	}
 
 	public override void PrimaryAttack()
 	{
 		if ( !Networking.IsHost )
 		{
-			if ( PlayAttackAnimation )
-				PlayWeaponAnimation( AttackTrigger );
+			if ( HasAmmo() )
+			{
+				PlayFireEffects();
+				ApplyRecoil();
+
+				if ( PlayAttackAnimation )
+					PlayWeaponAnimation( AttackTrigger );
+			}
+			else
+			{
+				PlayDryFireEffects();
+			}
 
 			RequestPrimaryAttack( GetOwnerEyePosition(), GetOwnerAimDirection() );
 			return;
@@ -132,18 +151,21 @@ public abstract class BaseGunWeapon : BaseWeapon
 		if ( !HasAmmo() )
 		{
 			PlayDryFireEffects();
+			BroadcastDryFireEffects( true );
 			return;
 		}
 
 		ConsumeAmmo();
 
 		PlayFireEffects();
+		BroadcastFireEffects( true );
 		FireBullet( start, GetShootDirection( baseDirection ) );
 
 		AddSpread();
 		ApplyRecoil();
 
 		base.PrimaryAttack();
+		BroadcastWeaponAnimation( AttackTrigger, true );
 
 		if ( AmmoInClip <= 0 && HasReserveAmmo )
 			StartReload();
@@ -182,6 +204,40 @@ public abstract class BaseGunWeapon : BaseWeapon
 		PlayWeaponAnimation( DryAttackTrigger );
 	}
 
+	private void BroadcastFireEffects( bool skipLocalOwner = true )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayFireEffectsBroadcast( skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayFireEffectsBroadcast( bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayFireEffects();
+	}
+
+	private void BroadcastDryFireEffects( bool skipLocalOwner = true )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayDryFireEffectsBroadcast( skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayDryFireEffectsBroadcast( bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayDryFireEffects();
+	}
+
 	protected virtual void PlayMuzzleFlash()
 	{
 		if ( !MuzzleFlashPrefab.IsValid() )
@@ -212,6 +268,9 @@ public abstract class BaseGunWeapon : BaseWeapon
 	{
 		if ( !Networking.IsHost )
 		{
+			if ( CanReload() )
+				PlayReloadEffects();
+
 			RequestReload();
 			return;
 		}
@@ -223,6 +282,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		TimeSinceReloadStarted = 0f;
 
 		PlayReloadEffects();
+		BroadcastReloadEffects( true );
 	}
 
 	[Rpc.Host]
@@ -244,6 +304,9 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	protected virtual void FinishReload()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		IsReloading = false;
 
 		var ammoNeeded = ClipSize - AmmoInClip;
@@ -272,8 +335,42 @@ public abstract class BaseGunWeapon : BaseWeapon
 		PlayWeaponAnimation( ReloadTrigger );
 	}
 
+	private void BroadcastReloadEffects( bool skipLocalOwner = true )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayReloadEffectsBroadcast( skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayReloadEffectsBroadcast( bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayReloadEffects();
+	}
+
+	private void UpdateReloadPresentation()
+	{
+		if ( WasReloadingLastFrame == IsReloading )
+			return;
+
+		WasReloadingLastFrame = IsReloading;
+
+		if ( !IsReloading )
+			return;
+
+		if ( Networking.IsHost )
+			return;
+	}
+
 	private void PlayFirstPersonMuzzleFlash()
 	{
+		if ( !ShouldShowViewModel() )
+			return;
+
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( !viewModel.IsValid() )
@@ -498,6 +595,9 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	protected virtual void CancelReload()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		if ( !IsReloading )
 			return;
 

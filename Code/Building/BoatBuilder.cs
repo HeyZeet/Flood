@@ -15,7 +15,7 @@ public sealed class BoatBuilder : BaseCarryable
 	public BuildPlacementResult PlacementResult => CurrentPlacement;
 
 	[Property] public List<BuildPieceData> AvailablePieces { get; set; } = new();
-	[Property, Sync] public int SelectedPieceIndex { get; set; } = 0;
+	[Property, Sync( SyncFlags.FromHost )] public int SelectedPieceIndex { get; set; } = 0;
 
 	[Property, Group( "Selling" )] public bool CanSellPieces { get; set; } = true;
 	[Property, Group( "Selling" )] public string SellInputAction { get; set; } = "use";

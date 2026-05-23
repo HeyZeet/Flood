@@ -13,7 +13,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 	[Property] public SoundEvent WeldSound { get; set; }
 	[Property] public SoundEvent UnweldSound { get; set; }
 
-	[Sync] public string FirstWeldTargetName { get; private set; } = "No selection";
+	[Sync( SyncFlags.FromHost )] public string FirstWeldTargetName { get; private set; } = "No selection";
 
 	private GameObject FirstWeldTarget { get; set; }
 
@@ -36,6 +36,8 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		if ( Networking.IsHost )
 		{
 			TryPrimaryUseHost();
+			BroadcastWeaponAnimation( AttackTrigger, true );
+			BroadcastToolSound( UseSound, true );
 			return;
 		}
 
@@ -50,6 +52,8 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		if ( Networking.IsHost )
 		{
 			TrySecondaryUseHost();
+			BroadcastWeaponAnimation( AttackTrigger, true );
+			BroadcastToolSound( UseSound, true );
 			return;
 		}
 
@@ -68,12 +72,16 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 	private void RequestPrimaryUse()
 	{
 		TryPrimaryUseHost();
+		BroadcastWeaponAnimation( AttackTrigger, true );
+		BroadcastToolSound( UseSound, true );
 	}
 
 	[Rpc.Host]
 	private void RequestSecondaryUse()
 	{
 		TrySecondaryUseHost();
+		BroadcastWeaponAnimation( AttackTrigger, true );
+		BroadcastToolSound( UseSound, true );
 	}
 
 	private void TryPrimaryUseHost()
@@ -138,6 +146,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		target.BreakWelds( "manually unwelded" );
 		ClearSelection();
 		PlayToolSound( UnweldSound );
+		BroadcastToolSound( UnweldSound, true );
 
 		Log.Info( $"{DisplayName} unwelded {target.DisplayName}." );
 	}
@@ -153,6 +162,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		FirstWeldTarget = target.GameObject;
 		FirstWeldTargetName = target.DisplayName;
 		PlayToolSound( SelectSound );
+		BroadcastToolSound( SelectSound, true );
 
 		Log.Info( $"{DisplayName} selected {target.DisplayName}." );
 	}
@@ -175,6 +185,8 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		ClearSelection();
 		PlayToolSound( WeldSound );
 		PlaySuccessSound();
+		BroadcastToolSound( WeldSound, true );
+		BroadcastToolSound( SuccessSound, true );
 
 		Log.Info( $"{DisplayName} welded {firstPiece.DisplayName} to {secondPiece.DisplayName}." );
 	}

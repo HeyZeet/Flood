@@ -1,4 +1,5 @@
 using Sandbox;
+using System;
 using System.Collections.Generic;
 
 public sealed class FloodPlayer : Component, PlayerController.IEvents
@@ -13,6 +14,16 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 	public PlayerInventory Inventory { get; private set; }
 	public PlayerBuildResources BuildResources { get; private set; }
 
+	[Sync( SyncFlags.FromHost | SyncFlags.Query ), Change( nameof( OnSyncedRoundPhaseChanged ) )]
+	public GamePhase SyncedRoundPhase { get; private set; } = GamePhase.WaitingForPlayers;
+
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public int SyncedRoundSecondsRemaining { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public float SyncedRoundDuration { get; private set; }
+
+	public event Action<GamePhase, GamePhase> OnSyncedRoundPhaseUpdated;
+
+	private bool? LastLocalPresentationState { get; set; }
+
 	protected override void OnStart()
 	{
 		if ( !AllPlayers.Contains( this ) )
@@ -21,6 +32,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		CacheComponents();
 		ValidateRequiredComponents();
 		UpdateLocalPlayerReference();
+		UpdateLocalPresentationState( true );
 
 		if ( Networking.IsHost )
 		{
@@ -55,6 +67,19 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		}
 	}
 
+	public bool IsRoundBuildPhase => SyncedRoundPhase == GamePhase.BuildPhase;
+	public bool IsRoundCombatPhase => SyncedRoundPhase == GamePhase.CombatPhase;
+
+	public void SetSyncedRoundState( GamePhase phase, int secondsRemaining, float duration )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		SyncedRoundPhase = phase;
+		SyncedRoundSecondsRemaining = secondsRemaining.Clamp( 0, int.MaxValue );
+		SyncedRoundDuration = duration.Clamp( 0f, float.MaxValue );
+	}
+
 	protected override void OnDestroy()
 	{
 		AllPlayers.Remove( this );
@@ -66,6 +91,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 	protected override void OnUpdate()
 	{
 		UpdateLocalPlayerReference();
+		UpdateLocalPresentationState();
 	}
 
 	public void PostCameraSetup( CameraComponent camera )
@@ -103,5 +129,43 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 			return;
 
 		Local = this;
+	}
+
+	private void OnSyncedRoundPhaseChanged( GamePhase previousPhase, GamePhase newPhase )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		Log.Info( $"{GameObject.Name} round state synced: {previousPhase} -> {newPhase} ({SyncedRoundSecondsRemaining}s)" );
+		OnSyncedRoundPhaseUpdated?.Invoke( previousPhase, newPhase );
+	}
+
+	private void UpdateLocalPresentationState( bool force = false )
+	{
+		var isLocalPlayer = !IsProxy;
+
+		if ( !force && LastLocalPresentationState == isLocalPlayer )
+			return;
+
+		LastLocalPresentationState = isLocalPlayer;
+
+		foreach ( var camera in Components.GetAll<CameraComponent>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( !camera.IsValid() )
+				continue;
+
+			camera.Enabled = isLocalPlayer;
+			camera.IsMainCamera = isLocalPlayer;
+		}
+
+		foreach ( var screenPanel in Components.GetAll<ScreenPanel>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( !screenPanel.IsValid() )
+				continue;
+
+			screenPanel.Enabled = isLocalPlayer;
+		}
+
+		Log.Info( $"FloodPlayer presentation updated. Name={GameObject.Name}, Local={isLocalPlayer}, Proxy={IsProxy}" );
 	}
 }

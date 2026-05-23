@@ -13,8 +13,10 @@ public sealed class FloodGameManager : Component
 	public event Action OnBattlePhaseStarted;
 	public event Action OnRoundEndPhaseStarted;
 
-	[Sync] public GamePhase CurrentPhase { get; private set; } = GamePhase.BuildPhase;
-	[Sync] public float SyncedPhaseTimeRemaining { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query ), Change( nameof( OnCurrentPhaseSynced ) )]
+	public GamePhase CurrentPhase { get; private set; } = GamePhase.BuildPhase;
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public float SyncedPhaseTimeRemaining { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public int SyncedPhaseSecondsRemaining { get; private set; }
 
 	[Property, Group( "Round" )]
 	public bool AutoRunRoundLoop { get; set; } = true;
@@ -33,6 +35,9 @@ public sealed class FloodGameManager : Component
 
 	[Property, Group( "Player Reset" )]
 	public Vector3 FallbackSpawnOffset { get; set; } = Vector3.Up * 8f;
+
+	[Property, Group( "Player Reset" )]
+	public float SpawnSeparation { get; set; } = 80f;
 
 	[Property, Group( "Player Reset" )]
 	public bool ResetPlayersWhenManagerStarts { get; set; } = true;
@@ -102,6 +107,7 @@ public sealed class FloodGameManager : Component
 		AdvancePhaseTimer();
 		HandleRoundLoop();
 		UpdateSyncedPhaseTime();
+		PushRoundStateToPlayers();
 		HandleDebugControls();
 	}
 
@@ -148,7 +154,7 @@ public sealed class FloodGameManager : Component
 	public float GetCurrentPhaseTimeRemaining()
 	{
 		if ( !Networking.IsHost )
-			return SyncedPhaseTimeRemaining;
+			return SyncedPhaseSecondsRemaining;
 
 		var duration = GetCurrentPhaseDuration();
 
@@ -228,6 +234,8 @@ public sealed class FloodGameManager : Component
 		}
 
 		ResetPlayerForCurrentRound( player );
+		player.SetSyncedRoundState( CurrentPhase, SyncedPhaseSecondsRemaining, GetCurrentPhaseDuration() );
+
 		Log.Info( $"Registered and reset joining player {player.GameObject.Name}. Phase={CurrentPhase}" );
 	}
 
@@ -296,6 +304,17 @@ public sealed class FloodGameManager : Component
 				OnRoundEndPhaseStarted?.Invoke();
 				break;
 		}
+	}
+
+	private void OnCurrentPhaseSynced( GamePhase previousPhase, GamePhase newPhase )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		PhaseElapsedSeconds = 0f;
+
+		Log.Info( $"Round phase synced: {previousPhase} -> {newPhase} (remaining: {SyncedPhaseSecondsRemaining}s)" );
+		NotifyPhaseChanged( previousPhase, newPhase );
 	}
 
 	private void HandleRoundLoop()
@@ -378,6 +397,21 @@ public sealed class FloodGameManager : Component
 	private void UpdateSyncedPhaseTime()
 	{
 		SyncedPhaseTimeRemaining = CalculateCurrentPhaseTimeRemaining();
+		SyncedPhaseSecondsRemaining = (int)MathF.Ceiling( SyncedPhaseTimeRemaining );
+	}
+
+	private void PushRoundStateToPlayers()
+	{
+		var duration = GetCurrentPhaseDuration();
+		var secondsRemaining = (int)MathF.Ceiling( CalculateCurrentPhaseTimeRemaining() );
+
+		foreach ( var player in FloodPlayer.All.ToArray() )
+		{
+			if ( !player.IsValid() )
+				continue;
+
+			player.SetSyncedRoundState( CurrentPhase, secondsRemaining, duration );
+		}
 	}
 
 	private float CalculateCurrentPhaseTimeRemaining()
@@ -500,12 +534,25 @@ public sealed class FloodGameManager : Component
 
 		var spawnPoint = spawnPoints[playerIndex % spawnPoints.Length];
 
-		player.WorldPosition = spawnPoint.WorldPosition;
+		player.WorldPosition = spawnPoint.WorldPosition + GetSpawnSeparationOffset( playerIndex );
 		player.WorldRotation = spawnPoint.WorldRotation;
 
 		ClearPlayerVelocity( player );
 
 		Log.Info( $"Moved {player.GameObject.Name} to spawn point {spawnPoint.GameObject.Name}." );
+	}
+
+	private Vector3 GetSpawnSeparationOffset( int playerIndex )
+	{
+		if ( SpawnSeparation <= 0f )
+			return Vector3.Zero;
+
+		var row = playerIndex / 4;
+		var column = playerIndex % 4;
+		var x = column - 1.5f;
+		var y = row;
+
+		return new Vector3( x * SpawnSeparation, y * SpawnSeparation, 0f );
 	}
 
 	private void ClearPlayerVelocity( FloodPlayer player )

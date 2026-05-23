@@ -25,6 +25,9 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 
 	protected override void OnUpdate()
 	{
+		if ( IsProxy )
+			return;
+
 		UpdateRecoilRecovery();
 	}
 
@@ -63,6 +66,12 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 	{
 		if ( !camera.IsValid() )
 			return;
+
+		if ( IsProxy )
+		{
+			camera.Enabled = false;
+			return;
+		}
 
 		camera.Enabled = true;
 		camera.FieldOfView = FieldOfView;

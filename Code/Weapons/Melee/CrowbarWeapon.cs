@@ -48,23 +48,20 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 	{
 		PlaySwingEffects();
 
-		ViewModel?.PlayAttack();
-		ThirdPersonModel?.PlayAttack();
-
 		base.PrimaryAttack();
-
-		// Later:
-		// Add third-person weapon-specific swing effects if needed.
 	}
 
-	protected override void DoMeleeAttack()
+	protected override void DoMeleeAttack( Vector3 start, Vector3 direction )
 	{
-		var start = GetAttackStart();
-		var direction = GetAttackDirection();
-
-		base.DoMeleeAttack();
+		base.DoMeleeAttack( start, direction );
 
 		TryPlayHitSound( start, direction );
+	}
+
+	protected override void OnMeleeAttackApproved( bool skipLocalOwner )
+	{
+		base.OnMeleeAttackApproved( skipLocalOwner );
+		BroadcastSwingEffects( skipLocalOwner );
 	}
 
 	private void TryPlayHitSound( Vector3 start, Vector3 direction )
@@ -94,8 +91,45 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 			Sound.Play( SwingSound, WorldPosition );
 	}
 
+	private void BroadcastSwingEffects( bool skipLocalOwner )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlaySwingEffectsBroadcast( skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlaySwingEffectsBroadcast( bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlaySwingEffects();
+	}
+
 	private void PlayHitEffects( Vector3 hitPosition )
 	{
+		if ( HitSound is not null )
+			Sound.Play( HitSound, hitPosition );
+
+		BroadcastHitEffects( hitPosition, true );
+	}
+
+	private void BroadcastHitEffects( Vector3 hitPosition, bool skipLocalOwner )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayHitEffectsBroadcast( hitPosition, skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayHitEffectsBroadcast( Vector3 hitPosition, bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
 		if ( HitSound is not null )
 			Sound.Play( HitSound, hitPosition );
 	}

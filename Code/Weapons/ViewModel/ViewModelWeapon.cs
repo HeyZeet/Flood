@@ -32,7 +32,8 @@ public sealed class ViewModelWeapon : Component
 
 	protected override void OnStart()
 	{
-		CreateViewModel();
+		if ( ShouldUseViewModel() )
+			CreateViewModel();
 
 		ClearViewModelOneShotParams();
 		SetVisible( false );
@@ -40,6 +41,13 @@ public sealed class ViewModelWeapon : Component
 
 	protected override void OnUpdate()
 	{
+		if ( !ShouldUseViewModel() )
+		{
+			SetVisible( false );
+			return;
+		}
+
+		EnsureViewModelCreated();
 		FollowCamera();
 	}
 
@@ -51,6 +59,13 @@ public sealed class ViewModelWeapon : Component
 
 	public void Show()
 	{
+		if ( !ShouldUseViewModel() )
+		{
+			SetVisible( false );
+			return;
+		}
+
+		EnsureViewModelCreated();
 		SetVisible( true );
 
 		ClearViewModelOneShotParams();
@@ -86,6 +101,9 @@ public sealed class ViewModelWeapon : Component
 
 	public void PlayAnimation( string triggerName )
 	{
+		if ( !ShouldUseViewModel() )
+			return;
+
 		SetAnimationTrigger( triggerName );
 	}
 
@@ -101,6 +119,9 @@ public sealed class ViewModelWeapon : Component
 
 	private void CreateViewModel()
 	{
+		if ( ViewModelObject.IsValid() )
+			return;
+
 		if ( !WeaponModel.IsValid() )
 		{
 			Log.Warning( $"{GameObject.Name} has no WeaponModel assigned." );
@@ -114,6 +135,15 @@ public sealed class ViewModelWeapon : Component
 		WeaponRenderer.Model = WeaponModel;
 
 		CreateArmsRenderer();
+	}
+
+	private void EnsureViewModelCreated()
+	{
+		if ( ViewModelObject.IsValid() )
+			return;
+
+		CreateViewModel();
+		SetVisible( false );
 	}
 
 	private void CreateArmsRenderer()
@@ -171,6 +201,18 @@ public sealed class ViewModelWeapon : Component
 
 		WeaponRenderer.Set( triggerName, false );
 		WeaponRenderer.Set( triggerName, true );
+	}
+
+	private bool ShouldUseViewModel()
+	{
+		var carryable = Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( !carryable.IsValid() )
+			return false;
+
+		var inventory = carryable.Inventory;
+
+		return inventory.IsValid() && !inventory.IsProxy;
 	}
 
 	private void ClearViewModelOneShotParams()

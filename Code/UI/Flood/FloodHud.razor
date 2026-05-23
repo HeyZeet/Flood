@@ -1,0 +1,373 @@
+@using Sandbox
+@using System
+
+@inherits PanelComponent
+
+<root>
+	@if ( ShouldShowRound )
+	{
+		<div class="flood-hud__round">
+			<div class="flood-hud__phase">@RoundPhaseText</div>
+			<div class="flood-hud__time">@RoundTimeText</div>
+		</div>
+	}
+
+	@if ( ShouldShowBuild )
+	{
+		<div class="flood-hud__build">
+			<div class="flood-hud__section-title">Build</div>
+			<div class="flood-hud__row">
+				<span>Tool</span>
+				<strong>@BuildToolText</strong>
+			</div>
+			<div class="flood-hud__row">
+				<span>Piece</span>
+				<strong>@BuildPieceText</strong>
+			</div>
+			<div class="flood-hud__row">
+				<span>Resources</span>
+				<strong>@ResourceText</strong>
+			</div>
+			<div class="flood-hud__hint">@BuildHintText</div>
+		</div>
+	}
+
+	@if ( ShouldShowAmmo )
+	{
+		<div class="flood-hud__ammo">
+			<div class="flood-hud__weapon">@WeaponText</div>
+			<div class="flood-hud__ammo-row">
+				<span class="flood-hud__clip">@AmmoClipText</span>
+				<span class="flood-hud__slash">/</span>
+				<span class="flood-hud__reserve">@AmmoReserveText</span>
+			</div>
+			@if ( IsReloading )
+			{
+				<div class="flood-hud__reload">Reloading...</div>
+			}
+		</div>
+	}
+
+	@if ( ShouldShowDeath )
+	{
+		<div class="flood-hud__death">
+			<div class="flood-hud__death-panel">
+				<div class="flood-hud__death-title">@DeathTitleText</div>
+				<div class="flood-hud__death-subtitle">Waiting for the next round...</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public bool ShowRoundDuringWaiting { get; set; } = false;
+	[Property] public bool ShowRoundDebugValues { get; set; } = false;
+
+	private bool ShouldShowRound { get; set; }
+	private bool ShouldShowBuild { get; set; }
+	private bool ShouldShowAmmo { get; set; }
+	private bool ShouldShowDeath { get; set; }
+	private bool IsReloading { get; set; }
+
+	private string RoundPhaseText { get; set; } = "Waiting";
+	private string RoundTimeText { get; set; } = "--:--";
+	private string BuildToolText { get; set; } = "None";
+	private string BuildPieceText { get; set; } = "None";
+	private string ResourceText { get; set; } = "--";
+	private string BuildHintText { get; set; } = "";
+	private string WeaponText { get; set; } = "";
+	private string AmmoClipText { get; set; } = "0";
+	private string AmmoReserveText { get; set; } = "";
+	private string DeathTitleText { get; set; } = "You Died";
+
+	private int HudBuildVersion { get; set; }
+	private GamePhase LastDisplayedPhase { get; set; }
+	private float DisplaySecondsRemaining { get; set; }
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+
+		var player = GetHudPlayer();
+		var roundManager = FloodGameManager.Instance;
+
+		UpdateRoundState( player, roundManager );
+		UpdatePlayerState( player, roundManager );
+	}
+
+	private FloodPlayer GetHudPlayer()
+	{
+		var player = Components.Get<FloodPlayer>( FindMode.EverythingInAncestors );
+
+		if ( player.IsValid() )
+			return player;
+
+		return FloodPlayer.Local;
+	}
+
+	private void UpdateRoundState( FloodPlayer player, FloodGameManager roundManager )
+	{
+		if ( !player.IsValid() && !roundManager.IsValid() )
+		{
+			SetRoundState( false, "No Round", "--:--" );
+			return;
+		}
+
+		var phase = player.IsValid() ? player.SyncedRoundPhase : roundManager.CurrentPhase;
+		var syncedSeconds = player.IsValid() ? player.SyncedRoundSecondsRemaining : roundManager.GetCurrentPhaseTimeRemaining();
+		var duration = player.IsValid() && player.SyncedRoundDuration > 0f
+			? player.SyncedRoundDuration
+			: roundManager.IsValid() ? roundManager.GetCurrentPhaseDuration() : 0f;
+
+		var shouldShow = ShowRoundDuringWaiting || phase != GamePhase.WaitingForPlayers;
+		var displaySeconds = GetDisplaySecondsRemaining( phase, syncedSeconds, duration );
+		var timeText = FormatTime( displaySeconds );
+
+		if ( ShowRoundDebugValues )
+			timeText = $"{timeText} | raw:{syncedSeconds:0.0} | src:{(player.IsValid() ? "player" : "manager")}";
+
+		SetRoundState( shouldShow, GetPhaseText( phase ), timeText );
+	}
+
+	private void UpdatePlayerState( FloodPlayer player, FloodGameManager roundManager )
+	{
+		if ( !player.IsValid() )
+		{
+			SetBuildState( false, "None", "None", "--", "" );
+			SetAmmoState( false, "", "0", "", false );
+			SetDeathState( false, "You Died" );
+			return;
+		}
+
+		SetDeathState( player.IsDead, player.IsEliminated ? "Eliminated" : "You Died" );
+
+		if ( player.IsDead )
+		{
+			SetBuildState( false, "None", "None", "--", "" );
+			SetAmmoState( false, "", "0", "", false );
+			return;
+		}
+
+		var inventory = player.Inventory;
+		var activeCarryable = inventory.IsValid() ? inventory.ActiveCarryable : null;
+		var resources = player.BuildResources;
+		var resourceText = resources.IsValid() ? resources.Resources.ToString() : "--";
+
+		UpdateBuildState( player, roundManager, activeCarryable, resourceText );
+		UpdateAmmoState( activeCarryable );
+	}
+
+	private void UpdateBuildState( FloodPlayer player, FloodGameManager roundManager, BaseCarryable activeCarryable, string resourceText )
+	{
+		var isBuildPhase = player.IsValid()
+			? player.IsRoundBuildPhase
+			: !roundManager.IsValid() || roundManager.IsBuildPhase();
+
+		if ( !isBuildPhase )
+		{
+			SetBuildState( false, "None", "None", "--", "" );
+			return;
+		}
+
+		if ( !activeCarryable.IsValid() )
+		{
+			SetBuildState( false, "None", "None", "--", "" );
+			return;
+		}
+
+		if ( activeCarryable is BoatBuilder boatBuilder )
+		{
+			SetBuildState(
+				true,
+				boatBuilder.DisplayName,
+				boatBuilder.SelectedPiece?.DisplayName ?? "None",
+				resourceText,
+				"LMB: Place   RMB: Next Piece   R: Rotate"
+			);
+			return;
+		}
+
+		var weldTool = activeCarryable.Components.Get<WeldToolWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( weldTool.IsValid() )
+		{
+			SetBuildState( true, weldTool.DisplayName, weldTool.FirstWeldTargetName, resourceText, "LMB: Select/Weld   RMB: Unweld" );
+			return;
+		}
+
+		SetBuildState( false, "None", "None", "--", "" );
+	}
+
+	private void UpdateAmmoState( BaseCarryable activeCarryable )
+	{
+		if ( !activeCarryable.IsValid() )
+		{
+			SetAmmoState( false, "", "0", "", false );
+			return;
+		}
+
+		var gun = activeCarryable.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !gun.IsValid() )
+		{
+			SetAmmoState( false, "", "0", "", false );
+			return;
+		}
+
+		SetAmmoState(
+			true,
+			gun.DisplayName,
+			gun.AmmoInClip.ToString(),
+			GetReserveText( gun ),
+			gun.IsReloading
+		);
+	}
+
+	private string GetReserveText( BaseGunWeapon gun )
+	{
+		if ( gun.InfiniteAmmo )
+			return "INF";
+
+		if ( !gun.HasReserveAmmo )
+			return "--";
+
+		return gun.ReserveAmmo.ToString();
+	}
+
+	private float GetDisplaySecondsRemaining( GamePhase phase, float syncedSeconds, float phaseDuration )
+	{
+		syncedSeconds = syncedSeconds.Clamp( 0f, float.MaxValue );
+
+		if ( LastDisplayedPhase != phase )
+		{
+			LastDisplayedPhase = phase;
+			DisplaySecondsRemaining = syncedSeconds > 0f ? syncedSeconds : phaseDuration;
+			return DisplaySecondsRemaining;
+		}
+
+		if ( syncedSeconds > DisplaySecondsRemaining || MathF.Abs( syncedSeconds - DisplaySecondsRemaining ) > 1.25f )
+		{
+			DisplaySecondsRemaining = syncedSeconds;
+			return DisplaySecondsRemaining;
+		}
+
+		DisplaySecondsRemaining -= Time.Delta;
+		DisplaySecondsRemaining = DisplaySecondsRemaining.Clamp( 0f, float.MaxValue );
+
+		return DisplaySecondsRemaining;
+	}
+
+	private string GetPhaseText( GamePhase phase )
+	{
+		return phase switch
+		{
+			GamePhase.WaitingForPlayers => "Waiting",
+			GamePhase.BuildPhase => "Build Phase",
+			GamePhase.FloodPhase => "Flood Phase",
+			GamePhase.CombatPhase => "Combat Phase",
+			GamePhase.RoundEnd => "Round End",
+			_ => phase.ToString()
+		};
+	}
+
+	private string FormatTime( float seconds )
+	{
+		seconds = seconds.Clamp( 0f, float.MaxValue );
+
+		var totalSeconds = MathF.Ceiling( seconds );
+		var minutes = (int)(totalSeconds / 60f);
+		var remainingSeconds = (int)(totalSeconds % 60f);
+
+		return $"{minutes:00}:{remainingSeconds:00}";
+	}
+
+	private void SetRoundState( bool shouldShow, string phaseText, string timeText )
+	{
+		if ( ShouldShowRound == shouldShow && RoundPhaseText == phaseText && RoundTimeText == timeText )
+			return;
+
+		ShouldShowRound = shouldShow;
+		RoundPhaseText = phaseText;
+		RoundTimeText = timeText;
+		HudBuildVersion++;
+	}
+
+	private void SetBuildState( bool shouldShow, string toolText, string pieceText, string resourceText, string hintText )
+	{
+		if (
+			ShouldShowBuild == shouldShow &&
+			BuildToolText == toolText &&
+			BuildPieceText == pieceText &&
+			ResourceText == resourceText &&
+			BuildHintText == hintText
+		)
+		{
+			return;
+		}
+
+		ShouldShowBuild = shouldShow;
+		BuildToolText = toolText;
+		BuildPieceText = pieceText;
+		ResourceText = resourceText;
+		BuildHintText = hintText;
+		HudBuildVersion++;
+	}
+
+	private void SetAmmoState( bool shouldShow, string weaponText, string clipText, string reserveText, bool isReloading )
+	{
+		if (
+			ShouldShowAmmo == shouldShow &&
+			WeaponText == weaponText &&
+			AmmoClipText == clipText &&
+			AmmoReserveText == reserveText &&
+			IsReloading == isReloading
+		)
+		{
+			return;
+		}
+
+		ShouldShowAmmo = shouldShow;
+		WeaponText = weaponText;
+		AmmoClipText = clipText;
+		AmmoReserveText = reserveText;
+		IsReloading = isReloading;
+		HudBuildVersion++;
+	}
+
+	private void SetDeathState( bool shouldShow, string titleText )
+	{
+		if ( ShouldShowDeath == shouldShow && DeathTitleText == titleText )
+			return;
+
+		ShouldShowDeath = shouldShow;
+		DeathTitleText = titleText;
+		HudBuildVersion++;
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+
+		hash.Add( HudBuildVersion );
+		hash.Add( ShouldShowRound );
+		hash.Add( ShouldShowBuild );
+		hash.Add( ShouldShowAmmo );
+		hash.Add( ShouldShowDeath );
+		hash.Add( IsReloading );
+		hash.Add( RoundPhaseText );
+		hash.Add( RoundTimeText );
+		hash.Add( BuildToolText );
+		hash.Add( BuildPieceText );
+		hash.Add( ResourceText );
+		hash.Add( BuildHintText );
+		hash.Add( WeaponText );
+		hash.Add( AmmoClipText );
+		hash.Add( AmmoReserveText );
+		hash.Add( DeathTitleText );
+		hash.Add( ShowRoundDuringWaiting );
+		hash.Add( ShowRoundDebugValues );
+
+		return hash.ToHashCode();
+	}
+}

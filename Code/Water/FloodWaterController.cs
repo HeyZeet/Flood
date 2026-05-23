@@ -35,15 +35,15 @@ public sealed class FloodWaterController : Component
 	[Property] public bool DrawDebugSurface { get; set; } = true;
 	[Property] public float DebugLineSize { get; set; } = 512f;
 
-	public float SurfaceHeight { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public float SurfaceHeight { get; private set; }
 
 	// Compatibility for older code that may still ask for WaterHeight.
 	public float WaterHeight => SurfaceHeight;
 
 	public Plane WaterPlane => new Plane( Vector3.Up, SurfaceHeight );
 
-	public bool IsRising { get; private set; }
-	public bool IsDraining { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public bool IsRising { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public bool IsDraining { get; private set; }
 
 	protected override void OnStart()
 	{
@@ -67,11 +67,19 @@ public sealed class FloodWaterController : Component
 
 	protected override void OnUpdate()
 	{
-		if ( IsRising )
-			UpdateRising();
+		if ( Networking.IsHost )
+		{
+			if ( IsRising )
+				UpdateRising();
 
-		if ( IsDraining )
-			UpdateDraining();
+			if ( IsDraining )
+				UpdateDraining();
+		}
+		else
+		{
+			UpdateSurfaceMarker();
+			UpdateVisualWaterObject();
+		}
 
 		if ( DrawDebugSurface )
 			DrawSurfaceDebug();
@@ -79,23 +87,35 @@ public sealed class FloodWaterController : Component
 
 	public void StartFlood()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		IsRising = true;
 		IsDraining = false;
 	}
 
 	public void StopFlood()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		IsRising = false;
 	}
 
 	public void StartDrain()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		IsDraining = true;
 		IsRising = false;
 	}
 
 	public void ResetWater()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		IsRising = false;
 		IsDraining = false;
 

@@ -1,0 +1,158 @@
+FloodHud {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	pointer-events: none;
+	font-family: Poppins;
+	color: white;
+}
+
+.flood-hud__round {
+	position: absolute;
+	top: 32px;
+	left: 50%;
+	transform: translateX( -50% );
+	min-width: 260px;
+	padding: 12px 22px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.65 );
+	backdrop-filter: blur( 8px );
+	flex-direction: column;
+	align-items: center;
+}
+
+.flood-hud__phase {
+	font-size: 20px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.flood-hud__time {
+	font-size: 34px;
+	font-weight: 800;
+}
+
+.flood-hud__build {
+	position: absolute;
+	left: 32px;
+	bottom: 32px;
+	min-width: 260px;
+	padding: 16px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.65 );
+	backdrop-filter: blur( 8px );
+	flex-direction: column;
+	gap: 8px;
+}
+
+.flood-hud__section-title {
+	font-size: 22px;
+	font-weight: 700;
+}
+
+.flood-hud__row {
+	font-size: 16px;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+}
+
+.flood-hud__row span {
+	opacity: 0.75;
+}
+
+.flood-hud__row strong {
+	font-weight: 700;
+}
+
+.flood-hud__hint {
+	margin-top: 8px;
+	font-size: 13px;
+	opacity: 0.75;
+}
+
+.flood-hud__ammo {
+	position: absolute;
+	right: 64px;
+	bottom: 64px;
+	min-width: 180px;
+	padding: 16px 22px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.65 );
+	backdrop-filter: blur( 8px );
+	flex-direction: column;
+	align-items: flex-end;
+}
+
+.flood-hud__weapon {
+	font-size: 18px;
+	font-weight: 700;
+	opacity: 0.8;
+	margin-bottom: 4px;
+}
+
+.flood-hud__ammo-row {
+	flex-direction: row;
+	align-items: baseline;
+}
+
+.flood-hud__clip {
+	font-size: 42px;
+	font-weight: 800;
+}
+
+.flood-hud__slash {
+	font-size: 28px;
+	font-weight: 600;
+	margin-left: 8px;
+	margin-right: 8px;
+	opacity: 0.6;
+}
+
+.flood-hud__reserve {
+	font-size: 28px;
+	font-weight: 700;
+	opacity: 0.85;
+}
+
+.flood-hud__reload {
+	margin-top: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	opacity: 0.8;
+}
+
+.flood-hud__death {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba( 0, 0, 0, 0.25 );
+}
+
+.flood-hud__death-panel {
+	min-width: 360px;
+	padding: 28px 36px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.72 );
+	backdrop-filter: blur( 10px );
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.flood-hud__death-title {
+	font-size: 44px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.flood-hud__death-subtitle {
+	font-size: 18px;
+	opacity: 0.85;
+}

@@ -48,7 +48,7 @@ public sealed class BuildPiece : Component
 	public bool BreakWeldsWhenDestroyed { get; set; } = true;
 
 	public GameObject Owner { get; private set; }
-	[Sync] public bool IsPlaced { get; private set; }
+	[Sync( SyncFlags.FromHost )] public bool IsPlaced { get; private set; }
 	public GameObject AttachedTo { get; private set; }
 
 	public BoatPieceHealth Health { get; private set; }

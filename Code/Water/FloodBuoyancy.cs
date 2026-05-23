@@ -159,6 +159,9 @@ public sealed class FloodBuoyancy : Component
 
 	protected override void OnFixedUpdate()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		if ( !Body.IsValid() )
 			return;
 

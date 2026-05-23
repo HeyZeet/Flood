@@ -6,7 +6,7 @@ public sealed class BoatPieceHealth : DamageableComponent
 	[Property] public float MaxHealth { get; set; } = 100f;
 	[Property] public bool DestroyOnDeath { get; set; } = true;
 
-	[Sync] public float Health { get; private set; }
+	[Sync( SyncFlags.FromHost )] public float Health { get; private set; }
 
 	public event Action<BoatPieceHealth, DamageInfo> Damaged;
 	public event Action<BoatPieceHealth, DamageInfo> Died;

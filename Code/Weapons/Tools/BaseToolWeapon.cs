@@ -52,4 +52,24 @@ public abstract class BaseToolWeapon : BaseWeapon
 
 		Sound.Play( sound, WorldPosition );
 	}
+
+	protected void BroadcastToolSound( SoundEvent sound, bool skipLocalOwner = true )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( sound is null )
+			return;
+
+		PlayToolSoundBroadcast( sound, skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayToolSoundBroadcast( SoundEvent sound, bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayToolSound( sound );
+	}
 }

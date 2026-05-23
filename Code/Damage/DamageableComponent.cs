@@ -22,6 +22,11 @@ public abstract class DamageableComponent : Component
 		if ( !roundManager.IsValid() )
 			return true;
 
-		return roundManager.IsBattlePhase();
+		var canDamage = roundManager.IsBattlePhase();
+
+		if ( !canDamage )
+			Log.Info( $"{GameObject.Name} ignored damage outside combat phase. Current phase: {roundManager.CurrentPhase}." );
+
+		return canDamage;
 	}
 }

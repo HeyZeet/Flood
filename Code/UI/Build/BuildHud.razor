@@ -4,31 +4,6 @@
 @inherits PanelComponent
 
 <root>
-	@if ( ShouldShowHud )
-	{
-		<div class="build-hud">
-			<div class="build-hud__title">Build Mode</div>
-
-			<div class="build-hud__row">
-				<span>Tool</span>
-				<strong>@ToolName</strong>
-			</div>
-
-			<div class="build-hud__row">
-				<span>Piece</span>
-				<strong>@PieceName</strong>
-			</div>
-
-			<div class="build-hud__row">
-				<span>Resources</span>
-				<strong>@ResourceText</strong>
-			</div>
-
-			<div class="build-hud__hint">
-				@HintText
-			</div>
-		</div>
-	}
 </root>
 
 @code
@@ -45,8 +20,6 @@
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
-
-		UpdateHudText();
 	}
 
 	private void UpdateHudText()

@@ -4,22 +4,6 @@
 @inherits PanelComponent
 
 <root>
-	@if ( ShouldShow )
-	{
-		<div class="death-hud">
-			<div class="death-hud__panel">
-				<div class="death-hud__title">@TitleText</div>
-				<div class="death-hud__subtitle">Waiting for the next round...</div>
-
-				@if ( EnableDebugHint )
-				{
-					<div class="death-hud__hint">
-						Debug: Press 7 to reset the round
-					</div>
-				}
-			</div>
-		</div>
-	}
 </root>
 
 @code
@@ -33,12 +17,6 @@
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
-
-		var player = FloodPlayer.Local;
-		var shouldShow = player.IsValid() && player.IsDead;
-		var titleText = player.IsValid() && player.IsEliminated ? "Eliminated" : "You Died";
-
-		SetHudState( shouldShow, titleText );
 	}
 
 	private void SetHudState( bool shouldShow, string titleText )
