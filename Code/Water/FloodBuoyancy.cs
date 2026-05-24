@@ -53,7 +53,9 @@ public sealed class FloodBuoyancy : Component
 	[Header( "Raft Stability" )]
 	[Property] public bool UseAttachedRaftStability { get; set; } = true;
 	[Property] public float AttachedPieceStabilityBonus { get; set; } = 0.08f;
+	[Property] public float AttachedPieceLiftBonus { get; set; } = 0.08f;
 	[Property] public float MaxRaftStabilityMultiplier { get; set; } = 2.25f;
+	[Property] public float MaxRaftLiftMultiplier { get; set; } = 2.25f;
 	[Property] public float MinDamagedRaftStabilityMultiplier { get; set; } = 0.35f;
 	[Property] public float UnattachedInstabilityMultiplier { get; set; } = 0.65f;
 
@@ -413,9 +415,10 @@ public sealed class FloodBuoyancy : Component
 		}
 
 		var groupBonus = 1f + (pieceCount - 1) * AttachedPieceStabilityBonus;
+		var liftBonus = 1f + (pieceCount - 1) * AttachedPieceLiftBonus;
 		var damageScale = healthFraction.Clamp( MinDamagedRaftStabilityMultiplier, 1f );
 		var stability = (groupBonus * damageScale).Clamp( MinDamagedRaftStabilityMultiplier, MaxRaftStabilityMultiplier );
-		var lift = healthFraction.Clamp( 0.35f, 1f );
+		var lift = (liftBonus * damageScale).Clamp( 0.35f, MaxRaftLiftMultiplier );
 
 		return BuildRaftStabilityState( pieceCount, healthFraction, stability, lift );
 	}
@@ -435,7 +438,7 @@ public sealed class FloodBuoyancy : Component
 			PieceCount = pieceCount,
 			HealthFraction = healthFraction.Clamp( 0f, 1f ),
 			StabilityMultiplier = stabilityMultiplier.Clamp( 0.05f, maxStability ),
-			LiftMultiplier = liftMultiplier.Clamp( 0.05f, 2f )
+			LiftMultiplier = liftMultiplier.Clamp( 0.05f, MaxRaftLiftMultiplier.Clamp( 0.05f, 10f ) )
 		};
 	}
 

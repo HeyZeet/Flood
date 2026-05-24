@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Corrugated Sheet 128",
+  "Description": "Large heavy metal sheet.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/walls/corrugated_wall_a_128.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 70,
+  "Weight": 68,
+  "MaxHealth": 250,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 6,
+  "PlacementBounds": "128,8,48",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.corrugated_wall_a_128#169125"
+  ],
+  "__version": 0
+}

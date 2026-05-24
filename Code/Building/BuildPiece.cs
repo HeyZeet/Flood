@@ -8,6 +8,7 @@ public enum BuildPieceMaterial
 	Wood,
 	Metal,
 	Plastic,
+	Armor,
 	Foam
 }
 

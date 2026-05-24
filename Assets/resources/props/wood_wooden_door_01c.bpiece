@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Wooden Door",
+  "Description": "Flat wooden panel for raft flooring.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/doors/wooden_doors/wooden_door_01c.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 20,
+  "Weight": 18,
+  "MaxHealth": 80,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 4,
+  "PlacementBounds": "34,78,8",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.wooden_door_01c#143452"
+  ],
+  "__version": 0
+}

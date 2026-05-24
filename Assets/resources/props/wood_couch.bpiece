@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Couch",
+  "Description": "Bulky wood/fabric float piece.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/couch/couch.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 30,
+  "Weight": 28,
+  "MaxHealth": 105,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 22,
+  "PlacementBounds": "76,34,34",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.couch#139679"
+  ],
+  "__version": 0
+}

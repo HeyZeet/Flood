@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Metal Fence Post",
+  "Description": "Small heavy metal support.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/sbox_props/metal_fences/metal_fence_panel/metal_fence_post.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 28,
+  "Weight": 24,
+  "MaxHealth": 160,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 32,
+  "PlacementBounds": "10,10,64",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.metal_fence_post#143816"
+  ],
+  "__version": 0
+}

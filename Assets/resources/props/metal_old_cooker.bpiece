@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Old Cooker",
+  "Description": "Very heavy but durable appliance.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/cooker/cooker.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 65,
+  "Weight": 85,
+  "MaxHealth": 280,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 34,
+  "PlacementBounds": "38,34,68",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.old_cooker#142027"
+  ],
+  "__version": 0
+}

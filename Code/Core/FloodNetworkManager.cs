@@ -117,7 +117,10 @@ public sealed class FloodNetworkManager : Component, Component.INetworkListener
 		var floodPlayer = playerObject.Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( floodPlayer.IsValid() )
+		{
+			floodPlayer.SetPlayerIdentity( connection.DisplayName, connection.Id );
 			FloodGameManager.Instance?.RegisterPlayer( floodPlayer );
+		}
 
 		return playerObject;
 	}

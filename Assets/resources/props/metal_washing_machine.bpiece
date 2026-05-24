@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Washing Machine",
+  "Description": "Heavy, strong, and expensive.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/washing_machine/washing_machine.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 75,
+  "Weight": 95,
+  "MaxHealth": 300,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 36,
+  "PlacementBounds": "42,38,72",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.washingmachine#143526"
+  ],
+  "__version": 0
+}

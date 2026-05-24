@@ -1,9 +1,55 @@
 @using Sandbox
 @using System
+@using System.Collections.Generic
+@using System.Linq
 
 @inherits PanelComponent
 
 <root>
+	@if ( ShouldShowWinner )
+	{
+		<div class="flood-hud__winner">
+			<div class="flood-hud__winner-copy">
+				<div class="flood-hud__winner-label">Round Winner</div>
+				<div class="flood-hud__winner-name">@WinnerNameText</div>
+			</div>
+		</div>
+	}
+
+	@if ( ShouldShowScoreboard )
+	{
+		<div class="@ScoreboardCssClass">
+			<div class="flood-hud__scoreboard-header">
+				<div>
+					<div class="flood-hud__scoreboard-title">Scoreboard</div>
+					<div class="flood-hud__scoreboard-subtitle">@ScoreboardSubtitleText</div>
+				</div>
+				<div class="flood-hud__scoreboard-count">@ScoreboardPlayerCountText</div>
+			</div>
+
+			<div class="flood-hud__scoreboard-table">
+				<div class="flood-hud__scoreboard-row flood-hud__scoreboard-row--head">
+					<span class="flood-hud__scoreboard-name">Player</span>
+					<span>Status</span>
+					<span>K</span>
+					<span>D</span>
+					<span>$</span>
+				</div>
+
+				@foreach ( var row in ScoreboardRows )
+				{
+					<div class="@row.CssClass">
+						<span class="flood-hud__scoreboard-name">@row.Name</span>
+						<span>@row.Status</span>
+						<span>@row.Kills</span>
+						<span>@row.Deaths</span>
+						<span>@row.Resources</span>
+					</div>
+				}
+			</div>
+		</div>
+	}
+
 	@if ( ShouldShowRound )
 	{
 		<div class="flood-hud__round">
@@ -63,15 +109,22 @@
 {
 	[Property] public bool ShowRoundDuringWaiting { get; set; } = false;
 	[Property] public bool ShowRoundDebugValues { get; set; } = false;
+	[Property] public string ScoreboardInputAction { get; set; } = "Score";
 
 	private bool ShouldShowRound { get; set; }
 	private bool ShouldShowBuild { get; set; }
 	private bool ShouldShowAmmo { get; set; }
 	private bool ShouldShowDeath { get; set; }
+	private bool ShouldShowScoreboard { get; set; }
+	private bool ShouldShowWinner { get; set; }
 	private bool IsReloading { get; set; }
 
 	private string RoundPhaseText { get; set; } = "Waiting";
 	private string RoundTimeText { get; set; } = "--:--";
+	private string WinnerNameText { get; set; } = "No Winner";
+	private string ScoreboardSubtitleText { get; set; } = "Hold score to view";
+	private string ScoreboardPlayerCountText { get; set; } = "0 Players";
+	private string ScoreboardCssClass { get; set; } = "flood-hud__scoreboard";
 	private string BuildToolText { get; set; } = "None";
 	private string BuildPieceText { get; set; } = "None";
 	private string ResourceText { get; set; } = "--";
@@ -84,6 +137,20 @@
 	private int HudBuildVersion { get; set; }
 	private GamePhase LastDisplayedPhase { get; set; }
 	private float DisplaySecondsRemaining { get; set; }
+	private List<ScoreboardRow> ScoreboardRows { get; set; } = new();
+	private string ScoreboardStateKey { get; set; } = "";
+
+	private sealed class ScoreboardRow
+	{
+		public string Name { get; init; }
+		public string Status { get; init; }
+		public int Kills { get; init; }
+		public int Deaths { get; init; }
+		public string Resources { get; init; }
+		public string CssClass { get; init; }
+
+		public string StateKey => $"{Name}|{Status}|{Kills}|{Deaths}|{Resources}|{CssClass}";
+	}
 
 	protected override void OnUpdate()
 	{
@@ -93,6 +160,7 @@
 		var roundManager = FloodGameManager.Instance;
 
 		UpdateRoundState( player, roundManager );
+		UpdateScoreboardState( player, roundManager );
 		UpdatePlayerState( player, roundManager );
 	}
 
@@ -128,6 +196,95 @@
 			timeText = $"{timeText} | raw:{syncedSeconds:0.0} | src:{(player.IsValid() ? "player" : "manager")}";
 
 		SetRoundState( shouldShow, GetPhaseText( phase ), timeText );
+	}
+
+	private void UpdateScoreboardState( FloodPlayer player, FloodGameManager roundManager )
+	{
+		var phase = player.IsValid() ? player.SyncedRoundPhase : roundManager.IsValid() ? roundManager.CurrentPhase : GamePhase.WaitingForPlayers;
+		var showWinner = phase == GamePhase.RoundEnd;
+		var showScoreboard = showWinner || IsScoreboardInputHeld();
+		var winnerName = GetWinnerName( roundManager );
+		var rows = BuildScoreboardRows();
+		var subtitle = showWinner ? "Final round results" : "Live round results";
+		var playerCountText = rows.Count == 1 ? "1 Player" : $"{rows.Count} Players";
+		var scoreboardCssClass = showWinner
+			? "flood-hud__scoreboard flood-hud__scoreboard--round-end"
+			: "flood-hud__scoreboard";
+		var stateKey = string.Join( ";", rows.Select( row => row.StateKey ) );
+
+		if (
+			ShouldShowWinner == showWinner &&
+			ShouldShowScoreboard == showScoreboard &&
+			WinnerNameText == winnerName &&
+			ScoreboardSubtitleText == subtitle &&
+			ScoreboardPlayerCountText == playerCountText &&
+			ScoreboardCssClass == scoreboardCssClass &&
+			ScoreboardStateKey == stateKey
+		)
+		{
+			return;
+		}
+
+		ShouldShowWinner = showWinner;
+		ShouldShowScoreboard = showScoreboard;
+		WinnerNameText = winnerName;
+		ScoreboardSubtitleText = subtitle;
+		ScoreboardPlayerCountText = playerCountText;
+		ScoreboardCssClass = scoreboardCssClass;
+		ScoreboardRows = rows;
+		ScoreboardStateKey = stateKey;
+		HudBuildVersion++;
+	}
+
+	private bool IsScoreboardInputHeld()
+	{
+		if ( string.IsNullOrWhiteSpace( ScoreboardInputAction ) )
+			return false;
+
+		return Input.Down( ScoreboardInputAction );
+	}
+
+	private string GetWinnerName( FloodGameManager roundManager )
+	{
+		if ( roundManager.IsValid() && !string.IsNullOrWhiteSpace( roundManager.RoundWinnerName ) )
+			return roundManager.RoundWinnerName;
+
+		return "No Winner";
+	}
+
+	private List<ScoreboardRow> BuildScoreboardRows()
+	{
+		return FloodPlayer.All
+			.Where( player => player.IsValid() )
+			.OrderByDescending( player => player.Kills )
+			.ThenBy( player => player.Deaths )
+			.ThenBy( player => player.PlayerName )
+			.Select( BuildScoreboardRow )
+			.ToList();
+	}
+
+	private ScoreboardRow BuildScoreboardRow( FloodPlayer player )
+	{
+		var isLocal = player == FloodPlayer.Local;
+		var status = player.IsEliminated ? "Out" : player.IsDead ? "Dead" : "Alive";
+		var resources = player.BuildResources.IsValid() ? player.BuildResources.Resources.ToString() : "--";
+		var cssClass = "flood-hud__scoreboard-row";
+
+		if ( isLocal )
+			cssClass += " is-local";
+
+		if ( player.IsEliminated || player.IsDead )
+			cssClass += " is-dead";
+
+		return new ScoreboardRow
+		{
+			Name = string.IsNullOrWhiteSpace( player.PlayerName ) ? player.GameObject.Name : player.PlayerName,
+			Status = status,
+			Kills = player.Kills,
+			Deaths = player.Deaths,
+			Resources = resources,
+			CssClass = cssClass
+		};
 	}
 
 	private void UpdatePlayerState( FloodPlayer player, FloodGameManager roundManager )
@@ -354,9 +511,16 @@
 		hash.Add( ShouldShowBuild );
 		hash.Add( ShouldShowAmmo );
 		hash.Add( ShouldShowDeath );
+		hash.Add( ShouldShowScoreboard );
+		hash.Add( ShouldShowWinner );
 		hash.Add( IsReloading );
 		hash.Add( RoundPhaseText );
 		hash.Add( RoundTimeText );
+		hash.Add( WinnerNameText );
+		hash.Add( ScoreboardSubtitleText );
+		hash.Add( ScoreboardPlayerCountText );
+		hash.Add( ScoreboardCssClass );
+		hash.Add( ScoreboardStateKey );
 		hash.Add( BuildToolText );
 		hash.Add( BuildPieceText );
 		hash.Add( ResourceText );
@@ -367,6 +531,7 @@
 		hash.Add( DeathTitleText );
 		hash.Add( ShowRoundDuringWaiting );
 		hash.Add( ShowRoundDebugValues );
+		hash.Add( ScoreboardInputAction );
 
 		return hash.ToHashCode();
 	}

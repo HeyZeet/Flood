@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Fence Gate",
+  "Description": "Large sturdy metal gate.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/temporary_fencing/fence_panel_gate.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 60,
+  "Weight": 55,
+  "MaxHealth": 230,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 8,
+  "PlacementBounds": "88,10,54",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.fence_panel_gate#143416"
+  ],
+  "__version": 0
+}

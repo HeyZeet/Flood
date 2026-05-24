@@ -12,6 +12,12 @@ public sealed class BuildPieceData : GameResource
 	[Property, Group( "Setup" )]
 	public GameObject Prefab { get; set; }
 
+	[Property, Group( "Setup" )]
+	public Model PropModel { get; set; }
+
+	[Property, Group( "Setup" )]
+	public float ModelScale { get; set; } = 1f;
+
 	[Property, Group( "Stats" )]
 	public BuildPieceMaterial Material { get; set; } = BuildPieceMaterial.Wood;
 

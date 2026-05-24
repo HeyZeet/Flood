@@ -166,6 +166,7 @@ public sealed class WinConditionController : Component
 	{
 		HasEndedCurrentCombatRound = true;
 		WinningPlayerObject = winner.IsValid() ? winner.GameObject : null;
+		RoundManager.SetRoundWinner( winner );
 
 		if ( winner.IsValid() )
 		{

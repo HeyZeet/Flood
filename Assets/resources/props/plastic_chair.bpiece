@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Plastic Chair",
+  "Description": "Very light but fragile.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/furniture/plastic_monobloc_chair_01.vmdl",
+  "ModelScale": 1,
+  "Material": "Plastic",
+  "Cost": 14,
+  "Weight": 6,
+  "MaxHealth": 45,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 24,
+  "PlacementBounds": "30,30,48",
+  "OverlapPadding": 2,
+  "__references": [
+    "additionproject.plasticchair_01#12788"
+  ],
+  "__version": 0
+}

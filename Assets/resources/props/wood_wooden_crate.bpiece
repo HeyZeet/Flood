@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Wooden Crate",
+  "Description": "Cheap boxy wood prop.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/sbox_props/wooden_crate/wooden_crate.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 18,
+  "Weight": 18,
+  "MaxHealth": 90,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 22,
+  "PlacementBounds": "42,42,42",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.wooden_crate#143950"
+  ],
+  "__version": 0
+}

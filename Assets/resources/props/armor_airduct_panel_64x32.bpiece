@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Armor Panel 64x32",
+  "Description": "Large armor panel for strong coverage.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/sbox_props/airducts/airduct_a_panel_64x32.vmdl",
+  "ModelScale": 1,
+  "Material": "Armor",
+  "Cost": 76,
+  "Weight": 58,
+  "MaxHealth": 340,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": false,
+  "PlacementSurfaceOffset": 3,
+  "PlacementBounds": "64,32,6",
+  "OverlapPadding": 1,
+  "__references": [
+    "facepunch.airduct_a_panel_64x32#144074"
+  ],
+  "__version": 0
+}

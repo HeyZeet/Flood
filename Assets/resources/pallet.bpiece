@@ -1,0 +1,19 @@
+{
+  "DisplayName": "pallet",
+  "Description": "Basic cheap wooden boat piece.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/pallet.prefab"
+  },
+  "Material": "Wood",
+  "Cost": 10,
+  "Weight": 10,
+  "MaxHealth": 100,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 25,
+  "PlacementBounds": "50,50,50",
+  "OverlapPadding": 2,
+  "__references": [],
+  "__version": 0
+}

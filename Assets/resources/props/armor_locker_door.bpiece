@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Locker Door Armor",
+  "Description": "Metal armor door for reinforcing rafts.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/locker/locker_door.vmdl",
+  "ModelScale": 1,
+  "Material": "Armor",
+  "Cost": 48,
+  "Weight": 36,
+  "MaxHealth": 250,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": false,
+  "PlacementSurfaceOffset": 4,
+  "PlacementBounds": "30,64,8",
+  "OverlapPadding": 1,
+  "__references": [
+    "facepunch.lockerdoor#143328"
+  ],
+  "__version": 0
+}

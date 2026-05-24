@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Armor Panel 16x32",
+  "Description": "Armor plating. Heavy, strong, and best welded onto existing boats.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/sbox_props/airducts/airduct_a_panel_16x32.vmdl",
+  "ModelScale": 1,
+  "Material": "Armor",
+  "Cost": 38,
+  "Weight": 28,
+  "MaxHealth": 220,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": false,
+  "PlacementSurfaceOffset": 3,
+  "PlacementBounds": "16,32,6",
+  "OverlapPadding": 1,
+  "__references": [
+    "facepunch.airduct_a_panel_16x32#144072"
+  ],
+  "__version": 0
+}

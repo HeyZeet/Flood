@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Wood Cabinet B",
+  "Description": "Wood cabinet with average durability.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/cabinets/cabinet_b.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 24,
+  "Weight": 24,
+  "MaxHealth": 95,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 34,
+  "PlacementBounds": "36,26,68",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.cabinetb#143429"
+  ],
+  "__version": 0
+}

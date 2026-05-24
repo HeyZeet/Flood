@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Bench Table",
+  "Description": "Wide wooden table, useful raft surface.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/bench/bench_table/bench_table_01.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 26,
+  "Weight": 26,
+  "MaxHealth": 100,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 18,
+  "PlacementBounds": "76,42,28",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.bench_table_01#143423"
+  ],
+  "__version": 0
+}

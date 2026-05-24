@@ -18,6 +18,8 @@ public sealed class PlayerHealth : DamageableComponent
 
 	[Sync( SyncFlags.FromHost )] public float Health { get; private set; } = 100f;
 	[Sync( SyncFlags.FromHost )] public bool IsEliminated { get; private set; }
+	[Sync( SyncFlags.FromHost ), Change( nameof( OnPlayerModelVisibilityChanged ) )]
+	public bool IsPlayerModelVisible { get; private set; } = true;
 
 	public override bool IsAlive => Health > 0f;
 	public bool IsDead => !IsAlive;
@@ -35,6 +37,7 @@ public sealed class PlayerHealth : DamageableComponent
 
 	private PlayerController Controller { get; set; }
 	private GameObject ActiveRagdoll { get; set; }
+	private bool? LastAppliedPlayerModelVisibility { get; set; }
 
 	protected override void OnStart()
 	{
@@ -45,6 +48,13 @@ public sealed class PlayerHealth : DamageableComponent
 
 		if ( Networking.IsHost )
 			ResetHealth();
+
+		ApplyPlayerModelVisibility( true );
+	}
+
+	protected override void OnUpdate()
+	{
+		ApplyPlayerModelVisibility();
 	}
 
 	protected override void OnFixedUpdate()
@@ -153,6 +163,7 @@ public sealed class PlayerHealth : DamageableComponent
 
 	private void Die( DamageInfo damageInfo )
 	{
+		RecordScoreForDeath( damageInfo );
 		MarkEliminated();
 		ClearMovement();
 
@@ -174,6 +185,29 @@ public sealed class PlayerHealth : DamageableComponent
 		OnEliminated?.Invoke( this );
 
 		Log.Info( $"{GameObject.Name} eliminated from the round." );
+	}
+
+	private void RecordScoreForDeath( DamageInfo damageInfo )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var victim = Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( victim.IsValid() )
+			victim.RecordDeath();
+
+		var attacker = damageInfo.Attacker.IsValid()
+			? damageInfo.Attacker.Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndDescendants )
+			: null;
+
+		if ( !attacker.IsValid() )
+			return;
+
+		if ( attacker == victim )
+			return;
+
+		attacker.RecordKill();
 	}
 
 	private void ClearEliminated()
@@ -254,12 +288,30 @@ public sealed class PlayerHealth : DamageableComponent
 
 	private void SetPlayerModelVisible( bool visible )
 	{
+		if ( Networking.IsHost )
+			IsPlayerModelVisible = visible;
+
+		ApplyPlayerModelVisibility( true );
+	}
+
+	private void OnPlayerModelVisibilityChanged( bool oldValue, bool newValue )
+	{
+		ApplyPlayerModelVisibility( true );
+	}
+
+	private void ApplyPlayerModelVisibility( bool force = false )
+	{
+		if ( !force && LastAppliedPlayerModelVisibility == IsPlayerModelVisible )
+			return;
+
+		LastAppliedPlayerModelVisibility = IsPlayerModelVisible;
+
 		foreach ( var renderer in Components.GetAll<ModelRenderer>( FindMode.EverythingInSelfAndDescendants ) )
 		{
 			if ( !renderer.IsValid() )
 				continue;
 
-			renderer.Enabled = visible;
+			renderer.Enabled = IsPlayerModelVisible;
 		}
 	}
 }

@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Wood Cabinet A2",
+  "Description": "Tall weak wooden cabinet.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/cabinets/cabinet_a2.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 22,
+  "Weight": 22,
+  "MaxHealth": 85,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 38,
+  "PlacementBounds": "34,24,76",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.cabinet_a2#143426"
+  ],
+  "__version": 0
+}

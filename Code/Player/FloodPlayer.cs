@@ -15,6 +15,11 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 	public PlayerBuildResources BuildResources { get; private set; }
 	public bool IsLocalPlayer => GameObject.Network.IsOwner;
 
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public string PlayerName { get; private set; } = "Player";
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public Guid PlayerConnectionId { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public int Kills { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public int Deaths { get; private set; }
+
 	[Sync( SyncFlags.FromHost | SyncFlags.Query ), Change( nameof( OnSyncedRoundPhaseChanged ) )]
 	public GamePhase SyncedRoundPhase { get; private set; } = GamePhase.WaitingForPlayers;
 
@@ -37,6 +42,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 
 		if ( Networking.IsHost )
 		{
+			SetPlayerIdentityFromNetwork();
 			FloodGameManager.Instance?.RegisterPlayer( this );
 			Log.Info( $"FloodPlayer registered with round manager. Name={GameObject.Name}" );
 		}
@@ -70,6 +76,39 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 
 	public bool IsRoundBuildPhase => SyncedRoundPhase == GamePhase.BuildPhase;
 	public bool IsRoundCombatPhase => SyncedRoundPhase == GamePhase.CombatPhase;
+
+	public void SetPlayerName( string playerName )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayerName = string.IsNullOrWhiteSpace( playerName ) ? GameObject.Name : playerName;
+	}
+
+	public void SetPlayerIdentity( string playerName, Guid connectionId )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		SetPlayerName( playerName );
+		PlayerConnectionId = connectionId;
+	}
+
+	public void RecordKill()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Kills++;
+	}
+
+	public void RecordDeath()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Deaths++;
+	}
 
 	public void SetSyncedRoundState( GamePhase phase, int secondsRemaining, float duration )
 	{
@@ -130,6 +169,14 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 			return;
 
 		Local = this;
+	}
+
+	private void SetPlayerIdentityFromNetwork()
+	{
+		SetPlayerName( GameObject.Name );
+
+		if ( GameObject.Network.Active )
+			PlayerConnectionId = GameObject.Network.OwnerId;
 	}
 
 	private void OnSyncedRoundPhaseChanged( GamePhase previousPhase, GamePhase newPhase )

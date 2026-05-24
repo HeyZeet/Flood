@@ -17,6 +17,8 @@ public sealed class FloodGameManager : Component
 	public GamePhase CurrentPhase { get; private set; } = GamePhase.BuildPhase;
 	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public float SyncedPhaseTimeRemaining { get; private set; }
 	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public int SyncedPhaseSecondsRemaining { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public Guid RoundWinnerConnectionId { get; private set; }
+	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public string RoundWinnerName { get; private set; } = "";
 
 	[Property, Group( "Round" )]
 	public bool AutoRunRoundLoop { get; set; } = true;
@@ -191,6 +193,7 @@ public sealed class FloodGameManager : Component
 
 	public void StartBuildPhase()
 	{
+		ClearRoundWinner();
 		SetPhase( GamePhase.BuildPhase );
 	}
 
@@ -211,6 +214,7 @@ public sealed class FloodGameManager : Component
 
 		Log.Info( "Resetting round." );
 
+		ClearRoundWinner();
 		DeletePlacedBuildPieces();
 		ResetPlayers();
 
@@ -245,6 +249,30 @@ public sealed class FloodGameManager : Component
 			return;
 
 		SetPhase( GamePhase.RoundEnd );
+	}
+
+	public void SetRoundWinner( FloodPlayer winner )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( !winner.IsValid() )
+		{
+			ClearRoundWinner();
+			return;
+		}
+
+		RoundWinnerConnectionId = winner.PlayerConnectionId;
+		RoundWinnerName = winner.PlayerName;
+	}
+
+	public void ClearRoundWinner()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		RoundWinnerConnectionId = Guid.Empty;
+		RoundWinnerName = "";
 	}
 
 	private void HandleWaterForPhase( GamePhase phase )

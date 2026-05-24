@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Pallet",
+  "Description": "Cheap light wood. Floats well, breaks quickly.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/sbox_props/pallet/pallet.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 12,
+  "Weight": 12,
+  "MaxHealth": 70,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 8,
+  "PlacementBounds": "48,64,8",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.pallet#108387"
+  ],
+  "__version": 0
+}

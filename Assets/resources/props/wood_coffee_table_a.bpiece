@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Coffee Table",
+  "Description": "Light wooden furniture with decent float.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/table/coffeetable_a.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 16,
+  "Weight": 16,
+  "MaxHealth": 80,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 16,
+  "PlacementBounds": "48,34,18",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.coffeetablea#143495"
+  ],
+  "__version": 0
+}

@@ -1,4 +1,6 @@
 using Sandbox;
+using System;
+using System.Linq;
 
 public sealed class FloodWaterController : Component
 {
@@ -12,6 +14,8 @@ public sealed class FloodWaterController : Component
 
 	// Legacy support. If you already assigned WaterObject before, this can still work.
 	[Property] public GameObject WaterObject { get; set; }
+	[Property] public string WaterTag { get; set; } = "water";
+	[Property] public bool RepairWaterVolumeLocally { get; set; } = true;
 
 	// If the visible water object is a box/cube and its origin is in the middle,
 	// this should be half of the visible water thickness.
@@ -53,6 +57,9 @@ public sealed class FloodWaterController : Component
 	{
 		Instance = this;
 
+		ResolveWaterObjects();
+		RepairWaterVolume();
+
 		if ( UseMarkerPositionAsStartHeight && WaterSurfaceMarker.IsValid() )
 			StartSurfaceHeight = WaterSurfaceMarker.WorldPosition.z;
 
@@ -71,6 +78,12 @@ public sealed class FloodWaterController : Component
 
 	protected override void OnUpdate()
 	{
+		if ( RepairWaterVolumeLocally )
+		{
+			ResolveWaterObjects();
+			RepairWaterVolume();
+		}
+
 		if ( Networking.IsHost )
 		{
 			if ( IsRising )
@@ -200,6 +213,70 @@ public sealed class FloodWaterController : Component
 
 		UpdateSurfaceMarker();
 		UpdateVisualWaterObject();
+	}
+
+	private void ResolveWaterObjects()
+	{
+		if ( !WaterSurfaceMarker.IsValid() )
+		{
+			WaterSurfaceMarker = GameObject.Children.FirstOrDefault( child =>
+				child.IsValid() &&
+				child.Name.Equals( "WaterSurfaceMarker", StringComparison.OrdinalIgnoreCase ) );
+		}
+
+		if ( !GetVisualWaterObject().IsValid() )
+		{
+			var waterObject = FindWaterObject();
+
+			if ( waterObject.IsValid() )
+			{
+				WaterVisualObject = waterObject;
+				WaterObject = waterObject;
+			}
+		}
+	}
+
+	private GameObject FindWaterObject()
+	{
+		var waterObject = GameObject.Children.FirstOrDefault( IsWaterObject );
+
+		if ( waterObject.IsValid() )
+			return waterObject;
+
+		return Scene.GetAllObjects( true ).FirstOrDefault( IsWaterObject );
+	}
+
+	private bool IsWaterObject( GameObject gameObject )
+	{
+		if ( !gameObject.IsValid() )
+			return false;
+
+		if ( !string.IsNullOrWhiteSpace( WaterTag ) && gameObject.Tags.Has( WaterTag ) )
+			return true;
+
+		return gameObject.Name.Equals( "water", StringComparison.OrdinalIgnoreCase );
+	}
+
+	private void RepairWaterVolume()
+	{
+		if ( !RepairWaterVolumeLocally )
+			return;
+
+		var visual = GetVisualWaterObject();
+
+		if ( !visual.IsValid() )
+			return;
+
+		if ( !string.IsNullOrWhiteSpace( WaterTag ) && !visual.Tags.Has( WaterTag ) )
+			visual.Tags.Add( WaterTag );
+
+		foreach ( var boxCollider in visual.Components.GetAll<BoxCollider>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			if ( !boxCollider.IsValid() )
+				continue;
+
+			boxCollider.IsTrigger = true;
+		}
 	}
 
 	private void UpdateSurfaceMarker()

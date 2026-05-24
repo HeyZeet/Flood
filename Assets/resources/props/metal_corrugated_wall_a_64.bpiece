@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Corrugated Wall 64",
+  "Description": "Heavy sheet metal raft piece.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/walls/corrugated_wall_a_64.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 45,
+  "Weight": 40,
+  "MaxHealth": 190,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 6,
+  "PlacementBounds": "64,8,48",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.corrugated_wall_a_64#169122"
+  ],
+  "__version": 0
+}

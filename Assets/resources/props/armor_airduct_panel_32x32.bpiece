@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Armor Panel 32x32",
+  "Description": "Square armor plate.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/sbox_props/airducts/airduct_a_panel_32x32.vmdl",
+  "ModelScale": 1,
+  "Material": "Armor",
+  "Cost": 52,
+  "Weight": 38,
+  "MaxHealth": 270,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": false,
+  "PlacementSurfaceOffset": 3,
+  "PlacementBounds": "32,32,6",
+  "OverlapPadding": 1,
+  "__references": [
+    "facepunch.airduct_a_panel_32x32#144066"
+  ],
+  "__version": 0
+}

@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Wooden Desk",
+  "Description": "Larger wood furniture with more health.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/desk/wooden_desk/wooden_desk_01.vmdl",
+  "ModelScale": 1,
+  "Material": "Wood",
+  "Cost": 28,
+  "Weight": 30,
+  "MaxHealth": 110,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 24,
+  "PlacementBounds": "64,34,42",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.wooden_desk_01#143439"
+  ],
+  "__version": 0
+}

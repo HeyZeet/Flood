@@ -23,6 +23,137 @@ FloodHud {
 	align-items: center;
 }
 
+.flood-hud__winner {
+	position: absolute;
+	top: 92px;
+	left: 50%;
+	transform: translateX( -50% );
+	width: 470px;
+	min-height: 128px;
+	padding: 24px 30px;
+	border-radius: 8px;
+	background-color: rgba( 2, 8, 12, 0.72 );
+	backdrop-filter: blur( 10px );
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.flood-hud__winner-copy {
+	flex-direction: column;
+	gap: 4px;
+}
+
+.flood-hud__winner-label {
+	font-size: 18px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__winner-name {
+	max-width: 410px;
+	font-size: 50px;
+	font-weight: 900;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+.flood-hud__scoreboard {
+	position: absolute;
+	top: 150px;
+	left: 32px;
+	width: 520px;
+	padding: 18px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.72 );
+	backdrop-filter: blur( 10px );
+	flex-direction: column;
+	gap: 14px;
+}
+
+.flood-hud__scoreboard--round-end {
+	top: auto;
+	left: 32px;
+	right: auto;
+	bottom: 32px;
+	width: 460px;
+}
+
+.flood-hud__scoreboard--round-end .flood-hud__scoreboard-row .flood-hud__scoreboard-name {
+	width: 190px;
+}
+
+.flood-hud__scoreboard-header {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.flood-hud__scoreboard-title {
+	font-size: 28px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.flood-hud__scoreboard-subtitle {
+	font-size: 14px;
+	font-weight: 600;
+	opacity: 0.68;
+}
+
+.flood-hud__scoreboard-count {
+	font-size: 13px;
+	font-weight: 800;
+	text-transform: uppercase;
+	color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__scoreboard-table {
+	flex-direction: column;
+	gap: 4px;
+}
+
+.flood-hud__scoreboard-row {
+	min-height: 34px;
+	padding: 0px 10px;
+	border-radius: 6px;
+	background-color: rgba( 255, 255, 255, 0.06 );
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.flood-hud__scoreboard-row span {
+	width: 44px;
+	text-align: right;
+}
+
+.flood-hud__scoreboard-row .flood-hud__scoreboard-name {
+	width: 230px;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.flood-hud__scoreboard-row--head {
+	background-color: rgba( 105, 210, 255, 0.14 );
+	color: rgba( 255, 255, 255, 0.78 );
+	font-size: 12px;
+	text-transform: uppercase;
+}
+
+.flood-hud__scoreboard-row.is-local {
+	background-color: rgba( 105, 210, 255, 0.22 );
+}
+
+.flood-hud__scoreboard-row.is-dead {
+	opacity: 0.62;
+}
+
 .flood-hud__phase {
 	font-size: 20px;
 	font-weight: 700;

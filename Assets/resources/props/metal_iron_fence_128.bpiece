@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Iron Fence 128",
+  "Description": "Long heavy iron fence segment.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/sbox_props/iron_fence/iron_fence_128.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 72,
+  "Weight": 70,
+  "MaxHealth": 260,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 8,
+  "PlacementBounds": "128,10,54",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.iron_fence_128#108382"
+  ],
+  "__version": 0
+}

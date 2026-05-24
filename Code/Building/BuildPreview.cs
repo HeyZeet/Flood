@@ -60,6 +60,7 @@ public sealed class BuildPreview : Component
 		PreviewObject = pieceData.Prefab.Clone( position, rotation );
 		PreviewObject.Name = $"Preview - {pieceData.DisplayName}";
 
+		ApplyPieceDataToPreview( pieceData );
 		PreparePreviewObject();
 
 		PreviewObject.WorldPosition = position;
@@ -69,6 +70,19 @@ public sealed class BuildPreview : Component
 		ApplyPreviewColor( ValidColor );
 
 		Log.Info( $"Created build preview: {pieceData.DisplayName}" );
+	}
+
+	private void ApplyPieceDataToPreview( BuildPieceData pieceData )
+	{
+		if ( !PreviewObject.IsValid() || pieceData is null )
+			return;
+
+		PreviewObject.WorldScale = Vector3.One * pieceData.ModelScale.Clamp( 0.05f, 10f );
+
+		var renderer = PreviewObject.Components.Get<ModelRenderer>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( renderer.IsValid() && pieceData.PropModel.IsValid() )
+			renderer.Model = pieceData.PropModel;
 	}
 
 	private void PreparePreviewObject()

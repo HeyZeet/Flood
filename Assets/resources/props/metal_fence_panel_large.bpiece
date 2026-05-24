@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Large Fence Panel",
+  "Description": "Strong heavy metal panel.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/temporary_fencing/fence_panel_large.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 55,
+  "Weight": 48,
+  "MaxHealth": 210,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 8,
+  "PlacementBounds": "96,10,48",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.fence_panel_large#110518"
+  ],
+  "__version": 0
+}

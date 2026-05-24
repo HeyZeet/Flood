@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Metal Door",
+  "Description": "Flat, durable metal panel.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/trim_sheets/doors/metal_doors/metal_door_01a.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 58,
+  "Weight": 58,
+  "MaxHealth": 230,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 4,
+  "PlacementBounds": "34,78,8",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.metal_door_01a#143444"
+  ],
+  "__version": 0
+}

@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Beer Keg",
+  "Description": "Compact metal barrel with good durability.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/metalblock.prefab"
+  },
+  "PropModel": "models/props/beer_keg/beer_keg_a1.vmdl",
+  "ModelScale": 1,
+  "Material": "Metal",
+  "Cost": 42,
+  "Weight": 40,
+  "MaxHealth": 190,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 20,
+  "PlacementBounds": "28,28,40",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.beer_keg_a1#141956"
+  ],
+  "__version": 0
+}

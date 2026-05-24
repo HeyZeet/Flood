@@ -1,0 +1,23 @@
+{
+  "DisplayName": "Plastic Crate 03",
+  "Description": "Light plastic crate with low health.",
+  "Prefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/builder/woodblock.prefab"
+  },
+  "PropModel": "models/props/plastic_crate/plastic_crate_03.vmdl",
+  "ModelScale": 1,
+  "Material": "Plastic",
+  "Cost": 18,
+  "Weight": 7,
+  "MaxHealth": 50,
+  "CanBeWelded": true,
+  "CountsAsBoatPart": true,
+  "PlacementSurfaceOffset": 18,
+  "PlacementBounds": "36,28,32",
+  "OverlapPadding": 2,
+  "__references": [
+    "facepunch.plastic_crate_03#143384"
+  ],
+  "__version": 0
+}
