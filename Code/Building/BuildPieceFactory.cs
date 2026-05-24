@@ -9,13 +9,13 @@ public sealed class BuildPieceFactory : Component
 	public float AutoAttachRadius { get; set; } = 65f;
 
 	[Property, Group( "Welding" )]
-	public bool CreatePhysicalWelds { get; set; } = true;
+	public bool CreatePhysicalWelds { get; set; } = false;
 
 	[Property, Group( "Welding" )]
-	public float WeldLinearStrength { get; set; } = 25000f;
+	public float WeldLinearStrength { get; set; } = 6000f;
 
 	[Property, Group( "Welding" )]
-	public float WeldAngularStrength { get; set; } = 25000f;
+	public float WeldAngularStrength { get; set; } = 4500f;
 
 	[Property, Group( "Welding" )]
 	public bool EnableWeldedPieceCollisions { get; set; } = false;
@@ -133,12 +133,15 @@ public sealed class BuildPieceFactory : Component
 
 	private void ApplyBuoyancyPreset( FloodBuoyancy buoyancy, BuildPieceMaterial material )
 	{
+		buoyancy.UseBuiltInApplyBuoyancy = false;
+		buoyancy.UseManualSampleBuoyancy = true;
+
 		switch ( material )
 		{
 			case BuildPieceMaterial.Wood:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.Wood;
 				buoyancy.RelativeDensity = 0.65f;
-				buoyancy.LiftAcceleration = 900f;
+				buoyancy.LiftAcceleration = 820f;
 				break;
 
 			case BuildPieceMaterial.Metal:
@@ -149,8 +152,8 @@ public sealed class BuildPieceFactory : Component
 
 			case BuildPieceMaterial.Plastic:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.LightPlastic;
-				buoyancy.RelativeDensity = 0.35f;
-				buoyancy.LiftAcceleration = 1000f;
+				buoyancy.RelativeDensity = 0.5f;
+				buoyancy.LiftAcceleration = 850f;
 				break;
 
 			case BuildPieceMaterial.Armor:

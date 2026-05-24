@@ -6,8 +6,8 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 	[Header( "Welding" )]
 	[Property] public bool RequireBuildPhase { get; set; } = true;
-	[Property] public float WeldLinearStrength { get; set; } = 25000f;
-	[Property] public float WeldAngularStrength { get; set; } = 25000f;
+	[Property] public float WeldLinearStrength { get; set; } = 7000f;
+	[Property] public float WeldAngularStrength { get; set; } = 5000f;
 	[Property] public bool EnableWeldedPieceCollisions { get; set; } = false;
 	[Property] public SoundEvent SelectSound { get; set; }
 	[Property] public SoundEvent WeldSound { get; set; }

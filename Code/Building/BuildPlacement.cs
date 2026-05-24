@@ -1,5 +1,6 @@
 using Sandbox;
 using System;
+using System.Collections.Generic;
 
 public sealed class BuildPlacement : Component
 {
@@ -28,8 +29,8 @@ public sealed class BuildPlacement : Component
 		if ( pieceData is null )
 			return BuildPlacementResult.Invalid( fallbackPosition, fallbackRotation, "No selected piece." );
 
-		var position = GetPlacementPosition( camera, ignoreObject, pieceData, fallbackPosition, fallbackRotation );
 		var rotation = GetPlacementRotation( camera, fallbackRotation );
+		var position = GetPlacementPosition( camera, ignoreObject, pieceData, fallbackPosition, rotation );
 
 		if ( CheckOverlap && IsOverlappingBlockedObject( position, rotation, pieceData, ignoreObject ) )
 			return BuildPlacementResult.Invalid( position, rotation, "Blocked by another object." );
@@ -123,12 +124,12 @@ public sealed class BuildPlacement : Component
 		Rotation fallbackRotation )
 	{
 		if ( camera.IsValid() )
-			return GetPlacementFromPlayerCamera( camera, ignoreObject, pieceData );
+			return GetPlacementFromPlayerCamera( camera, ignoreObject, pieceData, fallbackRotation );
 
 		var sceneCamera = Scene.Camera;
 
 		if ( sceneCamera.IsValid() )
-			return GetPlacementFromSceneCamera( sceneCamera, ignoreObject, pieceData );
+			return GetPlacementFromSceneCamera( sceneCamera, ignoreObject, pieceData, fallbackRotation );
 
 		return fallbackPosition + fallbackRotation.Forward * BuildDistance;
 	}
@@ -136,14 +137,15 @@ public sealed class BuildPlacement : Component
 	private Vector3 GetPlacementFromPlayerCamera(
 		FloodPlayerCamera camera,
 		GameObject ignoreObject,
-		BuildPieceData pieceData )
+		BuildPieceData pieceData,
+		Rotation placementRotation )
 	{
 		if ( UseSurfacePlacement )
 		{
 			var tr = camera.TraceAim( MaxBuildDistance );
 
 			if ( tr.Hit )
-				return tr.HitPosition + tr.Normal * GetPlacementSurfaceOffset( pieceData );
+				return tr.HitPosition + tr.Normal * GetPlacementSurfaceOffset( pieceData, tr.Normal, placementRotation );
 		}
 
 		return camera.GetPointInFront( BuildDistance );
@@ -152,7 +154,8 @@ public sealed class BuildPlacement : Component
 	private Vector3 GetPlacementFromSceneCamera(
 		CameraComponent sceneCamera,
 		GameObject ignoreObject,
-		BuildPieceData pieceData )
+		BuildPieceData pieceData,
+		Rotation placementRotation )
 	{
 		if ( UseSurfacePlacement )
 		{
@@ -167,7 +170,7 @@ public sealed class BuildPlacement : Component
 			var tr = trace.Run();
 
 			if ( tr.Hit )
-				return tr.HitPosition + tr.Normal * GetPlacementSurfaceOffset( pieceData );
+				return tr.HitPosition + tr.Normal * GetPlacementSurfaceOffset( pieceData, tr.Normal, placementRotation );
 		}
 
 		return sceneCamera.WorldPosition + sceneCamera.WorldRotation.Forward * BuildDistance;
@@ -197,16 +200,13 @@ public sealed class BuildPlacement : Component
 		if ( pieceData is null )
 			return true;
 
-		var bounds = pieceData.PlacementBounds;
+		var localBounds = GetPlacementBounds( pieceData );
+		localBounds = ShrinkBounds( localBounds, pieceData.OverlapPadding );
 
-		bounds.x = MathF.Max( bounds.x - pieceData.OverlapPadding, 1f );
-		bounds.y = MathF.Max( bounds.y - pieceData.OverlapPadding, 1f );
-		bounds.z = MathF.Max( bounds.z - pieceData.OverlapPadding, 1f );
-
-		var halfExtents = bounds * 0.5f;
+		var traceBounds = GetWorldAlignedBounds( localBounds, rotation );
 
 		var tr = Scene.Trace
-			.Box( new BBox( -halfExtents, halfExtents ), position, position + Vector3.Up * 0.1f )
+			.Box( traceBounds, position, position + Vector3.Up * 0.1f )
 			.WithoutTags( "trigger" )
 			.IgnoreGameObjectHierarchy( ignoreObject )
 			.Run();
@@ -225,11 +225,105 @@ public sealed class BuildPlacement : Component
 		return BuildAreaVolume.IsInsideAnyBuildArea( position );
 	}
 
-	private float GetPlacementSurfaceOffset( BuildPieceData pieceData )
+	private float GetPlacementSurfaceOffset( BuildPieceData pieceData, Vector3 surfaceNormal, Rotation rotation )
 	{
-		if ( pieceData is not null )
+		if ( pieceData is null )
+			return 0f;
+
+		if ( !pieceData.UseModelBoundsForPlacement || !pieceData.PropModel.IsValid() )
 			return pieceData.PlacementSurfaceOffset;
 
-		return 0f;
+		var localBounds = GetPlacementBounds( pieceData );
+		var maxDistanceBehindSurface = 0f;
+
+		foreach ( var corner in GetBoxCorners( localBounds ) )
+		{
+			var rotatedCorner = rotation * corner;
+			var distanceBehindSurface = -Vector3.Dot( rotatedCorner, surfaceNormal );
+
+			if ( distanceBehindSurface > maxDistanceBehindSurface )
+				maxDistanceBehindSurface = distanceBehindSurface;
+		}
+
+		return MathF.Max( maxDistanceBehindSurface, 0f );
+	}
+
+	private BBox GetPlacementBounds( BuildPieceData pieceData )
+	{
+		if ( pieceData is null )
+			return BBox.FromPositionAndSize( Vector3.Zero, 1f );
+
+		if ( pieceData.UseModelBoundsForPlacement && pieceData.PropModel.IsValid() )
+		{
+			var bounds = pieceData.PropModel.Bounds;
+			var scale = pieceData.ModelScale.Clamp( 0.05f, 10f );
+
+			bounds.Mins *= scale;
+			bounds.Maxs *= scale;
+
+			if ( bounds.Size.Length > 1f )
+				return bounds;
+		}
+
+		var fallbackSize = new Vector3(
+			MathF.Max( pieceData.PlacementBounds.x, 1f ),
+			MathF.Max( pieceData.PlacementBounds.y, 1f ),
+			MathF.Max( pieceData.PlacementBounds.z, 1f )
+		);
+
+		return BBox.FromPositionAndSize( Vector3.Zero, fallbackSize );
+	}
+
+	private BBox ShrinkBounds( BBox bounds, float padding )
+	{
+		if ( padding <= 0f )
+			return bounds;
+
+		var shrink = new Vector3( padding, padding, padding ) * 0.5f;
+		var min = bounds.Mins + shrink;
+		var max = bounds.Maxs - shrink;
+
+		if ( min.x >= max.x || min.y >= max.y || min.z >= max.z )
+			return bounds;
+
+		return new BBox( min, max );
+	}
+
+	private BBox GetWorldAlignedBounds( BBox localBounds, Rotation rotation )
+	{
+		var first = true;
+		var mins = Vector3.Zero;
+		var maxs = Vector3.Zero;
+
+		foreach ( var corner in GetBoxCorners( localBounds ) )
+		{
+			var rotatedCorner = rotation * corner;
+
+			if ( first )
+			{
+				mins = rotatedCorner;
+				maxs = rotatedCorner;
+				first = false;
+				continue;
+			}
+
+			mins = Vector3.Min( mins, rotatedCorner );
+			maxs = Vector3.Max( maxs, rotatedCorner );
+		}
+
+		return new BBox( mins, maxs );
+	}
+
+	private IEnumerable<Vector3> GetBoxCorners( BBox bounds )
+	{
+		yield return new Vector3( bounds.Mins.x, bounds.Mins.y, bounds.Mins.z );
+		yield return new Vector3( bounds.Mins.x, bounds.Mins.y, bounds.Maxs.z );
+		yield return new Vector3( bounds.Mins.x, bounds.Maxs.y, bounds.Mins.z );
+		yield return new Vector3( bounds.Mins.x, bounds.Maxs.y, bounds.Maxs.z );
+		yield return new Vector3( bounds.Maxs.x, bounds.Mins.y, bounds.Mins.z );
+		yield return new Vector3( bounds.Maxs.x, bounds.Mins.y, bounds.Maxs.z );
+		yield return new Vector3( bounds.Maxs.x, bounds.Maxs.y, bounds.Mins.z );
+		yield return new Vector3( bounds.Maxs.x, bounds.Maxs.y, bounds.Maxs.z );
+
 	}
 }

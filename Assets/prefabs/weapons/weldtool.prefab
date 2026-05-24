@@ -41,8 +41,8 @@
         "ToolTraceRadius": 4,
         "UnweldSound": null,
         "UseSound": null,
-        "WeldAngularStrength": 25000,
-        "WeldLinearStrength": 25000,
+        "WeldAngularStrength": 5000,
+        "WeldLinearStrength": 7000,
         "WeldSound": null
       },
       {

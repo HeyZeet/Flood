@@ -40,6 +40,9 @@ public sealed class BuildPieceData : GameResource
 	public float PlacementSurfaceOffset { get; set; } = 32f;
 
 	[Property, Group( "Placement" )]
+	public bool UseModelBoundsForPlacement { get; set; } = true;
+
+	[Property, Group( "Placement" )]
 	public Vector3 PlacementBounds { get; set; } = new Vector3( 50f, 50f, 50f );
 
 	[Property, Group( "Placement" )]
