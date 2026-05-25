@@ -11,10 +11,10 @@ This is my first full game project, so the goal is simple: keep the code modular
 1. Players join the server.
 2. The round waits until enough players are connected.
 3. Build phase starts.
-4. Players spend money to place props.
-5. Players can weld their own props together into rafts.
+4. Players spend money to place props from the build menu.
+5. Players can weld their own props together into rafts, including multi-select welds.
 6. Build phase ends and water rises.
-7. Props float using the custom Flood buoyancy system.
+7. Welded rafts float using the custom Flood buoyancy and stability system.
 8. Combat phase starts.
 9. Players can damage each other and enemy boat pieces.
 10. The last surviving player wins.
@@ -47,6 +47,9 @@ This is my first full game project, so the goal is simple: keep the code modular
 - Placement preview supports valid/invalid colors.
 - Placement uses grid snapping and build area validation.
 - Prop resources are data-driven through `.bpiece` files.
+- Press **Q** with the Boat Builder equipped to open the build menu.
+- Press **RMB** with the Boat Builder equipped to cycle to the next piece.
+- The build menu groups pieces by material and shows each prop as a spinning 3D preview.
 
 ### Props and Materials
 
@@ -58,6 +61,7 @@ Current material categories:
 - **Metal**: expensive, heavy, strong.
 - **Plastic**: very buoyant, low health.
 - **Armor**: strong plating intended to reinforce boats.
+- **Foam**: very buoyant lightweight support material, currently supported by code/presets.
 
 Each build piece resource can tune:
 
@@ -76,9 +80,12 @@ Each build piece resource can tune:
 
 - Weld tool weapon exists as its own tool.
 - Welding is owner-restricted during build phase.
-- Welded pieces become connected raft pieces.
-- Connected raft pieces improve raft stability and lift.
+- Players can select multiple owned pieces and weld them together at once.
+- Selected pieces are highlighted.
+- Welded pieces are structurally grouped into a single raft root for stable raft physics.
+- Connected raft pieces contribute to raft stability and lift.
 - Destroyed pieces can weaken raft stability.
+- Players cannot sell or weld other players' pieces, but enemy pieces can be damaged during combat.
 
 ### Water and Buoyancy
 
@@ -86,9 +93,10 @@ Each build piece resource can tune:
 - Water visuals and water trigger behavior work for host and joined clients.
 - `FloodBuoyancy` applies custom floating behavior to build pieces.
 - Buoyancy supports material presets.
-- Welded/attached rafts receive lift and stability bonuses.
+- Welded rafts use group buoyancy so the raft floats as one connected craft instead of each prop fighting for its own water height.
 - Damaged rafts lose lift/stability.
 - Players must be about halfway submerged before water damage starts.
+- Player raft movement assist is currently disabled while raft walking/standing behavior is being tuned.
 
 ### Combat and Damage
 
@@ -106,6 +114,7 @@ Each build piece resource can tune:
 - Third-person world models replicate to other players.
 - Current weapons/tools include:
   - USP pistol
+  - Shotgun class
   - Crowbar
   - Tool gun / weld tool
 
@@ -117,16 +126,18 @@ Each build piece resource can tune:
 - Scoreboard.
 - Round winner display with rotating player model preview.
 - Ammo HUD for weapons.
+- Build HUD with selected piece, resources, and controls.
+- Build menu with material tabs and spinning 3D prop previews.
 
 ## Project Structure
 
 ```text
 Code/
-  Building/   Build pieces, placement, preview, factory, economy hooks
+  Building/   Build pieces, placement, preview, factory, build menu hooks
   Core/       Round manager, networking, win conditions
   Damage/     Shared damage data/components
   Player/     Player component, health, camera, inventory hooks
-  UI/         Flood HUD, scoreboard, winner preview
+  UI/         Flood HUD, build menu, scoreboard, winner preview
   Water/      Water controller, buoyancy, water damage, swim support
   Weapons/    Weapon/tool base classes and implementations
 
@@ -154,11 +165,13 @@ Recommended test flow:
 4. Wait for the second player to connect.
 5. Confirm the round enters build phase.
 6. Place props, weld owned props, and verify ownership restrictions.
-7. Let water rise.
-8. Confirm both host and client see/swim/take damage from water.
-9. Enter combat phase.
-10. Damage players and boat pieces.
-11. Confirm round end, winner display, scoreboard, and reset.
+7. Press **Q** with the Boat Builder equipped and confirm the build menu opens.
+8. Select pieces from different material tabs and confirm the preview/placement updates.
+9. Let water rise.
+10. Confirm both host and client see/swim/take damage from water.
+11. Enter combat phase.
+12. Damage players and boat pieces.
+13. Confirm round end, winner display, scoreboard, and reset.
 
 ## Debug Controls
 
@@ -178,9 +191,9 @@ These can be disabled through `EnableDebugControls`.
 Short-term goals:
 
 - Continue tuning buoyancy and raft stability.
-- Improve build placement for irregular prop shapes.
+- Continue improving player movement on floating rafts.
+- Polish the build menu layout, input focus, and model preview sizing.
 - Add better weld feedback, sounds, particles, and tool animations.
-- Add a proper prop shop/build menu.
 - Improve armor behavior so armor can reinforce existing boat pieces.
 - Expand economy rewards and round-end payouts.
 - Polish scoreboard and winner presentation.
