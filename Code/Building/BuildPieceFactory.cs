@@ -129,12 +129,18 @@ public sealed class BuildPieceFactory : Component
 		modelCollider.Model = pieceData.PropModel;
 		modelCollider.Enabled = true;
 		modelCollider.IsTrigger = false;
+		modelCollider.Friction = 0.35f;
 	}
 
 	private void ApplyBuoyancyPreset( FloodBuoyancy buoyancy, BuildPieceMaterial material )
 	{
 		buoyancy.UseBuiltInApplyBuoyancy = false;
 		buoyancy.UseManualSampleBuoyancy = true;
+		buoyancy.GroupLiftAcceleration = 700f;
+		buoyancy.GroupFloatCorrectionStrength = 350f;
+		buoyancy.GroupVerticalVelocityDamping = 4.5f;
+		buoyancy.GroupMaxUpwardVelocity = 95f;
+		buoyancy.GroupMaxDownwardVelocity = 220f;
 
 		switch ( material )
 		{
@@ -156,6 +162,12 @@ public sealed class BuildPieceFactory : Component
 				buoyancy.LiftAcceleration = 850f;
 				break;
 
+			case BuildPieceMaterial.Foam:
+				buoyancy.MaterialPreset = BuoyancyMaterialPreset.LightPlastic;
+				buoyancy.RelativeDensity = 0.35f;
+				buoyancy.LiftAcceleration = 780f;
+				break;
+
 			case BuildPieceMaterial.Armor:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.Metal;
 				buoyancy.RelativeDensity = 1.35f;
@@ -170,6 +182,7 @@ public sealed class BuildPieceFactory : Component
 		pieceObject.Tags.Remove( "metal" );
 		pieceObject.Tags.Remove( "plastic" );
 		pieceObject.Tags.Remove( "armor" );
+		pieceObject.Tags.Remove( "foam" );
 
 		pieceObject.Tags.Add( material.ToString().ToLower() );
 	}
@@ -196,7 +209,8 @@ public sealed class BuildPieceFactory : Component
 				weldPosition,
 				WeldLinearStrength,
 				WeldAngularStrength,
-				EnableWeldedPieceCollisions
+				EnableWeldedPieceCollisions,
+				CreatePhysicalWelds
 			) )
 			{
 				return;

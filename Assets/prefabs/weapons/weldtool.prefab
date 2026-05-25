@@ -21,6 +21,7 @@
         "__enabled": true,
         "Flags": 0,
         "AnimationRenderer": null,
+        "CreatePhysicalJoints": false,
         "Damage": 0,
         "DrawDebugToolTrace": true,
         "EnableWeldedPieceCollisions": false,
@@ -28,6 +29,8 @@
         "FirstWeldTarget": null,
         "HoldType": "pistol",
         "InventorySlot": 3,
+        "MaxMultiWeldGap": 128,
+        "MaxSelectedPieces": 12,
         "PlayAttackAnimation": true,
         "PlayDeployAnimation": true,
         "PrimaryFireRate": 0.15,
@@ -41,8 +44,8 @@
         "ToolTraceRadius": 4,
         "UnweldSound": null,
         "UseSound": null,
-        "WeldAngularStrength": 5000,
-        "WeldLinearStrength": 7000,
+        "WeldAngularStrength": 1200,
+        "WeldLinearStrength": 1800,
         "WeldSound": null
       },
       {

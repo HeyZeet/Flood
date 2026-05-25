@@ -1,4 +1,6 @@
 using Sandbox;
+using System.Collections.Generic;
+using System.Linq;
 
 public sealed class WeldToolWeapon : BaseToolWeapon
 {
@@ -6,25 +8,39 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 	[Header( "Welding" )]
 	[Property] public bool RequireBuildPhase { get; set; } = true;
-	[Property] public float WeldLinearStrength { get; set; } = 7000f;
-	[Property] public float WeldAngularStrength { get; set; } = 5000f;
+	[Property] public float WeldLinearStrength { get; set; } = 1800f;
+	[Property] public float WeldAngularStrength { get; set; } = 1200f;
 	[Property] public bool EnableWeldedPieceCollisions { get; set; } = false;
+	[Property] public bool CreatePhysicalJoints { get; set; } = false;
+	[Property] public int MaxSelectedPieces { get; set; } = 12;
+	[Property] public float MaxMultiWeldGap { get; set; } = 128f;
 	[Property] public SoundEvent SelectSound { get; set; }
 	[Property] public SoundEvent WeldSound { get; set; }
 	[Property] public SoundEvent UnweldSound { get; set; }
 
 	[Sync( SyncFlags.FromHost )] public string FirstWeldTargetName { get; private set; } = "No selection";
+	[Sync( SyncFlags.FromHost )] public int SelectedPieceCount { get; private set; }
 
-	private GameObject FirstWeldTarget { get; set; }
+	private readonly List<GameObject> SelectedTargets = new();
+
+	public override void OnPlayerUpdate()
+	{
+		base.OnPlayerUpdate();
+
+		if ( Input.Pressed( "reload" ) )
+			TryWeldCurrentSelection();
+	}
 
 	public BuildPiece FirstWeldPiece
 	{
 		get
 		{
-			if ( !FirstWeldTarget.IsValid() )
+			var firstTarget = SelectedTargets.FirstOrDefault( target => target.IsValid() );
+
+			if ( !firstTarget.IsValid() )
 				return null;
 
-			return FirstWeldTarget.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+			return firstTarget.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
 		}
 	}
 
@@ -103,26 +119,27 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 		if ( !target.IsValid() )
 		{
+			if ( SelectedPieceCount >= 2 )
+			{
+				TryWeldSelectedPieces();
+				return;
+			}
+
 			Fail( "Weld Tool needs a build piece target." );
 			return;
 		}
 
-		var firstPiece = FirstWeldPiece;
-
-		if ( !firstPiece.IsValid() )
+		if ( IsSelected( target ) )
 		{
-			SelectFirstTarget( target );
+			if ( SelectedPieceCount >= 2 )
+				TryWeldSelectedPieces();
+			else
+				RemoveSelectedTarget( target );
+
 			return;
 		}
 
-		if ( firstPiece == target )
-		{
-			ClearSelection();
-			Fail( "Weld Tool selection cleared." );
-			return;
-		}
-
-		TryWeldSelectedPieces( firstPiece, target, trace.HitPosition );
+		AddSelectedTarget( target );
 	}
 
 	private void TrySecondaryUseHost( Vector3 start, Vector3 direction )
@@ -157,7 +174,7 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		Log.Info( $"{DisplayName} unwelded {target.DisplayName}." );
 	}
 
-	private void SelectFirstTarget( BuildPiece target )
+	private void AddSelectedTarget( BuildPiece target )
 	{
 		if ( !CanModifyPiece( target ) )
 		{
@@ -165,26 +182,62 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 			return;
 		}
 
-		FirstWeldTarget = target.GameObject;
-		FirstWeldTargetName = target.DisplayName;
+		PruneSelection();
+
+		if ( SelectedTargets.Count >= MaxSelectedPieces.Clamp( 2, 64 ) )
+		{
+			Fail( "Too many pieces selected." );
+			return;
+		}
+
+		SelectedTargets.Add( target.GameObject );
+		target.SetWeldSelected( true );
+		UpdateSelectionText();
 		PlayToolSound( SelectSound );
 		BroadcastToolSound( SelectSound, true );
 
-		Log.Info( $"{DisplayName} selected {target.DisplayName}." );
+		Log.Info( $"{DisplayName} selected {target.DisplayName}. Selected: {SelectedPieceCount}" );
 	}
 
-	private void TryWeldSelectedPieces( BuildPiece firstPiece, BuildPiece secondPiece, Vector3 weldPosition )
+	private void RemoveSelectedTarget( BuildPiece target )
 	{
-		if ( !CanModifyPiece( firstPiece ) || !CanModifyPiece( secondPiece ) )
+		if ( !target.IsValid() )
+			return;
+
+		SelectedTargets.RemoveAll( gameObject => gameObject == target.GameObject );
+		target.SetWeldSelected( false );
+		UpdateSelectionText();
+		PlayToolSound( SelectSound );
+		BroadcastToolSound( SelectSound, true );
+
+		Log.Info( $"{DisplayName} deselected {target.DisplayName}. Selected: {SelectedPieceCount}" );
+	}
+
+	private void TryWeldSelectedPieces()
+	{
+		PruneSelection();
+
+		var selectedPieces = SelectedTargets
+			.Select( target => target.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors ) )
+			.Where( piece => piece.IsValid() )
+			.Distinct()
+			.ToList();
+
+		if ( selectedPieces.Count < 2 )
+		{
+			Fail( "Select at least two pieces to weld." );
+			return;
+		}
+
+		if ( selectedPieces.Any( piece => !CanModifyPiece( piece ) ) )
 		{
 			Fail( "Cannot weld pieces you do not own." );
 			return;
 		}
 
-		if ( !firstPiece.WeldTo( secondPiece, weldPosition, WeldLinearStrength, WeldAngularStrength, EnableWeldedPieceCollisions ) )
+		if ( !TryWeldSelectedPiecesIntoSingleRaft( selectedPieces, out var weldedCount ) )
 		{
-			ClearSelection();
-			Fail( "Failed to weld selected pieces." );
+			Fail( "Failed to weld every selected piece into one raft." );
 			return;
 		}
 
@@ -194,7 +247,161 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 		BroadcastToolSound( WeldSound, true );
 		BroadcastToolSound( SuccessSound, true );
 
-		Log.Info( $"{DisplayName} welded {firstPiece.DisplayName} to {secondPiece.DisplayName}." );
+		var finalRoot = selectedPieces[0].GetWeldRoot();
+		var finalPieceCount = finalRoot.IsValid() ? finalRoot.GetWeldedPieces().Count : 0;
+
+		Log.Info( $"{DisplayName} created {weldedCount} welds from {selectedPieces.Count} selected pieces. Final raft root: {finalRoot?.DisplayName ?? "None"}, raft pieces: {finalPieceCount}." );
+	}
+
+	private sealed class MultiWeldCandidate
+	{
+		public BuildPiece First { get; init; }
+		public BuildPiece Second { get; init; }
+		public float Distance { get; init; }
+		public Vector3 ContactPoint { get; init; }
+	}
+
+	private bool TryWeldSelectedPiecesIntoSingleRaft( List<BuildPiece> selectedPieces, out int weldedCount )
+	{
+		weldedCount = 0;
+		var anchorRoot = selectedPieces[0].GetWeldRoot();
+
+		if ( !anchorRoot.IsValid() )
+			return false;
+
+		var remainingRoots = selectedPieces
+			.Select( piece => piece.GetWeldRoot() )
+			.Where( root => root.IsValid() && root != anchorRoot )
+			.Distinct()
+			.ToList();
+
+		if ( remainingRoots.Count == 0 )
+		{
+			weldedCount = 1;
+			return true;
+		}
+
+		while ( remainingRoots.Count > 0 )
+		{
+			var anchorPieces = anchorRoot.GetWeldedPieces();
+			var bestCandidate = FindClosestRootCandidate( anchorPieces, remainingRoots );
+
+			if ( bestCandidate is null )
+			{
+				Log.Warning( $"{DisplayName}: could not connect every selected piece into one raft. Remaining roots: {remainingRoots.Count}" );
+				return false;
+			}
+
+			if ( !bestCandidate.Second.WeldTo(
+				bestCandidate.First,
+				bestCandidate.ContactPoint,
+				WeldLinearStrength,
+				WeldAngularStrength,
+				EnableWeldedPieceCollisions,
+				CreatePhysicalJoints ) )
+			{
+				Log.Warning( $"{DisplayName}: failed to weld {bestCandidate.Second.DisplayName} to raft root {bestCandidate.First.DisplayName}." );
+				return false;
+			}
+
+			weldedCount++;
+			anchorRoot = bestCandidate.First.GetWeldRoot();
+			remainingRoots.RemoveAll( root => !root.IsValid() || root.GetWeldRoot() == anchorRoot );
+		}
+
+		var finalRoot = selectedPieces[0].GetWeldRoot();
+		var allSelectedPiecesShareRoot = selectedPieces.All( piece => piece.IsValid() && piece.GetWeldRoot() == finalRoot );
+
+		if ( !allSelectedPiecesShareRoot )
+		{
+			Log.Warning( $"{DisplayName}: weld verification failed; selected pieces still have more than one raft root." );
+			return false;
+		}
+
+		return weldedCount > 0;
+	}
+
+	private MultiWeldCandidate FindClosestRootCandidate( List<BuildPiece> anchorPieces, List<BuildPiece> remainingRoots )
+	{
+		var maxGap = MaxMultiWeldGap.Clamp( 0f, 256f );
+		MultiWeldCandidate bestCandidate = null;
+
+		foreach ( var anchorPiece in anchorPieces )
+		{
+			if ( !anchorPiece.IsValid() )
+				continue;
+
+			foreach ( var root in remainingRoots )
+			{
+				if ( !root.IsValid() )
+					continue;
+
+				foreach ( var candidatePiece in root.GetWeldedPieces() )
+				{
+					var candidate = BuildWeldCandidate( anchorPiece, candidatePiece );
+
+					if ( candidate is null )
+						continue;
+
+					if ( candidate.Distance > maxGap )
+						continue;
+
+					if ( bestCandidate is null || candidate.Distance < bestCandidate.Distance )
+						bestCandidate = candidate;
+				}
+			}
+		}
+
+		return bestCandidate;
+	}
+
+	private MultiWeldCandidate BuildWeldCandidate( BuildPiece firstPiece, BuildPiece secondPiece )
+	{
+		if ( !firstPiece.IsValid() || !secondPiece.IsValid() )
+			return null;
+
+		if ( !firstPiece.Rigidbody.IsValid() || !secondPiece.Rigidbody.IsValid() )
+			return null;
+
+		var firstBounds = firstPiece.Rigidbody.GetWorldBounds();
+		var secondBounds = secondPiece.Rigidbody.GetWorldBounds();
+		var firstClosestToSecond = firstBounds.ClosestPoint( secondBounds.Center );
+		var secondClosestToFirst = secondBounds.ClosestPoint( firstBounds.Center );
+		var distance = (firstClosestToSecond - secondClosestToFirst).Length;
+		var contactPoint = (firstClosestToSecond + secondClosestToFirst) * 0.5f;
+
+		return new MultiWeldCandidate
+		{
+			First = firstPiece,
+			Second = secondPiece,
+			Distance = distance,
+			ContactPoint = contactPoint
+		};
+	}
+
+	private void TryWeldCurrentSelection()
+	{
+		if ( !CanUseToolNow() )
+		{
+			Fail( "Weld Tool can only be used during build phase." );
+			return;
+		}
+
+		if ( Networking.IsHost )
+		{
+			TryWeldSelectedPieces();
+			BroadcastWeaponAnimation( AttackTrigger, true );
+			return;
+		}
+
+		RequestWeldCurrentSelection();
+	}
+
+	[Rpc.Host]
+	private void RequestWeldCurrentSelection()
+	{
+		TryWeldSelectedPieces();
+		BroadcastWeaponAnimation( AttackTrigger, true );
 	}
 
 	private BuildPiece GetBuildPieceFromTrace( SceneTraceResult trace )
@@ -229,8 +436,38 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 
 	private void ClearSelection()
 	{
-		FirstWeldTarget = null;
-		FirstWeldTargetName = "No selection";
+		foreach ( var target in SelectedTargets.ToArray() )
+		{
+			var buildPiece = target.Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+
+			if ( buildPiece.IsValid() )
+				buildPiece.SetWeldSelected( false );
+		}
+
+		SelectedTargets.Clear();
+		UpdateSelectionText();
+	}
+
+	private bool IsSelected( BuildPiece buildPiece )
+	{
+		if ( !buildPiece.IsValid() )
+			return false;
+
+		return SelectedTargets.Any( target => target == buildPiece.GameObject );
+	}
+
+	private void PruneSelection()
+	{
+		SelectedTargets.RemoveAll( target => !target.IsValid() );
+		UpdateSelectionText();
+	}
+
+	private void UpdateSelectionText()
+	{
+		SelectedPieceCount = SelectedTargets.Count( target => target.IsValid() );
+		FirstWeldTargetName = SelectedPieceCount > 0
+			? $"{SelectedPieceCount} selected"
+			: "No selection";
 	}
 
 	private void Fail( string reason )

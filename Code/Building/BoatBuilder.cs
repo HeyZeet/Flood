@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public sealed class BoatBuilder : BaseCarryable
 {
+	public static BoatBuilder LocalBuildMenuBuilder { get; private set; }
+	public static bool IsLocalBuildMenuOpen => LocalBuildMenuBuilder.IsValid() && LocalBuildMenuBuilder.IsBuildMenuOpen;
+
 	private BuildPlacementResult CurrentPlacement;
 
 	private BuildPreview Preview => Components.Get<BuildPreview>( FindMode.EverythingInSelfAndDescendants );
@@ -16,11 +19,14 @@ public sealed class BoatBuilder : BaseCarryable
 
 	[Property] public List<BuildPieceData> AvailablePieces { get; set; } = new();
 	[Property, Sync( SyncFlags.FromHost )] public int SelectedPieceIndex { get; set; } = 0;
+	[Property, Group( "Build Menu" )] public string BuildMenuInputAction { get; set; } = "menu";
 
 	[Property, Group( "Selling" )] public bool CanSellPieces { get; set; } = true;
 	[Property, Group( "Selling" )] public string SellInputAction { get; set; } = "use";
 	[Property, Group( "Selling" )] public float SellTraceDistance { get; set; } = 350f;
 	[Property, Group( "Selling" )] public float SellRefundFraction { get; set; } = 0.75f;
+
+	public bool IsBuildMenuOpen { get; private set; }
 
 	public BuildPieceData SelectedPiece
 	{
@@ -70,6 +76,10 @@ public sealed class BoatBuilder : BaseCarryable
 
 	public override void OnHolster()
 	{
+		if ( LocalBuildMenuBuilder == this )
+			LocalBuildMenuBuilder = null;
+
+		CloseBuildMenu();
 		Preview?.ClearPreview();
 
 		base.OnHolster();
@@ -79,9 +89,21 @@ public sealed class BoatBuilder : BaseCarryable
 
 	public override void OnPlayerUpdate()
 	{
+		LocalBuildMenuBuilder = this;
+
 		if ( !IsBuildingAllowed() )
 		{
+			CloseBuildMenu();
 			Preview?.ClearPreview();
+			return;
+		}
+
+		if ( WasBuildMenuPressed() )
+			ToggleBuildMenu();
+
+		if ( IsBuildMenuOpen )
+		{
+			UpdatePreview();
 			return;
 		}
 
@@ -560,6 +582,52 @@ public sealed class BoatBuilder : BaseCarryable
 		Log.Info( $"Selected build piece: {selected.DisplayName}" );
 
 		Preview?.ClearPreview();
+	}
+
+	public void SelectPieceFromBuildMenu( int pieceIndex )
+	{
+		if ( GetPieceAtIndex( pieceIndex ) is null )
+			return;
+
+		SelectedPieceIndex = pieceIndex;
+		RequestSelectedPieceIndex( pieceIndex );
+		OnSelectedPieceChanged();
+		CloseBuildMenu();
+	}
+
+	public void ToggleBuildMenu()
+	{
+		if ( !IsBuildingAllowed() )
+		{
+			CloseBuildMenu();
+			return;
+		}
+
+		IsBuildMenuOpen = !IsBuildMenuOpen;
+		Log.Info( $"Build menu {(IsBuildMenuOpen ? "opened" : "closed")}." );
+	}
+
+	public void CloseBuildMenu()
+	{
+		IsBuildMenuOpen = false;
+	}
+
+	private bool WasBuildMenuPressed()
+	{
+		var inputAction = GetBuildMenuInputAction();
+
+		if ( Input.Pressed( inputAction ) )
+			return true;
+
+		return inputAction != "menu" && Input.Pressed( "menu" );
+	}
+
+	private string GetBuildMenuInputAction()
+	{
+		if ( string.IsNullOrWhiteSpace( BuildMenuInputAction ) )
+			return "menu";
+
+		return BuildMenuInputAction.Trim();
 	}
 
 	private void ValidateRequiredComponents()

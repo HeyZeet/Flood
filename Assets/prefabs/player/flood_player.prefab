@@ -139,6 +139,26 @@
         "StepUpHeight": 18
       },
       {
+        "__type": "RaftMovementAssist",
+        "__guid": "b0c7d305-1d53-4e7d-9dcb-a42ff46bb4f5",
+        "__enabled": false,
+        "AssistEnabled": false,
+        "Flags": 0,
+        "DrawDebug": false,
+        "EnabledDuringBuildPhase": false,
+        "GroundStickVelocity": 35,
+        "GroundTraceDistance": 18,
+        "GroundTraceStartHeight": 8,
+        "MaxInheritedVelocity": 260,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "RaftVelocityInfluence": 0.85
+      },
+      {
         "__type": "Sandbox.Movement.MoveModeSwim",
         "__guid": "afa6ebd7-044f-4748-8c82-75c48ac1e53a",
         "__enabled": true,
@@ -763,6 +783,32 @@
           "6edf0594-8f70-4c1d-8651-95b7c68e7c62": "9e767c52-efee-4e77-bfb0-b209ed40d0a6",
           "361807d2-5051-4623-abac-78ed123dcd26": "057302fc-07cb-40ad-9c4f-c224c66859fc",
           "dcad2929-937e-4677-85b8-65f6b9e6514f": "f648875c-a35d-4373-b6c4-f0e6c834781d"
+        }
+      },
+      {
+        "__guid": "ae96fbd2-718d-4e44-9f1d-2105fde3fce3",
+        "__version": 2,
+        "__Prefab": "prefabs/weapons/weldtool.prefab",
+        "__PrefabInstancePatch": {
+          "AddedObjects": [],
+          "RemovedObjects": [],
+          "PropertyOverrides": [
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "f4f0261c-c864-46a8-bf79-ef9bf2aa575e"
+              },
+              "Property": "Position",
+              "Value": "0,-172.337402,-9.87458038"
+            }
+          ],
+          "MovedObjects": []
+        },
+        "__PrefabIdToInstanceId": {
+          "f4f0261c-c864-46a8-bf79-ef9bf2aa575e": "ae96fbd2-718d-4e44-9f1d-2105fde3fce3",
+          "6ed89f5b-bf49-48d2-a2df-f963369a2d74": "3d4b3c82-e9ef-4f28-9f31-78314cfc2e3f",
+          "5fe5dcb2-ed53-4608-998d-f4f7a513ddea": "fbc1d71d-0415-4fbd-9baa-28d04184b49a",
+          "d04a9fdc-2424-468b-b096-7ec03ebbb4ba": "d9ade1a2-842f-41dd-8758-69bdcb971d4a"
         }
       }
     ]

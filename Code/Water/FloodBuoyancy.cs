@@ -48,7 +48,7 @@ public sealed class FloodBuoyancy : Component
 	[Property] public float PointVelocityDrag { get; set; } = 0.15f;
 	[Property] public float ConnectedRaftAngularDragBonus { get; set; } = 1.25f;
 	[Property] public float MaxWaterVelocity { get; set; } = 420f;
-	[Property] public float MaxWaterAngularVelocity { get; set; } = 5f;
+	[Property] public float MaxWaterAngularVelocity { get; set; } = 3f;
 
 	[Header( "Stability" )]
 	[Property] public bool StabilizeRollPitch { get; set; } = true;
@@ -56,6 +56,14 @@ public sealed class FloodBuoyancy : Component
 
 	[Header( "Raft Stability" )]
 	[Property] public bool UseAttachedRaftStability { get; set; } = true;
+	[Property] public bool UseGroupBuoyancyForRafts { get; set; } = true;
+	[Property] public float GroupLiftAcceleration { get; set; } = 700f;
+	[Property] public float GroupFloatTargetWetness { get; set; } = 0.45f;
+	[Property] public float GroupFloatCorrectionStrength { get; set; } = 350f;
+	[Property] public float GroupVerticalVelocityDamping { get; set; } = 4.5f;
+	[Property] public float GroupMaxUpwardVelocity { get; set; } = 95f;
+	[Property] public float GroupMaxDownwardVelocity { get; set; } = 220f;
+	[Property] public float GroupUprightStabilization { get; set; } = 0.08f;
 	[Property] public float AttachedPieceStabilityBonus { get; set; } = 0.08f;
 	[Property] public float AttachedPieceLiftBonus { get; set; } = 0.035f;
 	[Property] public float AttachedArmorStabilityBonus { get; set; } = 0.03f;
@@ -186,6 +194,12 @@ public sealed class FloodBuoyancy : Component
 		if ( !ShouldApplyBuoyancy() )
 			return;
 
+		if ( SuppressWeldedChildBuoyancy() )
+			return;
+
+		if ( TrySimulateGroupRaftBuoyancy( water ) )
+			return;
+
 		SimulateBuoyancy( water );
 	}
 
@@ -200,6 +214,178 @@ public sealed class FloodBuoyancy : Component
 			return true;
 
 		return !roundManager.IsBuildPhase();
+	}
+
+	private bool SuppressWeldedChildBuoyancy()
+	{
+		if ( !BuildPiece.IsValid() )
+			BuildPiece = Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( !BuildPiece.IsValid() )
+			return false;
+
+		if ( BuildPiece.GetWeldRoot() == BuildPiece )
+			return false;
+
+		if ( Body.IsValid() )
+		{
+			Body.Velocity = Vector3.Zero;
+			Body.AngularVelocity = Vector3.Zero;
+
+			if ( Body.MotionEnabled )
+				Body.MotionEnabled = false;
+		}
+
+		return true;
+	}
+
+	private bool TrySimulateGroupRaftBuoyancy( FloodWaterController water )
+	{
+		if ( !UseGroupBuoyancyForRafts || !UseAttachedRaftStability )
+			return false;
+
+		if ( !BuildPiece.IsValid() )
+			BuildPiece = Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( !BuildPiece.IsValid() )
+			return false;
+
+		var connectedPieces = GetConnectedRaftPieces( BuildPiece );
+
+		if ( connectedPieces.Count <= 1 )
+			return false;
+
+		if ( !IsRaftLeader() )
+		{
+			SetDryStateIfOutOfWater( water );
+			return true;
+		}
+
+		SimulateGroupRaftBuoyancy( water, connectedPieces );
+		return true;
+	}
+
+	private bool IsRaftLeader()
+	{
+		return BuildPiece.IsValid() && BuildPiece.GetWeldRoot() == BuildPiece;
+	}
+
+	private void SimulateGroupRaftBuoyancy( FloodWaterController water, List<BuildPiece> connectedPieces )
+	{
+		if ( !TryGetRaftWorldBounds( connectedPieces, out var raftBounds ) )
+			return;
+
+		var bottomZ = raftBounds.Mins.z;
+		var topZ = raftBounds.Maxs.z;
+		var height = (topZ - bottomZ).Clamp( 1f, 999999f );
+		var waterSurface = water.GetSurfaceHeight( raftBounds.Center );
+		var submergedHeight = (waterSurface - bottomZ).Clamp( 0f, height );
+		var wetness = (submergedHeight / height).Clamp( 0f, 1f );
+		var depthPercent = ((waterSurface - bottomZ) / MaxSampleDepth.Clamp( 1f, 10000f )).Clamp( 0f, 1f );
+		var raftStability = BuildRaftStabilityStateFromPieces( connectedPieces );
+
+		UpdateConnectedBuoyancyState( connectedPieces, wetness, raftStability, waterSurface );
+
+		if ( wetness <= 0f )
+			return;
+
+		var materialLift = GetAverageRaftFloatScore( connectedPieces );
+		var targetWetness = GetTargetWetness( materialLift );
+		var floatError = (wetness - targetWetness).Clamp( 0f, 1f );
+		var liftAcceleration = GroupLiftAcceleration * materialLift * depthPercent * raftStability.LiftMultiplier;
+		liftAcceleration += GroupFloatCorrectionStrength * floatError * raftStability.StabilityMultiplier;
+		var liftVelocity = Vector3.Up * liftAcceleration * Time.Delta;
+
+		foreach ( var body in GetActiveRaftBodies( connectedPieces ) )
+		{
+			var flow = water.GetFlowVelocity( body.WorldPosition );
+			var relativeVelocity = body.Velocity - flow;
+			var linearDrag = 1f - (WaterLinearDrag * raftStability.StabilityMultiplier * wetness * Time.Delta).Clamp( 0f, 0.95f );
+			var angularDrag = 1f - ((WaterAngularDrag + ConnectedRaftAngularDragBonus) * raftStability.StabilityMultiplier * wetness * Time.Delta).Clamp( 0f, 0.95f );
+			var verticalDamping = Vector3.Up * body.Velocity.z * GroupVerticalVelocityDamping * wetness * Time.Delta;
+
+			body.Velocity += liftVelocity;
+			body.Velocity -= verticalDamping;
+			body.Velocity -= relativeVelocity * PointVelocityDrag * wetness * Time.Delta;
+			body.Velocity *= linearDrag;
+			body.AngularVelocity *= angularDrag;
+
+			if ( StabilizeRollPitch )
+			{
+				var correction = Vector3.Cross( body.WorldRotation.Up, Vector3.Up );
+				body.AngularVelocity += correction * GroupUprightStabilization * raftStability.StabilityMultiplier * wetness * Time.Delta;
+			}
+
+			ClampBodyWaterMotion( body, wetness, raftStability, true );
+			ClampGroupVerticalVelocity( body );
+		}
+
+		if ( LogDebug )
+		{
+			Log.Info(
+				$"{GameObject.Name} group raft wetness:{wetness:0.00} target:{targetWetness:0.00} pieces:{raftStability.PieceCount} boatParts:{raftStability.BoatPartCount} lift:{raftStability.LiftMultiplier:0.00} stability:{raftStability.StabilityMultiplier:0.00} materialLift:{materialLift:0.00} liftAccel:{liftAcceleration:0.00}"
+			);
+		}
+	}
+
+	private IEnumerable<Rigidbody> GetActiveRaftBodies( List<BuildPiece> connectedPieces )
+	{
+		var activeBodies = new HashSet<Rigidbody>();
+
+		foreach ( var piece in connectedPieces )
+		{
+			if ( !piece.IsValid() || !piece.Rigidbody.IsValid() )
+				continue;
+
+			var body = piece.Rigidbody;
+
+			// Structural welds parent child pieces to a carrier body and disable their rigidbody motion.
+			// Only the moving carrier bodies should receive raft-level lift; pushing disabled child bodies
+			// can stack stored velocity and produce violent launches when physics wakes them.
+			if ( !body.MotionEnabled )
+				continue;
+
+			if ( activeBodies.Add( body ) )
+				yield return body;
+		}
+	}
+
+	private void ClampGroupVerticalVelocity( Rigidbody body )
+	{
+		var velocity = body.Velocity;
+		var maxUp = GroupMaxUpwardVelocity.Clamp( 1f, 10000f );
+		var maxDown = GroupMaxDownwardVelocity.Clamp( 1f, 10000f );
+
+		if ( velocity.z > maxUp )
+			body.Velocity = velocity.WithZ( maxUp );
+		else if ( velocity.z < -maxDown )
+			body.Velocity = velocity.WithZ( -maxDown );
+	}
+
+	private float GetTargetWetness( float materialLift )
+	{
+		var target = GroupFloatTargetWetness;
+
+		if ( materialLift >= 1f )
+			target -= (materialLift - 1f) * 0.12f;
+		else
+			target += (1f - materialLift) * 0.2f;
+
+		return target.Clamp( 0.25f, 0.75f );
+	}
+
+	private void SetDryStateIfOutOfWater( FloodWaterController water )
+	{
+		var bounds = Body.GetWorldBounds();
+		var waterSurface = water.GetSurfaceHeight( Body.WorldPosition );
+		var wetness = ((waterSurface - bounds.Mins.z) / (bounds.Maxs.z - bounds.Mins.z).Clamp( 1f, 999999f )).Clamp( 0f, 1f );
+
+		LastWetness = wetness;
+		SyncedWetness = wetness;
+		IsInWater = wetness > 0f;
+
+		if ( wetness <= 0f )
+			WasTouchingWater = false;
 	}
 
 	private void SimulateBuoyancy( FloodWaterController water )
@@ -408,23 +594,28 @@ public sealed class FloodBuoyancy : Component
 
 	private void ClampWaterMotion( float wetness, RaftStabilityState raftStability )
 	{
+		ClampBodyWaterMotion( Body, wetness, raftStability, raftStability.PieceCount > 1 );
+	}
+
+	private void ClampBodyWaterMotion( Rigidbody body, float wetness, RaftStabilityState raftStability, bool connectedRaft )
+	{
 		if ( wetness <= 0f )
 			return;
 
 		var maxVelocity = MaxWaterVelocity.Clamp( 1f, 10000f );
 		var maxAngularVelocity = MaxWaterAngularVelocity.Clamp( 0.1f, 1000f );
 
-		if ( raftStability.PieceCount > 1 )
+		if ( connectedRaft )
 		{
 			maxVelocity *= 0.85f;
-			maxAngularVelocity *= 0.75f;
+			maxAngularVelocity *= 0.5f;
 		}
 
-		if ( Body.Velocity.Length > maxVelocity )
-			Body.Velocity = Body.Velocity.Normal * maxVelocity;
+		if ( body.Velocity.Length > maxVelocity )
+			body.Velocity = body.Velocity.Normal * maxVelocity;
 
-		if ( Body.AngularVelocity.Length > maxAngularVelocity )
-			Body.AngularVelocity = Body.AngularVelocity.Normal * maxAngularVelocity;
+		if ( body.AngularVelocity.Length > maxAngularVelocity )
+			body.AngularVelocity = body.AngularVelocity.Normal * maxAngularVelocity;
 	}
 
 	private RaftStabilityState GetRaftStabilityState()
@@ -439,6 +630,12 @@ public sealed class FloodBuoyancy : Component
 			return BuildRaftStabilityState( 1, 1, 0, 1f, 1f, 1f );
 
 		var connectedPieces = GetConnectedRaftPieces( BuildPiece );
+		var pieceCount = connectedPieces.Count;
+		return BuildRaftStabilityStateFromPieces( connectedPieces );
+	}
+
+	private RaftStabilityState BuildRaftStabilityStateFromPieces( List<BuildPiece> connectedPieces )
+	{
 		var pieceCount = connectedPieces.Count;
 		var boatPartCount = GetBoatPartCount( connectedPieces );
 		var armorPieceCount = GetArmorPieceCount( connectedPieces );
@@ -490,45 +687,10 @@ public sealed class FloodBuoyancy : Component
 
 	private List<BuildPiece> GetConnectedRaftPieces( BuildPiece rootPiece )
 	{
-		var connectedPieces = new List<BuildPiece>();
-		var openPieces = new Queue<BuildPiece>();
+		if ( !rootPiece.IsValid() )
+			return new List<BuildPiece>();
 
-		openPieces.Enqueue( rootPiece );
-
-		while ( openPieces.Count > 0 )
-		{
-			var currentPiece = openPieces.Dequeue();
-
-			if ( !currentPiece.IsValid() )
-				continue;
-
-			if ( connectedPieces.Contains( currentPiece ) )
-				continue;
-
-			connectedPieces.Add( currentPiece );
-
-			foreach ( var candidate in BuildPiece.All )
-			{
-				if ( !candidate.IsValid() )
-					continue;
-
-				if ( connectedPieces.Contains( candidate ) )
-					continue;
-
-				if ( ArePiecesLinked( currentPiece, candidate ) )
-					openPieces.Enqueue( candidate );
-			}
-		}
-
-		return connectedPieces;
-	}
-
-	private bool ArePiecesLinked( BuildPiece firstPiece, BuildPiece secondPiece )
-	{
-		if ( firstPiece.AttachedTo == secondPiece.GameObject )
-			return true;
-
-		return secondPiece.AttachedTo == firstPiece.GameObject;
+		return rootPiece.GetWeldedPieces();
 	}
 
 	private float GetAverageHealthFraction( List<BuildPiece> pieces )
@@ -616,6 +778,95 @@ public sealed class FloodBuoyancy : Component
 		var footprintFraction = (horizontalSize / FootprintSizeForMaxBonus.Clamp( 1f, 10000f )).Clamp( 0f, 1f );
 
 		return MaxFootprintStabilityBonus * footprintFraction;
+	}
+
+	private bool TryGetRaftWorldBounds( List<BuildPiece> pieces, out BBox raftBounds )
+	{
+		var hasBounds = false;
+		raftBounds = new BBox();
+
+		foreach ( var piece in pieces )
+		{
+			if ( !piece.IsValid() || !piece.Rigidbody.IsValid() )
+				continue;
+
+			var bounds = piece.Rigidbody.GetWorldBounds();
+
+			if ( !hasBounds )
+			{
+				raftBounds = bounds;
+				hasBounds = true;
+				continue;
+			}
+
+			raftBounds = raftBounds.AddBBox( bounds );
+		}
+
+		return hasBounds;
+	}
+
+	private float GetAverageRaftFloatScore( List<BuildPiece> pieces )
+	{
+		var total = 0f;
+		var count = 0;
+
+		foreach ( var piece in pieces )
+		{
+			if ( !piece.IsValid() )
+				continue;
+
+			total += GetMaterialFloatScore( piece );
+			count++;
+		}
+
+		if ( count <= 0 )
+			return 1f;
+
+		return (total / count).Clamp( 0.35f, 1.2f );
+	}
+
+	private float GetMaterialFloatScore( BuildPiece piece )
+	{
+		if ( !piece.CountsAsBoatPart )
+			return 0.35f;
+
+		return piece.Material switch
+		{
+			BuildPieceMaterial.Plastic => 1.15f,
+			BuildPieceMaterial.Wood => 0.95f,
+			BuildPieceMaterial.Foam => 1.2f,
+			BuildPieceMaterial.Metal => 0.45f,
+			BuildPieceMaterial.Armor => 0.35f,
+			_ => 0.8f
+		};
+	}
+
+	private void UpdateConnectedBuoyancyState(
+		List<BuildPiece> pieces,
+		float wetness,
+		RaftStabilityState raftStability,
+		float waterSurface )
+	{
+		foreach ( var piece in pieces )
+		{
+			if ( !piece.IsValid() )
+				continue;
+
+			var buoyancy = piece.Components.Get<FloodBuoyancy>( FindMode.EverythingInSelfAndDescendants );
+
+			if ( !buoyancy.IsValid() )
+				continue;
+
+			buoyancy.LastWetness = wetness;
+			buoyancy.SyncedWetness = wetness;
+			buoyancy.IsInWater = wetness > 0f;
+			buoyancy.LastRaftPieceCount = raftStability.PieceCount;
+			buoyancy.LastRaftHealthFraction = raftStability.HealthFraction;
+			buoyancy.LastWaterContactPoint = new Vector3( piece.WorldPosition.x, piece.WorldPosition.y, waterSurface );
+
+			if ( wetness <= 0f )
+				buoyancy.WasTouchingWater = false;
+		}
 	}
 
 	private void DrawSampleDebug( Vector3 sample, float surfaceHeight, bool wet )

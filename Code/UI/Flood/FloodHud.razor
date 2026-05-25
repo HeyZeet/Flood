@@ -78,6 +78,48 @@
 		</div>
 	}
 
+	@if ( ShouldShowBuildMenu )
+	{
+		<div class="flood-hud__build-menu">
+			<div class="flood-hud__build-menu-header">
+				<div>
+					<div class="flood-hud__build-menu-title">Build Menu</div>
+					<div class="flood-hud__build-menu-subtitle">@BuildMenuSubtitleText</div>
+				</div>
+				<div class="flood-hud__build-menu-resources">$@ResourceText</div>
+			</div>
+
+			<div class="flood-hud__build-menu-tabs">
+				@foreach ( var group in BuildMenuGroups )
+				{
+					<div class="@group.TabCssClass" onclick=@( () => SelectBuildMenuMaterial( group.Material ) )>
+						<span class="flood-hud__build-menu-swatch"></span>
+						<span>@group.Name</span>
+					</div>
+				}
+			</div>
+
+			<div class="flood-hud__build-menu-grid">
+				@foreach ( var entry in VisibleBuildMenuEntries )
+				{
+					<div class="@entry.CssClass" onclick=@( () => SelectBuildPiece( entry.Index ) )>
+						<div class="flood-hud__build-piece-preview">
+							@if ( !string.IsNullOrWhiteSpace( entry.ModelPath ) )
+							{
+								<BuildPieceModelPanel ModelPath="@entry.ModelPath" />
+							}
+						</div>
+						<div class="flood-hud__build-piece-name">@entry.Name</div>
+						<div class="flood-hud__build-piece-stats">
+							<span>$@entry.Cost</span>
+							<span>@entry.Health hp</span>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	}
+
 	@if ( ShouldShowAmmo )
 	{
 		<div class="flood-hud__ammo">
@@ -117,6 +159,7 @@
 	private bool ShouldShowDeath { get; set; }
 	private bool ShouldShowScoreboard { get; set; }
 	private bool ShouldShowWinner { get; set; }
+	private bool ShouldShowBuildMenu { get; set; }
 	private bool IsReloading { get; set; }
 
 	private string RoundPhaseText { get; set; } = "Waiting";
@@ -129,6 +172,7 @@
 	private string BuildPieceText { get; set; } = "None";
 	private string ResourceText { get; set; } = "--";
 	private string BuildHintText { get; set; } = "";
+	private string BuildMenuSubtitleText { get; set; } = "Select a piece";
 	private string WeaponText { get; set; } = "";
 	private string AmmoClipText { get; set; } = "0";
 	private string AmmoReserveText { get; set; } = "";
@@ -138,7 +182,21 @@
 	private GamePhase LastDisplayedPhase { get; set; }
 	private float DisplaySecondsRemaining { get; set; }
 	private List<ScoreboardRow> ScoreboardRows { get; set; } = new();
+	private List<BuildMenuGroup> BuildMenuGroups { get; set; } = new();
+	private List<BuildMenuEntry> VisibleBuildMenuEntries { get; set; } = new();
 	private string ScoreboardStateKey { get; set; } = "";
+	private string BuildMenuStateKey { get; set; } = "";
+	private BuildPieceMaterial SelectedBuildMenuMaterial { get; set; } = BuildPieceMaterial.Wood;
+	private BoatBuilder CurrentBuildMenuBuilder { get; set; }
+	private bool WasBuildMenuShowing { get; set; }
+	private static readonly BuildPieceMaterial[] BuildMenuMaterialOrder =
+	{
+		BuildPieceMaterial.Wood,
+		BuildPieceMaterial.Metal,
+		BuildPieceMaterial.Plastic,
+		BuildPieceMaterial.Armor,
+		BuildPieceMaterial.Foam
+	};
 
 	private sealed class ScoreboardRow
 	{
@@ -150,6 +208,25 @@
 		public string CssClass { get; init; }
 
 		public string StateKey => $"{Name}|{Status}|{Kills}|{Deaths}|{Resources}|{CssClass}";
+	}
+
+	private sealed class BuildMenuGroup
+	{
+		public BuildPieceMaterial Material { get; init; }
+		public string Name { get; init; }
+		public string TabCssClass { get; init; }
+		public string StateKey => $"{Material}|{Name}|{TabCssClass}";
+	}
+
+	private sealed class BuildMenuEntry
+	{
+		public int Index { get; init; }
+		public string Name { get; init; }
+		public string ModelPath { get; init; }
+		public int Cost { get; init; }
+		public int Health { get; init; }
+		public string CssClass { get; init; }
+		public string StateKey => $"{Index}|{Name}|{ModelPath}|{Cost}|{Health}|{CssClass}";
 	}
 
 	protected override void OnUpdate()
@@ -302,6 +379,7 @@
 		if ( player.IsDead )
 		{
 			SetBuildState( false, "None", "None", "--", "" );
+			SetBuildMenuState( false, null );
 			SetAmmoState( false, "", "0", "", false );
 			return;
 		}
@@ -324,24 +402,31 @@
 		if ( !isBuildPhase )
 		{
 			SetBuildState( false, "None", "None", "--", "" );
+			SetBuildMenuState( false, null );
 			return;
 		}
 
 		if ( !activeCarryable.IsValid() )
 		{
 			SetBuildState( false, "None", "None", "--", "" );
+			SetBuildMenuState( false, null );
 			return;
 		}
 
 		if ( activeCarryable is BoatBuilder boatBuilder )
 		{
+			var buildMenuBuilder = BoatBuilder.LocalBuildMenuBuilder.IsValid()
+				? BoatBuilder.LocalBuildMenuBuilder
+				: boatBuilder;
+
 			SetBuildState(
 				true,
 				boatBuilder.DisplayName,
 				boatBuilder.SelectedPiece?.DisplayName ?? "None",
 				resourceText,
-				"LMB: Place   RMB: Next Piece   R: Rotate"
+				"LMB: Place   RMB: Next Piece   Q: Build Menu   R: Rotate"
 			);
+			SetBuildMenuState( BoatBuilder.IsLocalBuildMenuOpen, buildMenuBuilder );
 			return;
 		}
 
@@ -349,11 +434,13 @@
 
 		if ( weldTool.IsValid() )
 		{
-			SetBuildState( true, weldTool.DisplayName, weldTool.FirstWeldTargetName, resourceText, "LMB: Select/Weld   RMB: Unweld" );
+			SetBuildState( true, weldTool.DisplayName, weldTool.FirstWeldTargetName, resourceText, "LMB: Select   R: Weld Selected   RMB: Unweld" );
+			SetBuildMenuState( false, null );
 			return;
 		}
 
 		SetBuildState( false, "None", "None", "--", "" );
+		SetBuildMenuState( false, null );
 	}
 
 	private void UpdateAmmoState( BaseCarryable activeCarryable )
@@ -471,6 +558,125 @@
 		HudBuildVersion++;
 	}
 
+	private void SetBuildMenuState( bool shouldShow, BoatBuilder boatBuilder )
+	{
+		CurrentBuildMenuBuilder = shouldShow && boatBuilder.IsValid() ? boatBuilder : null;
+
+		if ( !shouldShow || !boatBuilder.IsValid() )
+		{
+			WasBuildMenuShowing = false;
+
+			if ( ShouldShowBuildMenu )
+			{
+				ShouldShowBuildMenu = false;
+				BuildMenuGroups.Clear();
+				VisibleBuildMenuEntries.Clear();
+				BuildMenuStateKey = "";
+				HudBuildVersion++;
+			}
+
+			return;
+		}
+
+		if ( !WasBuildMenuShowing && boatBuilder.SelectedPiece is not null )
+			SelectedBuildMenuMaterial = boatBuilder.SelectedPiece.Material;
+
+		WasBuildMenuShowing = true;
+
+		var groups = BuildMenuMaterialOrder
+			.Where( material => boatBuilder.AvailablePieces.Any( piece => piece is not null && piece.Material == material ) )
+			.Select( material => new BuildMenuGroup
+			{
+				Material = material,
+				Name = GetMaterialName( material ),
+				TabCssClass = material == SelectedBuildMenuMaterial
+					? $"flood-hud__build-menu-tab is-active material-{material.ToString().ToLower()}"
+					: $"flood-hud__build-menu-tab material-{material.ToString().ToLower()}"
+			} )
+			.ToList();
+
+		if ( groups.Count > 0 && groups.All( group => group.Material != SelectedBuildMenuMaterial ) )
+			SelectedBuildMenuMaterial = groups[0].Material;
+
+		var entries = boatBuilder.AvailablePieces
+			.Select( ( piece, index ) => CreateBuildMenuEntry( boatBuilder, piece, index ) )
+			.Where( entry => entry is not null )
+			.ToList();
+
+		var subtitle = $"{GetMaterialName( SelectedBuildMenuMaterial )} pieces";
+		var stateKey = string.Join( ";", groups.Select( group => group.StateKey ) )
+			+ "|"
+			+ string.Join( ";", entries.Select( entry => entry.StateKey ) )
+			+ $"|{subtitle}|{boatBuilder.SelectedPieceIndex}";
+
+		if (
+			ShouldShowBuildMenu == shouldShow &&
+			BuildMenuStateKey == stateKey
+		)
+		{
+			return;
+		}
+
+		ShouldShowBuildMenu = shouldShow;
+		BuildMenuGroups = groups;
+		VisibleBuildMenuEntries = entries;
+		BuildMenuSubtitleText = subtitle;
+		BuildMenuStateKey = stateKey;
+		HudBuildVersion++;
+	}
+
+	private BuildMenuEntry CreateBuildMenuEntry( BoatBuilder boatBuilder, BuildPieceData piece, int index )
+	{
+		if ( piece is null || piece.Material != SelectedBuildMenuMaterial )
+			return null;
+
+		var isSelected = index == boatBuilder.SelectedPieceIndex;
+		var canAfford = int.TryParse( ResourceText, out var resources ) && resources >= piece.Cost;
+		var cssClass = isSelected
+			? "flood-hud__build-piece-slot is-selected"
+			: canAfford
+				? "flood-hud__build-piece-slot"
+				: "flood-hud__build-piece-slot cannot-afford";
+
+		return new BuildMenuEntry
+		{
+			Index = index,
+			Name = piece.DisplayName,
+			ModelPath = piece.PropModel.IsValid() ? piece.PropModel.ResourcePath : "",
+			Cost = piece.Cost,
+			Health = (int)MathF.Round( piece.MaxHealth ),
+			CssClass = cssClass
+		};
+	}
+
+	private void SelectBuildMenuMaterial( BuildPieceMaterial material )
+	{
+		SelectedBuildMenuMaterial = material;
+		BuildMenuStateKey = "";
+		HudBuildVersion++;
+	}
+
+	private void SelectBuildPiece( int index )
+	{
+		if ( !CurrentBuildMenuBuilder.IsValid() )
+			return;
+
+		CurrentBuildMenuBuilder.SelectPieceFromBuildMenu( index );
+	}
+
+	private string GetMaterialName( BuildPieceMaterial material )
+	{
+		return material switch
+		{
+			BuildPieceMaterial.Wood => "Wood",
+			BuildPieceMaterial.Metal => "Metal",
+			BuildPieceMaterial.Plastic => "Plastic",
+			BuildPieceMaterial.Armor => "Armor",
+			BuildPieceMaterial.Foam => "Foam",
+			_ => material.ToString()
+		};
+	}
+
 	private void SetAmmoState( bool shouldShow, string weaponText, string clipText, string reserveText, bool isReloading )
 	{
 		if (
@@ -509,6 +715,7 @@
 		hash.Add( HudBuildVersion );
 		hash.Add( ShouldShowRound );
 		hash.Add( ShouldShowBuild );
+		hash.Add( ShouldShowBuildMenu );
 		hash.Add( ShouldShowAmmo );
 		hash.Add( ShouldShowDeath );
 		hash.Add( ShouldShowScoreboard );
@@ -525,6 +732,8 @@
 		hash.Add( BuildPieceText );
 		hash.Add( ResourceText );
 		hash.Add( BuildHintText );
+		hash.Add( BuildMenuStateKey );
+		hash.Add( BuildMenuSubtitleText );
 		hash.Add( WeaponText );
 		hash.Add( AmmoClipText );
 		hash.Add( AmmoReserveText );
