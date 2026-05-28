@@ -1,10 +1,6 @@
 {
   "DisplayName": "Wood Cabinet A2",
   "Description": "Tall weak wooden cabinet.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/woodblock.prefab"
-  },
   "PropModel": "models/props/trim_sheets/cabinets/cabinet_a2.vmdl",
   "ModelScale": 1,
   "Material": "Wood",

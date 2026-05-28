@@ -1,9 +1,6 @@
 {
   "DisplayName": "MetalBlock",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "boatpiece_test.prefab"
-  },
+  "PropModel": "models/dev/box.vmdl",
   "Material": "Metal",
   "Cost": 10,
   "Weight": 20,

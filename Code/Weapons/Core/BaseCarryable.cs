@@ -2,7 +2,7 @@ using Sandbox;
 
 public abstract class BaseCarryable : Component
 {
-	[Property, Sync( SyncFlags.FromHost )] public int InventorySlot { get; set; } = -1;
+	[Property, Group( "Inventory" ), Sync( SyncFlags.FromHost )] public int InventorySlot { get; set; } = -1;
 
 	public PlayerInventory Inventory { get; set; }
 

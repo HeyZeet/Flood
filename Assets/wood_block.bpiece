@@ -1,9 +1,6 @@
 {
   "DisplayName": "Wood Block",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "boatpiece_test.prefab"
-  },
+  "PropModel": "models/dev/box.vmdl",
   "Material": "Wood",
   "Cost": 10,
   "Weight": 10,

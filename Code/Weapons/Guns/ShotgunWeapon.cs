@@ -4,12 +4,14 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 {
 	[Property, Group( "Shotgun" )] public int PelletCount { get; set; } = 8;
 	[Property, Group( "Shotgun" )] public float PelletSpreadDegrees { get; set; } = 5.5f;
-	[Property, Group( "Shotgun Reload" )] public float EmptyFirstShellInsertInterval { get; set; } = 1.15f;
-	[Property, Group( "Shotgun Reload" )] public float ShellInsertInterval { get; set; } = 1f;
-	[Property, Group( "Shotgun Reload" )] public string ReloadingBool { get; set; } = "b_reloading";
-	[Property, Group( "Shotgun Reload" )] public string ReloadingShellTrigger { get; set; } = "b_reloading_shell";
-	[Property, Group( "Shotgun Reload" )] public string ReloadingFirstShellTrigger { get; set; } = "b_reloading_first_shell";
-	[Property, Group( "Shotgun Reload" )] public string ReloadBodygroupBool { get; set; } = "reload_bodygroup";
+	[Property, Group( "Shotgun Reload Timing" )] public float EmptyFirstShellInsertInterval { get; set; } = 1.15f;
+	[Property, Group( "Shotgun Reload Timing" )] public float ShellInsertInterval { get; set; } = 1f;
+	[Property, Group( "Shotgun Reload Sounds" )] public SoundEvent EmptyFirstShellInsertSound { get; set; }
+	[Property, Group( "Shotgun Reload Sounds" )] public SoundEvent ShellInsertSound { get; set; }
+	[Property, Group( "Shotgun Reload Animation" )] public string ReloadingBool { get; set; } = "b_reloading";
+	[Property, Group( "Shotgun Reload Animation" )] public string ReloadingShellTrigger { get; set; } = "b_reloading_shell";
+	[Property, Group( "Shotgun Reload Animation" )] public string ReloadingFirstShellTrigger { get; set; } = "b_reloading_first_shell";
+	[Property, Group( "Shotgun Reload Animation" )] public string ReloadBodygroupBool { get; set; } = "reload_bodygroup";
 
 	public override string DisplayName => "Shotgun";
 
@@ -18,13 +20,6 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 	private bool LastShellUsedEmptyFirstAnimation { get; set; }
 	private bool ReloadStartedEmpty { get; set; }
 	private bool WaitingForReloadEnd { get; set; }
-
-	public override void OnDeploy()
-	{
-		base.OnDeploy();
-
-		Log.Info( "Shotgun deployed." );
-	}
 
 	protected override void OnStart()
 	{
@@ -59,8 +54,6 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		StopShotgunReloadEffects();
 
 		base.OnHolster();
-
-		Log.Info( "Shotgun holstered." );
 	}
 
 	protected override bool CanPrimaryAttackWhileReloading()
@@ -84,17 +77,12 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		base.PrimaryAttackHost( start, baseDirection );
 	}
 
-	protected override bool CanReload()
-	{
-		return base.CanReload();
-	}
-
 	protected override void StartReload( bool ownerAlreadyPredicted = true )
 	{
 		if ( !Networking.IsHost )
 		{
 			if ( CanReload() )
-				PlayShotgunReloadStart();
+				PlayShotgunReloadStart( AmmoInClip <= 0 );
 
 			RequestShotgunReload();
 			return;
@@ -110,8 +98,8 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		WaitingForReloadEnd = false;
 		TimeSinceShellStarted = 0f;
 
-		PlayShotgunReloadStart();
-		BroadcastShotgunReloadStart( ownerAlreadyPredicted );
+		PlayShotgunReloadStart( ReloadStartedEmpty );
+		BroadcastShotgunReloadStart( ReloadStartedEmpty, ownerAlreadyPredicted );
 	}
 
 	[Rpc.Host]
@@ -147,12 +135,13 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 			return;
 		}
 
-		TimeSinceShellStarted = 0f;
-	}
+		if ( LastShellUsedEmptyFirstAnimation )
+		{
+			PlayShotgunReloadLoopStart();
+			BroadcastShotgunReloadLoopStart( IsLocallyControlled() );
+		}
 
-	protected override void FinishReload()
-	{
-		FinishShotgunReload();
+		TimeSinceShellStarted = 0f;
 	}
 
 	protected override void CancelReload()
@@ -203,8 +192,11 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		HasInsertedFirstReloadShell = true;
 		LastShellUsedEmptyFirstAnimation = shouldUseEmptyFirstShellAnimation;
 
-		PlayShotgunShellInsert( shouldUseEmptyFirstShellAnimation );
-		BroadcastShotgunShellInsert( shouldUseEmptyFirstShellAnimation );
+		if ( !shouldUseEmptyFirstShellAnimation )
+		{
+			PlayShotgunShellInsert( false );
+			BroadcastShotgunShellInsert( false, IsLocallyControlled() );
+		}
 	}
 
 	private void FinishShotgunReload()
@@ -222,7 +214,7 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		WaitingForReloadEnd = false;
 		TimeSinceShellStarted = 0f;
 
-		PlayShotgunReloadEnd();
+		StopShotgunReloadEffects();
 		BroadcastShotgunReloadEnd();
 	}
 
@@ -237,11 +229,22 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		return System.MathF.Max( ShellInsertInterval, 0.05f );
 	}
 
-	private void PlayShotgunReloadStart()
+	private void PlayShotgunReloadStart( bool startsEmpty = false )
 	{
 		if ( ReloadSound is not null )
 			Sound.Play( ReloadSound, WorldPosition );
 
+		if ( startsEmpty )
+		{
+			PlayShotgunShellInsert( true );
+			return;
+		}
+
+		PlayShotgunReloadLoopStart();
+	}
+
+	private void PlayShotgunReloadLoopStart()
+	{
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( !viewModel.IsValid() )
@@ -253,6 +256,8 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 
 	private void PlayShotgunShellInsert( bool firstShell )
 	{
+		PlayShotgunShellInsertSound( firstShell );
+
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
 		if ( !viewModel.IsValid() )
@@ -261,9 +266,12 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		viewModel.PlayAnimation( firstShell ? ReloadingFirstShellTrigger : ReloadingShellTrigger );
 	}
 
-	private void PlayShotgunReloadEnd()
+	private void PlayShotgunShellInsertSound( bool firstShell )
 	{
-		StopShotgunReloadEffects();
+		var sound = firstShell ? EmptyFirstShellInsertSound : ShellInsertSound;
+
+		if ( sound is not null )
+			Sound.Play( sound, WorldPosition );
 	}
 
 	private void StopShotgunReloadEffects()
@@ -280,34 +288,54 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		viewModel.SetAnimationBool( ReloadTrigger, false );
 	}
 
-	private void BroadcastShotgunReloadStart( bool skipLocalOwner = true )
+	private void BroadcastShotgunReloadStart( bool startsEmpty, bool skipLocalOwner = true )
 	{
 		if ( !Networking.IsHost )
 			return;
 
-		PlayShotgunReloadStartBroadcast( skipLocalOwner );
+		PlayShotgunReloadStartBroadcast( startsEmpty, skipLocalOwner );
 	}
 
 	[Rpc.Broadcast]
-	private void PlayShotgunReloadStartBroadcast( bool skipLocalOwner )
+	private void PlayShotgunReloadStartBroadcast( bool startsEmpty, bool skipLocalOwner )
 	{
 		if ( skipLocalOwner && IsLocallyControlled() )
 			return;
 
-		PlayShotgunReloadStart();
+		PlayShotgunReloadStart( startsEmpty );
 	}
 
-	private void BroadcastShotgunShellInsert( bool firstShell )
+	private void BroadcastShotgunReloadLoopStart( bool skipLocalOwner )
 	{
 		if ( !Networking.IsHost )
 			return;
 
-		PlayShotgunShellInsertBroadcast( firstShell );
+		PlayShotgunReloadLoopStartBroadcast( skipLocalOwner );
 	}
 
 	[Rpc.Broadcast]
-	private void PlayShotgunShellInsertBroadcast( bool firstShell )
+	private void PlayShotgunReloadLoopStartBroadcast( bool skipLocalOwner )
 	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
+		PlayShotgunReloadLoopStart();
+	}
+
+	private void BroadcastShotgunShellInsert( bool firstShell, bool skipLocalOwner )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		PlayShotgunShellInsertBroadcast( firstShell, skipLocalOwner );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayShotgunShellInsertBroadcast( bool firstShell, bool skipLocalOwner )
+	{
+		if ( skipLocalOwner && IsLocallyControlled() )
+			return;
+
 		PlayShotgunShellInsert( firstShell );
 	}
 
@@ -322,6 +350,6 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 	[Rpc.Broadcast]
 	private void PlayShotgunReloadEndBroadcast()
 	{
-		PlayShotgunReloadEnd();
+		StopShotgunReloadEffects();
 	}
 }

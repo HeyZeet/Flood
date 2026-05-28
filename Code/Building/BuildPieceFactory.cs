@@ -34,7 +34,7 @@ public sealed class BuildPieceFactory : Component
 		if ( !string.IsNullOrWhiteSpace( validationError ) )
 			return BuildPieceSpawnResult.Failed( validationError );
 
-		var pieceObject = pieceData.Prefab.Clone( position, rotation );
+		var pieceObject = CreatePieceObject( pieceData, position, rotation );
 		var buildPiece = SetupBuildPieceComponent( pieceObject, pieceData, owner );
 
 		if ( !buildPiece.IsValid() )
@@ -56,10 +56,35 @@ public sealed class BuildPieceFactory : Component
 		if ( pieceData is null )
 			return "BuildPieceFactory tried to spawn a null piece data.";
 
-		if ( !pieceData.Prefab.IsValid() )
-			return $"{pieceData.DisplayName} has no prefab assigned.";
+		if ( !pieceData.PropModel.IsValid() && !pieceData.Prefab.IsValid() )
+			return $"{pieceData.DisplayName} has no prop model or prefab assigned.";
 
 		return "";
+	}
+
+	private GameObject CreatePieceObject( BuildPieceData pieceData, Vector3 position, Rotation rotation )
+	{
+		if ( pieceData.PropModel.IsValid() )
+			return CreatePropModelPieceObject( pieceData, position, rotation );
+
+		return pieceData.Prefab.Clone( position, rotation );
+	}
+
+	private GameObject CreatePropModelPieceObject( BuildPieceData pieceData, Vector3 position, Rotation rotation )
+	{
+		var pieceObject = new GameObject( true, pieceData.DisplayName );
+		pieceObject.WorldPosition = position;
+		pieceObject.WorldRotation = rotation;
+
+		var renderer = pieceObject.Components.Create<ModelRenderer>();
+		renderer.Model = pieceData.PropModel;
+
+		pieceObject.Components.Create<BuildPiece>();
+		pieceObject.Components.Create<BoatPieceHealth>();
+		pieceObject.Components.Create<Rigidbody>();
+		pieceObject.Components.Create<FloodBuoyancy>();
+
+		return pieceObject;
 	}
 
 	private BuildPiece SetupBuildPieceComponent( GameObject pieceObject, BuildPieceData pieceData, GameObject owner )

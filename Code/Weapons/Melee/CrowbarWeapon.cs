@@ -4,8 +4,8 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 {
 	public override string DisplayName => "Crowbar";
 
-	[Property] public SoundEvent SwingSound { get; set; }
-	[Property] public SoundEvent HitSound { get; set; }
+	[Property, Group( "Sounds" )] public SoundEvent SwingSound { get; set; }
+	[Property, Group( "Sounds" )] public SoundEvent HitSound { get; set; }
 
 	private ThirdPersonWeaponModel ThirdPersonModel =>
 	Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );

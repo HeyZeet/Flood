@@ -1,10 +1,6 @@
 {
   "DisplayName": "Couch",
   "Description": "Bulky wood/fabric float piece.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/woodblock.prefab"
-  },
   "PropModel": "models/props/couch/couch.vmdl",
   "ModelScale": 1,
   "Material": "Wood",

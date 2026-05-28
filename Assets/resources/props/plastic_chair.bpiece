@@ -1,10 +1,6 @@
 {
   "DisplayName": "Plastic Chair",
   "Description": "Very light but fragile.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/woodblock.prefab"
-  },
   "PropModel": "models/furniture/plastic_monobloc_chair_01.vmdl",
   "ModelScale": 1,
   "Material": "Plastic",

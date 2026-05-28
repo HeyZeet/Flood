@@ -1,10 +1,6 @@
 {
   "DisplayName": "Armor Panel 48x32",
   "Description": "Large armor plate.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/sbox_props/airducts/airduct_a_panel_48x32.vmdl",
   "ModelScale": 1,
   "Material": "Armor",

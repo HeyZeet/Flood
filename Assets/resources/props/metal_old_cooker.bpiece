@@ -1,10 +1,6 @@
 {
   "DisplayName": "Old Cooker",
   "Description": "Very heavy but durable appliance.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/props/cooker/cooker.vmdl",
   "ModelScale": 1,
   "Material": "Metal",

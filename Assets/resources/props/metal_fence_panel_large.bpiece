@@ -1,10 +1,6 @@
 {
   "DisplayName": "Large Fence Panel",
   "Description": "Strong heavy metal panel.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/props/temporary_fencing/fence_panel_large.vmdl",
   "ModelScale": 1,
   "Material": "Metal",

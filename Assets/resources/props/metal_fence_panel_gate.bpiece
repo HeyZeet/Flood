@@ -1,10 +1,6 @@
 {
   "DisplayName": "Fence Gate",
   "Description": "Large sturdy metal gate.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/props/temporary_fencing/fence_panel_gate.vmdl",
   "ModelScale": 1,
   "Material": "Metal",

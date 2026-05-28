@@ -2,15 +2,13 @@ using Sandbox;
 
 public abstract class BaseToolWeapon : BaseWeapon
 {
-	[Header( "Tool Trace" )]
-	[Property] public float ToolRange { get; set; } = 350f;
-	[Property] public float ToolTraceRadius { get; set; } = 4f;
-	[Property] public bool DrawDebugToolTrace { get; set; } = true;
+	[Property, Group( "Tool Trace" )] public float ToolRange { get; set; } = 350f;
+	[Property, Group( "Tool Trace" )] public float ToolTraceRadius { get; set; } = 4f;
+	[Property, Group( "Tool Trace" )] public bool DrawDebugToolTrace { get; set; } = true;
 
-	[Header( "Tool Sounds" )]
-	[Property] public SoundEvent UseSound { get; set; }
-	[Property] public SoundEvent SuccessSound { get; set; }
-	[Property] public SoundEvent FailSound { get; set; }
+	[Property, Group( "Tool Sounds" )] public SoundEvent UseSound { get; set; }
+	[Property, Group( "Tool Sounds" )] public SoundEvent SuccessSound { get; set; }
+	[Property, Group( "Tool Sounds" )] public SoundEvent FailSound { get; set; }
 
 	protected override void OnStart()
 	{

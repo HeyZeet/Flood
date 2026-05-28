@@ -1,10 +1,6 @@
 {
   "DisplayName": "Metal Door",
   "Description": "Flat, durable metal panel.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/props/trim_sheets/doors/metal_doors/metal_door_01a.vmdl",
   "ModelScale": 1,
   "Material": "Metal",

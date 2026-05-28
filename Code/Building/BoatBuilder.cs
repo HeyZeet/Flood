@@ -467,9 +467,9 @@ public sealed class BoatBuilder : BaseCarryable
 			return false;
 		}
 
-		if ( !pieceData.Prefab.IsValid() )
+		if ( !pieceData.PropModel.IsValid() && !pieceData.Prefab.IsValid() )
 		{
-			Log.Warning( $"Selected piece {pieceData.DisplayName} has no valid prefab." );
+			Log.Warning( $"Selected piece {pieceData.DisplayName} has no valid prop model or prefab." );
 			return false;
 		}
 

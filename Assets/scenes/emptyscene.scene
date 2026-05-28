@@ -551,8 +551,8 @@
               "__enabled": true,
               "Flags": 0,
               "AvailablePieces": [
-                "wood_block.bpiece",
-                "metal_block.bpiece"
+                "resources/props/wood_pallet.bpiece",
+                "resources/props/metal_fence_panel_large.bpiece"
               ],
               "InventorySlot": 1,
               "OnComponentDestroy": null,

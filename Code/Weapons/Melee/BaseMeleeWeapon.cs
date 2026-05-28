@@ -2,9 +2,9 @@ using Sandbox;
 
 public abstract class BaseMeleeWeapon : BaseWeapon
 {
-	[Property] public float Range { get; set; } = 85f;
-	[Property] public float TraceRadius { get; set; } = 8f;
-	[Property] public bool DrawDebugTrace { get; set; } = true;
+	[Property, Group( "Melee Trace" )] public float Range { get; set; } = 85f;
+	[Property, Group( "Melee Trace" )] public float TraceRadius { get; set; } = 8f;
+	[Property, Group( "Melee Trace" )] public bool DrawDebugTrace { get; set; } = true;
 
 	public override void PrimaryAttack()
 	{

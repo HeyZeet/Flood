@@ -1,10 +1,6 @@
 {
   "DisplayName": "Armor Panel 16x16",
   "Description": "Small cheap armor plate.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/sbox_props/airducts/airduct_a_panel_16x32.vmdl",
   "ModelScale": 1,
   "Material": "Armor",

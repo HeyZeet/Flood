@@ -1,10 +1,6 @@
 {
   "DisplayName": "Iron Fence 128",
   "Description": "Long heavy iron fence segment.",
-  "Prefab": {
-    "_type": "gameobject",
-    "prefab": "prefabs/builder/metalblock.prefab"
-  },
   "PropModel": "models/sbox_props/iron_fence/iron_fence_128.vmdl",
   "ModelScale": 1,
   "Material": "Metal",

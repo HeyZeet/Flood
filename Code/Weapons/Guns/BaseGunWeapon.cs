@@ -3,52 +3,44 @@ using System;
 
 public abstract class BaseGunWeapon : BaseWeapon
 {
-	[Header( "Gun" )]
-	[Property] public float BulletRange { get; set; } = 5000f;
-	[Property] public float BulletRadius { get; set; } = 1.5f;
-	[Property] public bool DrawDebugTrace { get; set; } = true;
+	[Property, Group( "Gun" )] public float BulletRange { get; set; } = 5000f;
+	[Property, Group( "Gun" )] public float BulletRadius { get; set; } = 1.5f;
+	[Property, Group( "Gun" )] public bool DrawDebugTrace { get; set; } = true;
 
-	[Header( "Ammo" )]
-	[Property, Sync( SyncFlags.FromHost )] public int ReserveAmmo { get; set; } = 48;
-	[Property] public bool HasReserveAmmo { get; set; } = true;
-	[Property] public bool InfiniteAmmo { get; set; } = true;
-	[Property] public int ClipSize { get; set; } = 12;
-	[Property, Sync( SyncFlags.FromHost )] public int AmmoInClip { get; set; } = 12;
+	[Property, Group( "Ammo" ), Sync( SyncFlags.FromHost )] public int ReserveAmmo { get; set; } = 48;
+	[Property, Group( "Ammo" )] public bool HasReserveAmmo { get; set; } = true;
+	[Property, Group( "Ammo" )] public bool InfiniteAmmo { get; set; } = true;
+	[Property, Group( "Ammo" )] public int ClipSize { get; set; } = 12;
+	[Property, Group( "Ammo" ), Sync( SyncFlags.FromHost )] public int AmmoInClip { get; set; } = 12;
 
-	[Header( "Reload" )]
-	[Property] public float ReloadTime { get; set; } = 1.4f;
-	[Property] public SoundEvent ReloadSound { get; set; }
+	[Property, Group( "Reload" )] public float ReloadTime { get; set; } = 1.4f;
+	[Property, Group( "Sounds" )] public SoundEvent ReloadSound { get; set; }
 
-	[Header( "Accuracy" )]
-	[Property] public float BaseSpreadDegrees { get; set; } = 0.5f;
-	[Property] public float MaxSpreadDegrees { get; set; } = 3f;
-	[Property] public float SpreadPerShot { get; set; } = 0.35f;
-	[Property] public float SpreadRecoveryRate { get; set; } = 4f;
+	[Property, Group( "Accuracy" )] public float BaseSpreadDegrees { get; set; } = 0.5f;
+	[Property, Group( "Accuracy" )] public float MaxSpreadDegrees { get; set; } = 3f;
+	[Property, Group( "Accuracy" )] public float SpreadPerShot { get; set; } = 0.35f;
+	[Property, Group( "Accuracy" )] public float SpreadRecoveryRate { get; set; } = 4f;
 
-	[Header( "Recoil" )]
-	[Property] public float RecoilPitch { get; set; } = 1.1f;
-	[Property] public float RecoilYaw { get; set; } = 0.35f;
+	[Property, Group( "Recoil" )] public float RecoilPitch { get; set; } = 1.1f;
+	[Property, Group( "Recoil" )] public float RecoilYaw { get; set; } = 0.35f;
 
-	[Header( "Effects" )]
-	[Property] public SoundEvent FireSound { get; set; }
-	[Property] public SoundEvent DryFireSound { get; set; }
+	[Property, Group( "Sounds" )] public SoundEvent FireSound { get; set; }
+	[Property, Group( "Sounds" )] public SoundEvent DryFireSound { get; set; }
 
-	[Header( "Impact Effects" )]
-	[Property] public GameObject DefaultImpactPrefab { get; set; }
-	[Property] public GameObject WoodImpactPrefab { get; set; }
-	[Property] public GameObject MetalImpactPrefab { get; set; }
-	[Property] public GameObject GlassImpactPrefab { get; set; }
-	[Property] public GameObject WaterImpactPrefab { get; set; }
-	[Property] public GameObject BrickImpactPrefab { get; set; }
-	[Property] public GameObject FleshImpactPrefab { get; set; }
-	[Property] public float ImpactLifeTime { get; set; } = 1.5f;
+	[Property, Group( "Impact Effects" )] public GameObject DefaultImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject WoodImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject MetalImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject GlassImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject WaterImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject BrickImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject FleshImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public float ImpactLifeTime { get; set; } = 1.5f;
 
-	[Header( "Muzzle Flash" )]
-	[Property] public GameObject MuzzleFlashPrefab { get; set; }
-	[Property] public string MuzzleBoneName { get; set; } = "muzzle";
-	[Property] public Vector3 MuzzleFlashPositionOffset { get; set; } = Vector3.Zero;
-	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
-	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
+	[Property, Group( "Muzzle Flash" )] public GameObject MuzzleFlashPrefab { get; set; }
+	[Property, Group( "Muzzle Flash" )] public string MuzzleBoneName { get; set; } = "muzzle";
+	[Property, Group( "Muzzle Flash" )] public Vector3 MuzzleFlashPositionOffset { get; set; } = Vector3.Zero;
+	[Property, Group( "Muzzle Flash" )] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
+	[Property, Group( "Muzzle Flash" )] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
 	[Sync( SyncFlags.FromHost )] public bool IsReloading { get; protected set; }
 

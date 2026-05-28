@@ -6,17 +6,16 @@ public sealed class WeldToolWeapon : BaseToolWeapon
 {
 	public override string DisplayName => "Weld Tool";
 
-	[Header( "Welding" )]
-	[Property] public bool RequireBuildPhase { get; set; } = true;
-	[Property] public float WeldLinearStrength { get; set; } = 1800f;
-	[Property] public float WeldAngularStrength { get; set; } = 1200f;
-	[Property] public bool EnableWeldedPieceCollisions { get; set; } = false;
-	[Property] public bool CreatePhysicalJoints { get; set; } = false;
-	[Property] public int MaxSelectedPieces { get; set; } = 12;
-	[Property] public float MaxMultiWeldGap { get; set; } = 128f;
-	[Property] public SoundEvent SelectSound { get; set; }
-	[Property] public SoundEvent WeldSound { get; set; }
-	[Property] public SoundEvent UnweldSound { get; set; }
+	[Property, Group( "Welding" )] public bool RequireBuildPhase { get; set; } = true;
+	[Property, Group( "Welding" )] public float WeldLinearStrength { get; set; } = 1800f;
+	[Property, Group( "Welding" )] public float WeldAngularStrength { get; set; } = 1200f;
+	[Property, Group( "Welding" )] public bool EnableWeldedPieceCollisions { get; set; } = false;
+	[Property, Group( "Welding" )] public bool CreatePhysicalJoints { get; set; } = false;
+	[Property, Group( "Welding" )] public int MaxSelectedPieces { get; set; } = 12;
+	[Property, Group( "Welding" )] public float MaxMultiWeldGap { get; set; } = 128f;
+	[Property, Group( "Tool Sounds" )] public SoundEvent SelectSound { get; set; }
+	[Property, Group( "Tool Sounds" )] public SoundEvent WeldSound { get; set; }
+	[Property, Group( "Tool Sounds" )] public SoundEvent UnweldSound { get; set; }
 
 	[Sync( SyncFlags.FromHost )] public string FirstWeldTargetName { get; private set; } = "No selection";
 	[Sync( SyncFlags.FromHost )] public int SelectedPieceCount { get; private set; }

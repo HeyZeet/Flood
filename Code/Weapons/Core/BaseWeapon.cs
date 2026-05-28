@@ -2,25 +2,25 @@ using Sandbox;
 
 public abstract class BaseWeapon : BaseCarryable
 {
-	[Property] public float Damage { get; set; } = 10f;
+	[Property, Group( "Damage" )] public float Damage { get; set; } = 10f;
 	[Property, Group( "Damage" )] public bool IgnoreRoundDamageRules { get; set; } = false;
-	[Property] public float PrimaryFireRate { get; set; } = 0.5f;
-	[Property] public float SecondaryFireRate { get; set; } = 0.5f;
+	[Property, Group( "Fire Rates" )] public float PrimaryFireRate { get; set; } = 0.5f;
+	[Property, Group( "Fire Rates" )] public float SecondaryFireRate { get; set; } = 0.5f;
 
-	[Header( "Input" )]
-	[Property] public bool RepeatPrimaryAttackWhileHeld { get; set; } = true;
-	[Property] public bool RepeatSecondaryAttackWhileHeld { get; set; } = true;
+	[Property, Group( "Sounds" )] public SoundEvent DeploySound { get; set; }
 
-	[Header( "Animation" )]
-	[Property] public SkinnedModelRenderer AnimationRenderer { get; set; }
-	[Property] public string HoldType { get; set; } = "holditem";
-	[Property] public bool PlayDeployAnimation { get; set; } = true;
-	[Property] public bool PlayAttackAnimation { get; set; } = true;
+	[Property, Group( "Input" )] public bool RepeatPrimaryAttackWhileHeld { get; set; } = true;
+	[Property, Group( "Input" )] public bool RepeatSecondaryAttackWhileHeld { get; set; } = true;
 
-	[Property] public string DeployTrigger { get; set; } = "b_deploy";
-	[Property] public string AttackTrigger { get; set; } = "b_attack";
-	[Property] public string DryAttackTrigger { get; set; } = "b_attack_dry";
-	[Property] public string ReloadTrigger { get; set; } = "b_reload";
+	[Property, Group( "Animation" )] public SkinnedModelRenderer AnimationRenderer { get; set; }
+	[Property, Group( "Animation" )] public string HoldType { get; set; } = "holditem";
+	[Property, Group( "Animation" )] public bool PlayDeployAnimation { get; set; } = true;
+	[Property, Group( "Animation" )] public bool PlayAttackAnimation { get; set; } = true;
+
+	[Property, Group( "Animation Parameters" )] public string DeployTrigger { get; set; } = "b_deploy";
+	[Property, Group( "Animation Parameters" )] public string AttackTrigger { get; set; } = "b_attack";
+	[Property, Group( "Animation Parameters" )] public string DryAttackTrigger { get; set; } = "b_attack_dry";
+	[Property, Group( "Animation Parameters" )] public string ReloadTrigger { get; set; } = "b_reload";
 
 	protected TimeSince TimeSincePrimaryAttack { get; private set; }
 	protected TimeSince TimeSinceSecondaryAttack { get; private set; }
@@ -112,6 +112,7 @@ public abstract class BaseWeapon : BaseCarryable
 
 		ClearOneShotAnimationParams();
 		ApplyHoldType();
+		PlayDeploySound();
 
 		if ( PlayDeployAnimation )
 			PlayWeaponAnimation( DeployTrigger );
@@ -184,6 +185,14 @@ public abstract class BaseWeapon : BaseCarryable
 	public override void SecondaryAttack()
 	{
 		Log.Info( $"{DisplayName} secondary attack." );
+	}
+
+	protected virtual void PlayDeploySound()
+	{
+		if ( DeploySound is null )
+			return;
+
+		Sound.Play( DeploySound, WorldPosition );
 	}
 
 	protected void ShowWeaponVisuals()

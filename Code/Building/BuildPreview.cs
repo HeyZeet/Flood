@@ -51,13 +51,13 @@ public sealed class BuildPreview : Component
 
 		CurrentPieceData = pieceData;
 
-		if ( !pieceData.Prefab.IsValid() )
+		if ( !pieceData.PropModel.IsValid() && !pieceData.Prefab.IsValid() )
 		{
-			Log.Warning( $"{pieceData.DisplayName} has no prefab assigned." );
+			Log.Warning( $"{pieceData.DisplayName} has no prop model or prefab assigned." );
 			return;
 		}
 
-		PreviewObject = pieceData.Prefab.Clone( position, rotation );
+		PreviewObject = CreatePreviewObject( pieceData, position, rotation );
 		PreviewObject.Name = $"Preview - {pieceData.DisplayName}";
 
 		ApplyPieceDataToPreview( pieceData );
@@ -70,6 +70,24 @@ public sealed class BuildPreview : Component
 		ApplyPreviewColor( ValidColor );
 
 		Log.Info( $"Created build preview: {pieceData.DisplayName}" );
+	}
+
+	private GameObject CreatePreviewObject( BuildPieceData pieceData, Vector3 position, Rotation rotation )
+	{
+		if ( pieceData.PropModel.IsValid() )
+		{
+			var previewObject = new GameObject( true, $"Preview - {pieceData.DisplayName}" );
+			previewObject.NetworkMode = NetworkMode.Never;
+			previewObject.WorldPosition = position;
+			previewObject.WorldRotation = rotation;
+
+			var renderer = previewObject.Components.Create<ModelRenderer>();
+			renderer.Model = pieceData.PropModel;
+
+			return previewObject;
+		}
+
+		return pieceData.Prefab.Clone( position, rotation );
 	}
 
 	private void ApplyPieceDataToPreview( BuildPieceData pieceData )
