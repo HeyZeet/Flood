@@ -362,6 +362,204 @@ FloodHud {
 	color: rgba( 255, 255, 255, 0.72 );
 }
 
+.flood-hud__shop {
+	position: absolute;
+	right: 54px;
+	top: 96px;
+	width: 620px;
+	max-height: 760px;
+	z-index: 520;
+	padding: 18px;
+	border-radius: 8px;
+	background-color: rgba( 3, 8, 12, 0.88 );
+	backdrop-filter: blur( 12px );
+	flex-direction: column;
+	gap: 14px;
+	pointer-events: all;
+}
+
+.flood-hud__shop-header {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.flood-hud__shop-title {
+	font-size: 30px;
+	font-weight: 900;
+	text-transform: uppercase;
+}
+
+.flood-hud__shop-subtitle {
+	font-size: 14px;
+	font-weight: 700;
+	opacity: 0.68;
+	text-transform: uppercase;
+}
+
+.flood-hud__shop-resources {
+	padding: 8px 12px;
+	border-radius: 6px;
+	background-color: rgba( 105, 210, 255, 0.14 );
+	color: rgb( 105, 210, 255 );
+	font-size: 18px;
+	font-weight: 900;
+}
+
+.flood-hud__shop-tabs {
+	flex-direction: row;
+	gap: 8px;
+}
+
+.flood-hud__shop-tab {
+	height: 38px;
+	padding: 0px 14px;
+	border-radius: 6px;
+	background-color: rgba( 255, 255, 255, 0.07 );
+	align-items: center;
+	font-size: 14px;
+	font-weight: 800;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.flood-hud__shop-tab:hover {
+	background-color: rgba( 255, 255, 255, 0.14 );
+}
+
+.flood-hud__shop-tab.is-active {
+	background-color: rgba( 105, 210, 255, 0.22 );
+	color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__shop-list {
+	flex-direction: column;
+	gap: 10px;
+}
+
+.flood-hud__shop-item {
+	min-height: 118px;
+	padding: 10px;
+	border-radius: 8px;
+	background-color: rgba( 255, 255, 255, 0.065 );
+	border: 1px solid rgba( 255, 255, 255, 0.08 );
+	flex-direction: row;
+	align-items: stretch;
+	gap: 12px;
+}
+
+.flood-hud__shop-item.is-disabled {
+	opacity: 0.58;
+}
+
+.flood-hud__shop-preview {
+	width: 112px;
+	min-width: 112px;
+	border-radius: 6px;
+	background-color: rgba( 0, 0, 0, 0.24 );
+	overflow: hidden;
+}
+
+.flood-hud__shop-preview BuildPieceModelPanel {
+	width: 100%;
+	height: 100%;
+}
+
+.flood-hud__shop-copy {
+	flex-direction: column;
+	flex-grow: 1;
+	gap: 4px;
+}
+
+.flood-hud__shop-item-name {
+	font-size: 18px;
+	font-weight: 900;
+}
+
+.flood-hud__shop-item-description {
+	font-size: 13px;
+	line-height: 17px;
+	opacity: 0.72;
+}
+
+.flood-hud__shop-item-meta {
+	margin-top: auto;
+	flex-direction: row;
+	gap: 12px;
+	font-size: 13px;
+	font-weight: 800;
+	color: rgba( 255, 255, 255, 0.72 );
+}
+
+.flood-hud__shop-buy {
+	width: 76px;
+	border-radius: 6px;
+	background-color: rgba( 105, 210, 255, 0.2 );
+	color: rgb( 105, 210, 255 );
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 900;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.flood-hud__shop-buy:hover {
+	background-color: rgba( 105, 210, 255, 0.3 );
+}
+
+.flood-hud__carryable-selector {
+	position: absolute;
+	left: 50%;
+	bottom: 118px;
+	transform: translateX( -50% );
+	z-index: 460;
+	flex-direction: row;
+	gap: 8px;
+	padding: 8px;
+	border-radius: 8px;
+	background-color: rgba( 0, 0, 0, 0.58 );
+	backdrop-filter: blur( 8px );
+}
+
+.flood-hud__carryable-item {
+	width: 150px;
+	height: 54px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	background-color: rgba( 255, 255, 255, 0.07 );
+	border: 1px solid rgba( 255, 255, 255, 0.08 );
+	flex-direction: row;
+	align-items: center;
+	gap: 9px;
+}
+
+.flood-hud__carryable-item.is-active {
+	background-color: rgba( 105, 210, 255, 0.22 );
+	border-color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__carryable-slot {
+	width: 28px;
+	height: 28px;
+	border-radius: 5px;
+	background-color: rgba( 255, 255, 255, 0.12 );
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
+	font-weight: 900;
+	color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__carryable-name {
+	flex-grow: 1;
+	font-size: 14px;
+	font-weight: 800;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .flood-hud__ammo {
 	position: absolute;
 	right: 64px;

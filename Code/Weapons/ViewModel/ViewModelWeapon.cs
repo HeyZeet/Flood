@@ -112,6 +112,20 @@ public sealed class ViewModelWeapon : Component
 		SetAnimationTrigger( triggerName );
 	}
 
+	public void SetAnimationBool( string parameterName, bool value )
+	{
+		if ( !ShouldUseViewModel() )
+			return;
+
+		if ( string.IsNullOrWhiteSpace( parameterName ) )
+			return;
+
+		if ( !WeaponRenderer.IsValid() )
+			return;
+
+		WeaponRenderer.Set( parameterName, value );
+	}
+
 	public bool TryGetBoneTransform( string boneName, out Transform boneTransform )
 	{
 		boneTransform = default;
@@ -259,5 +273,9 @@ public sealed class ViewModelWeapon : Component
 		WeaponRenderer.Set( DryAttackTrigger, false );
 		WeaponRenderer.Set( DeployTrigger, false );
 		WeaponRenderer.Set( ReloadTrigger, false );
+		WeaponRenderer.Set( "b_reloading", false );
+		WeaponRenderer.Set( "b_reloading_shell", false );
+		WeaponRenderer.Set( "b_reloading_first_shell", false );
+		WeaponRenderer.Set( "reload_bodygroup", false );
 	}
 }

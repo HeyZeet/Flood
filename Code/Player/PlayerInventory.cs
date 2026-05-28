@@ -173,7 +173,24 @@ public sealed class PlayerInventory : Component
 			return false;
 		}
 
-		return AddCarryable( carryable, slot, makeActive );
+		if ( !AddCarryable( carryable, slot, makeActive ) )
+		{
+			obj.Destroy();
+			return false;
+		}
+
+		if ( !obj.Network.Active )
+		{
+			var owner = GameObject.Network.Owner;
+			var spawned = owner is not null
+				? obj.NetworkSpawn( owner )
+				: obj.NetworkSpawn();
+
+			if ( !spawned )
+				Log.Warning( $"Failed to network spawn carryable {carryable.DisplayName}." );
+		}
+
+		return true;
 	}
 
 	public BaseCarryable GetCarryableInSlot( int slot )

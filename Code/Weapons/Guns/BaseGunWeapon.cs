@@ -50,7 +50,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 	[Property] public Angles MuzzleFlashRotationOffset { get; set; } = Angles.Zero;
 	[Property] public float MuzzleFlashLifeTime { get; set; } = 0.08f;
 
-	[Sync( SyncFlags.FromHost )] public bool IsReloading { get; private set; }
+	[Sync( SyncFlags.FromHost )] public bool IsReloading { get; protected set; }
 
 	private TimeSince TimeSinceReloadStarted { get; set; }
 	private float CurrentSpreadDegrees { get; set; }
@@ -108,7 +108,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 	public override bool CanPrimaryAttack()
 	{
-		if ( IsReloading )
+		if ( IsReloading && !CanPrimaryAttackWhileReloading() )
 			return false;
 
 		return base.CanPrimaryAttack();
@@ -151,7 +151,7 @@ public abstract class BaseGunWeapon : BaseWeapon
 		PrimaryAttackHost( start, direction );
 	}
 
-	private void PrimaryAttackHost( Vector3 start, Vector3 baseDirection )
+	protected virtual void PrimaryAttackHost( Vector3 start, Vector3 baseDirection )
 	{
 		if ( IsReloading )
 			return;
@@ -177,6 +177,11 @@ public abstract class BaseGunWeapon : BaseWeapon
 
 		if ( AmmoInClip <= 0 && HasReserveAmmo )
 			StartReload( false );
+	}
+
+	protected virtual bool CanPrimaryAttackWhileReloading()
+	{
+		return false;
 	}
 
 	protected virtual bool HasAmmo()

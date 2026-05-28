@@ -1,0 +1,16 @@
+{
+  "DisplayName": "USP Pistol",
+  "Description": "Reliable sidearm with quick handling.",
+  "ItemType": "Weapon",
+  "SortOrder": 10,
+  "Cost": 175,
+  "UniquePurchase": true,
+  "WeaponPrefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/weapons/pistol.prefab"
+  },
+  "PreferredInventorySlot": -1,
+  "EquipOnPurchase": true,
+  "PreviewModel": "models/weapons/sbox_pistol_usp/w_usp.vmdl",
+  "__version": 0
+}

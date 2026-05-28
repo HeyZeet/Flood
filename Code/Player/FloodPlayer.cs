@@ -13,6 +13,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 	public PlayerHealth Health { get; private set; }
 	public PlayerInventory Inventory { get; private set; }
 	public PlayerBuildResources BuildResources { get; private set; }
+	public PlayerShopController Shop { get; private set; }
 	public bool IsLocalPlayer => GameObject.Network.IsOwner;
 
 	[Sync( SyncFlags.FromHost | SyncFlags.Query )] public string PlayerName { get; private set; } = "Player";
@@ -146,6 +147,10 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		Health = Components.Get<PlayerHealth>( FindMode.EverythingInSelfAndDescendants );
 		Inventory = Components.Get<PlayerInventory>( FindMode.EverythingInSelfAndDescendants );
 		BuildResources = Components.Get<PlayerBuildResources>( FindMode.EverythingInSelfAndDescendants );
+		Shop = Components.Get<PlayerShopController>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !Shop.IsValid() )
+			Shop = Components.Create<PlayerShopController>();
 	}
 
 	private void ValidateRequiredComponents()
@@ -161,6 +166,9 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 
 		if ( !BuildResources.IsValid() )
 			Log.Warning( "FloodPlayer needs PlayerBuildResources on itself or a child GameObject." );
+
+		if ( !Shop.IsValid() )
+			Log.Warning( "FloodPlayer needs PlayerShopController on itself or a child GameObject." );
 	}
 
 	private void UpdateLocalPlayerReference()

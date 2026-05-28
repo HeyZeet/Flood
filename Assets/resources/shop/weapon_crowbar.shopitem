@@ -1,0 +1,16 @@
+{
+  "DisplayName": "Crowbar",
+  "Description": "Close-range tool for breaking enemy props.",
+  "ItemType": "Weapon",
+  "SortOrder": 20,
+  "Cost": 90,
+  "UniquePurchase": true,
+  "WeaponPrefab": {
+    "_type": "gameobject",
+    "prefab": "prefabs/weapons/crowbar.prefab"
+  },
+  "PreferredInventorySlot": -1,
+  "EquipOnPurchase": true,
+  "PreviewModel": "models/weapons/sbox_melee_crowbar/w_crowbar.vmdl",
+  "__version": 0
+}
