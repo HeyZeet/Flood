@@ -2,12 +2,16 @@ using Sandbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public sealed class FloodNetworkManager : Component, Component.INetworkListener
 {
 	private readonly Dictionary<Guid, GameObject> SpawnedPlayers = new();
 
 	[Property] public GameObject PlayerPrefab { get; set; }
+
+	[Property, Group( "Networking" )]
+	public bool CreateLobbyIfNeeded { get; set; } = true;
 
 	[Property, Group( "Spawning" )]
 	public bool DestroyUnownedScenePlayersOnStart { get; set; } = true;
@@ -22,15 +26,30 @@ public sealed class FloodNetworkManager : Component, Component.INetworkListener
 	public bool LogDebug { get; set; } = true;
 
 	private bool NeedsScenePlayerCleanup { get; set; }
+	private bool HasInitializedHost { get; set; }
+
+	protected override async Task OnLoad()
+	{
+		if ( Scene.IsEditor )
+			return;
+
+		if ( !CreateLobbyIfNeeded )
+			return;
+
+		if ( Networking.IsActive )
+			return;
+
+		LoadingScreen.Title = "Creating Flood Server";
+		await Task.DelayRealtimeSeconds( 0.1f );
+		Networking.CreateLobby( new() );
+	}
 
 	protected override void OnStart()
 	{
 		if ( !Networking.IsHost )
 			return;
 
-		NeedsScenePlayerCleanup = DestroyUnownedScenePlayersOnStart;
-
-		LogNetworkState( "started" );
+		InitializeHost();
 	}
 
 	protected override void OnUpdate()
@@ -38,11 +57,44 @@ public sealed class FloodNetworkManager : Component, Component.INetworkListener
 		if ( !Networking.IsHost )
 			return;
 
-		if ( !NeedsScenePlayerCleanup )
+		if ( !HasInitializedHost )
+			InitializeHost();
+
+		if ( NeedsScenePlayerCleanup )
+		{
+			NeedsScenePlayerCleanup = false;
+			DestroyUnownedScenePlayers();
+		}
+
+		ReconcileActiveConnections();
+	}
+
+	private void InitializeHost()
+	{
+		if ( HasInitializedHost )
 			return;
 
-		NeedsScenePlayerCleanup = false;
-		DestroyUnownedScenePlayers();
+		HasInitializedHost = true;
+		NeedsScenePlayerCleanup = DestroyUnownedScenePlayersOnStart;
+
+		LogNetworkState( "started" );
+	}
+
+	private void ReconcileActiveConnections()
+	{
+		foreach ( var connection in Connection.All.Where( connection => connection is not null && connection.IsActive ) )
+		{
+			if ( HasPlayerForConnection( connection ) )
+				continue;
+
+			var playerObject = CreatePlayerForConnection( connection );
+
+			if ( !playerObject.IsValid() )
+				continue;
+
+			SpawnedPlayers[connection.Id] = playerObject;
+			LogInfo( $"Reconciled missing player for {connection.DisplayName} [{connection.Id}] at {playerObject.WorldPosition}." );
+		}
 	}
 
 	/// <summary>
