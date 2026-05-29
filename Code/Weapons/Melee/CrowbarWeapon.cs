@@ -52,44 +52,21 @@ public sealed class CrowbarWeapon : BaseMeleeWeapon
 		base.PrimaryAttack();
 	}
 
-	protected override void DoMeleeAttack( Vector3 start, Vector3 direction )
-	{
-		base.DoMeleeAttack( start, direction );
-
-		TryPlayHitSound( start, direction );
-	}
-
 	protected override void OnMeleeAttackApproved( bool skipLocalOwner )
 	{
 		base.OnMeleeAttackApproved( skipLocalOwner );
 		BroadcastSwingEffects( skipLocalOwner );
 	}
 
-	private void TryPlayHitSound( Vector3 start, Vector3 direction )
-	{
-		if ( HitSound is null )
-			return;
-
-		var owner = OwnerPlayer;
-
-		if ( !owner.IsValid() )
-			return;
-
-		var end = start + direction * Range;
-
-		var tr = Scene.Trace
-			.Sphere( TraceRadius, start, end )
-			.IgnoreGameObjectHierarchy( owner.GameObject )
-			.Run();
-
-		if ( tr.Hit )
-			PlayHitEffects( tr.HitPosition );
-	}
-
 	private void PlaySwingEffects()
 	{
 		if ( SwingSound is not null )
 			Sound.Play( SwingSound, WorldPosition );
+	}
+
+	protected override void OnMeleeHit( SceneTraceResult trace )
+	{
+		PlayHitEffects( trace.HitPosition );
 	}
 
 	private void BroadcastSwingEffects( bool skipLocalOwner )

@@ -1,212 +1,205 @@
 # Flood 2.0
 
-A work-in-progress Flood-style gamemode for [S&box](https://sbox.game/) built with C#, GameObjects, Components, Scenes, and networked server-authoritative gameplay systems.
+Flood 2.0 is a work-in-progress Flood-style gamemode for [S&box](https://sbox.game/) built with C#, GameObjects, Components, Scenes, and networked server-authoritative gameplay systems.
 
-This project is inspired by Garry's Mod Flood: players build rafts out of props, the water rises, the build phase ends, and everyone tries to survive while fighting on whatever they managed to weld together.
-
-This is my first full game project, so the goal is simple: keep the code modular, keep the systems readable, and keep improving it one playable slice at a time.
+The project is inspired by Garry's Mod Flood: players build rafts out of props, weld them together, survive rising water, then fight on whatever still floats.
 
 ## Current Gameplay Loop
 
 1. Players join the server.
 2. The round waits until enough players are connected.
 3. Build phase starts.
-4. Players spend money to place props from the build menu.
-5. Players can weld their own props together into rafts, including multi-select welds.
+4. Players use build money to place props from the build menu.
+5. Players weld owned props together into a raft.
 6. Build phase ends and water rises.
-7. Welded rafts float using the custom Flood buoyancy and stability system.
+7. Welded rafts float using the custom buoyancy and stability system.
 8. Combat phase starts.
-9. Players can damage each other and enemy boat pieces.
-10. The last surviving player wins.
-11. The scoreboard and winner preview display.
-12. The round resets.
+9. Players damage each other and enemy boat pieces.
+10. Eliminated players are hidden/locked out and ragdolls spawn.
+11. The last surviving player wins.
+12. Winner display and scoreboard show.
+13. The round resets for the next loop.
 
 ## Implemented Systems
 
 ### Round Flow
 
-- `FloodGameManager` controls the main phase loop.
-- Round states:
+- `FloodGameManager` controls the phase loop.
+- Current phases:
   - `WaitingForPlayers`
   - `BuildPhase`
   - `FloodPhase`
   - `CombatPhase`
   - `RoundEnd`
-- Phase timers are networked for host and clients.
-- Debug controls can force phases, reset rounds, and damage players.
-- Round reset cleans up placed build pieces and respawns players.
+- Phase state and timers replicate to host and clients.
+- Game starts once the required player count is reached.
+- Round reset cleans up placed pieces, resets water, respawns players, and prepares the next build phase.
+- Debug helpers exist for forcing phases, resetting rounds, and damaging players.
 
 ### Building
 
-- Players can place build pieces during build phase only.
+- Players can build only during `BuildPhase`.
 - Placement is server-authoritative.
 - Money is deducted only after successful placement.
 - Build pieces remember their owner.
-- Players can only sell and weld pieces they own.
-- Other players can damage enemy pieces during combat.
+- Players can only sell or weld their own pieces.
+- Enemy pieces can be damaged during combat.
 - Placement preview supports valid/invalid colors.
-- Placement uses grid snapping and build area validation.
-- Prop resources are data-driven through `.bpiece` files.
-- Press **Q** with the Boat Builder equipped to open the build menu.
-- Press **RMB** with the Boat Builder equipped to cycle to the next piece.
-- The build menu groups pieces by material and shows each prop as a spinning 3D preview.
+- Placement supports grid snapping, surface placement, irregular prop bounds, and build-area validation.
+- Buildable props are data-driven through `.bpiece` resources.
+- Press `Q` with the Boat Builder equipped to open the build menu.
+- The build menu groups props by material and shows spinning 3D prop previews.
 
-### Props and Materials
+### Props And Materials
 
-Build pieces now use real S&box prop models and their authored model collision.
+Build pieces use real S&box prop models and their authored model collisions.
 
 Current material categories:
 
-- **Wood**: cheap, light, floats well, weak.
-- **Metal**: expensive, heavy, strong.
-- **Plastic**: very buoyant, low health.
-- **Armor**: strong plating intended to reinforce boats.
-- **Foam**: very buoyant lightweight support material, currently supported by code/presets.
+- `Wood`: cheap, light, floats well, weak.
+- `Metal`: expensive, heavy, strong.
+- `Plastic`: very buoyant, low health.
+- `Armor`: strong plating intended to reinforce boats.
+- `Foam`: lightweight buoyant support, supported by code/presets.
 
-Each build piece resource can tune:
-
-- Display name
-- Description
-- Cost
-- Weight
-- Max health
-- Material type
-- Prop model
-- Placement bounds
-- Surface offset
-- Weld/boat-part behavior
+Each build resource can tune display name, description, cost, material, health, weight, buoyancy, model, placement bounds, surface offset, and weld behavior.
 
 ### Welding
 
-- Weld tool weapon exists as its own tool.
+- Weld tool is a proper carryable/tool.
 - Welding is owner-restricted during build phase.
 - Players can select multiple owned pieces and weld them together at once.
 - Selected pieces are highlighted.
-- Welded pieces are structurally grouped into a single raft root for stable raft physics.
-- Connected raft pieces contribute to raft stability and lift.
-- Destroyed pieces can weaken raft stability.
-- Players cannot sell or weld other players' pieces, but enemy pieces can be damaged during combat.
+- Welded pieces are grouped under a raft root for stable raft buoyancy.
+- Structural welding avoids the worst physics breakage from fully physical joints.
+- Damaged or destroyed pieces can weaken or break weld connections.
 
-### Water and Buoyancy
+### Water And Buoyancy
 
-- `FloodWaterController` controls water rise, drain, reset, and replicated water state.
-- Water visuals and water trigger behavior work for host and joined clients.
+- `FloodWaterController` controls water rise, drain, reset, visual water, and replicated water height.
+- Water works for host and joined clients.
+- Players can swim in the flood water on host and client.
+- Players must be roughly halfway submerged before water damage begins.
 - `FloodBuoyancy` applies custom floating behavior to build pieces.
-- Buoyancy supports material presets.
-- Welded rafts use group buoyancy so the raft floats as one connected craft instead of each prop fighting for its own water height.
-- Damaged rafts lose lift/stability.
-- Players must be about halfway submerged before water damage starts.
-- Player raft movement assist is currently disabled while raft walking/standing behavior is being tuned.
+- Material presets affect lift, drag, stability, and mass behavior.
+- Welded rafts use group buoyancy so connected pieces float as one craft instead of each prop fighting independently.
+- Raft stability is tuned to reduce spinning/flipping and vertical separation between welded pieces.
 
-### Combat and Damage
+### Combat And Damage
 
-- Player health is server-authoritative.
-- Boat piece health is server-authoritative.
-- Pistol and crowbar damage works across host and clients.
+- Player and build-piece damage is server-authoritative.
 - Players are eliminated on death.
-- Ragdolls spawn on death.
-- Dead players are hidden and locked out of movement/tools.
+- Ragdolls spawn when players die.
+- Dead players are hidden and prevented from moving or using tools.
+- Build pieces can be damaged and destroyed during combat.
+- Weapon impact effects are broadcast to clients.
+- Melee impact effects use the same authoritative hit trace as damage.
 
-### Weapons and Tools
+### Weapons, Tools, And Inventory
 
-- Modular weapon base exists for adding more carryables.
+- Carryables use a modular inventory system designed for future tools/weapons.
 - First-person viewmodels are local-player only.
 - Third-person world models replicate to other players.
-- Current weapons/tools include:
-  - USP pistol
-  - Shotgun class
+- Weapons/tools can be locked by default and unlocked through the shop.
+- Current carryables:
+  - Boat Builder
+  - Weld Tool
+  - USP Pistol
+  - Shotgun
   - Crowbar
-  - Tool gun / weld tool
+- USP, shotgun, and crowbar are shop unlocks.
+- Shotgun reloads one shell at a time and supports empty-first-shell reload animation behavior.
+- Gun and melee impact effects support material-specific prefabs.
+
+### Shop
+
+- `PlayerShopController` handles local shop input and purchase requests.
+- Shop items are data-driven through `.shopitem` resources.
+- Current shop items include USP pistol, shotgun, and crowbar.
+- Purchases are server-authoritative.
+- Unique weapon purchases unlock existing pre-networked carryables when available, which keeps host/client inventory replication stable.
+- The system is intended to expand later into perks and game modifiers.
 
 ### UI
 
-- Networked round HUD.
-- Timer and phase display.
-- Death HUD.
-- Scoreboard.
-- Round winner display with rotating player model preview.
-- Ammo HUD for weapons.
-- Build HUD with selected piece, resources, and controls.
-- Build menu with material tabs and spinning 3D prop previews.
+- Unified Flood HUD for round state, timer, build info, ammo, shop, build menu, scoreboard, and winner display.
+- Round HUD updates for host and clients.
+- Build menu has material tabs and spinning 3D prop previews.
+- Shop displays money and purchasable unlocks.
+- Carryable selector HUD appears while selecting a tool/weapon and hides after selection.
+- Scoreboard and round winner display show at round end.
+- Winner preview displays a rotating player model.
 
 ## Project Structure
 
 ```text
 Code/
-  Building/   Build pieces, placement, preview, factory, build menu hooks
-  Core/       Round manager, networking, win conditions
-  Damage/     Shared damage data/components
-  Player/     Player component, health, camera, inventory hooks
-  UI/         Flood HUD, build menu, scoreboard, winner preview
+  Building/   Boat builder, placement, preview, factory, build pieces, ownership, selling
+  Core/       Round manager, phase enum, win conditions, network/spawn helpers
+  Damage/     Shared damage data and damageable components
+  Player/     Player, health, camera, inventory, economy/resources
+  Shop/       Shop item data and player shop controller
+  UI/         Unified Flood HUD, build/shop/scoreboard models, preview helpers
   Water/      Water controller, buoyancy, water damage, swim support
-  Weapons/    Weapon/tool base classes and implementations
+  Weapons/    Carryable, weapon, gun, melee, tool, viewmodel, and world model systems
 
 Assets/
-  prefabs/    Player, builder, weapon, and gameplay prefabs
-  resources/  Build piece resources and prop data
-  scenes/     Main test scene
+  prefabs/    Player, weapons, tools, impact effects, muzzle flashes, gameplay prefabs
+  resources/  Build piece resources and shop items
+  scenes/     Main test scene and supporting scenes
 ```
-
-## Development Notes
-
-- Gameplay authority should stay on the host/server.
-- Client code should mainly handle input, prediction-friendly visuals, HUD, and local viewmodels.
-- Build piece spawning, money changes, damage, ownership, round state, and win checks should remain server-authoritative.
-- Use `[Property]` for values that need editor tuning.
-- Keep new gameplay systems as focused Components instead of large manager classes.
 
 ## Testing In S&box
 
-Recommended test flow:
+Recommended multiplayer test flow:
 
 1. Open the project in S&box.
 2. Start the main scene as host.
-3. Use **Join via New Instance** to test networking.
+3. Use `Join via New Instance`.
 4. Wait for the second player to connect.
-5. Confirm the round enters build phase.
-6. Place props, weld owned props, and verify ownership restrictions.
-7. Press **Q** with the Boat Builder equipped and confirm the build menu opens.
-8. Select pieces from different material tabs and confirm the preview/placement updates.
-9. Let water rise.
-10. Confirm both host and client see/swim/take damage from water.
-11. Enter combat phase.
-12. Damage players and boat pieces.
-13. Confirm round end, winner display, scoreboard, and reset.
+5. Confirm build phase starts and the HUD timer updates on both screens.
+6. Equip Boat Builder and press `Q` to open the build menu.
+7. Place props from multiple material groups.
+8. Equip Weld Tool, select owned pieces, and weld them into a raft.
+9. Confirm other players cannot sell or weld your pieces.
+10. Let the water rise.
+11. Confirm both host and client see water, swim, take water damage, and see rafts float.
+12. Enter combat phase.
+13. Buy/equip weapons from the shop.
+14. Confirm weapon unlocks appear in inventory on host and client.
+15. Shoot and melee players/props and confirm sounds, animations, damage, and impact effects replicate.
+16. Kill a player and confirm ragdoll/elimination behavior.
+17. Confirm round winner display, scoreboard, and reset.
 
-## Debug Controls
+## Development Notes
 
-Debug controls are intentionally isolated behind the round manager debug settings.
-
-Current debug behavior:
-
-- Damage all players.
-- Reset round.
-- Force build phase.
-- Force battle/combat phase.
-
-These can be disabled through `EnableDebugControls`.
+- Keep gameplay authority on the host/server.
+- Client code should mostly handle input, HUD, prediction-friendly presentation, and local viewmodels.
+- Build spawning, money, shop purchases, damage, ownership, round state, water state, and win checks should remain server-authoritative.
+- Prefer small Components over large managers.
+- Use `[Property]` for editor-tunable values.
+- Keep new systems modular so weapons, tools, build materials, shop items, and future perks can be added without rewriting the core loop.
 
 ## Roadmap
 
 Short-term goals:
 
-- Continue tuning buoyancy and raft stability.
-- Continue improving player movement on floating rafts.
-- Polish the build menu layout, input focus, and model preview sizing.
-- Add better weld feedback, sounds, particles, and tool animations.
-- Improve armor behavior so armor can reinforce existing boat pieces.
-- Expand economy rewards and round-end payouts.
-- Polish scoreboard and winner presentation.
+- Continue tuning raft walking/player movement on floating rafts.
+- Improve armor so it reinforces existing boat pieces.
+- Add more weapon/tool polish, particles, sounds, and animations.
+- Expand shop content and add round-end payouts.
+- Improve scoreboard/winner presentation.
+- Add clearer build/weld feedback.
 
 Longer-term goals:
 
 - Team support.
-- More weapons/tools.
+- More weapons, tools, perks, and game modifiers.
+- More maps and build areas.
 - Better raft destruction feedback.
-- More maps/build areas.
-- Better client-side prediction and polish.
-- Persistent progression or unlocks, if the gameplay earns it.
+- Better client-side presentation/prediction polish.
+- Persistent progression or unlocks if the gameplay earns it.
 
 ## Status
 
-Flood 2.0 is playable but still heavily WIP. The core loop, networking, building, water, weapons, damage, and round reset are all in active development.
+Flood 2.0 is playable in host/client testing. The core loop, networking, building, ownership, welding, water, buoyancy, shop unlocks, weapons, damage, HUD, winner display, and round reset are all working but still being actively tuned.

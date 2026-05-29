@@ -105,65 +105,6 @@ public sealed class FloodBuoyancy : Component
 		public float LiftMultiplier { get; set; }
 	}
 
-    private void ApplyMaterialPreset()
-    {
-	    switch ( MaterialPreset )
-	    {
-		    case BuoyancyMaterialPreset.Custom:
-			    return;
-
-		    case BuoyancyMaterialPreset.LightPlastic:
-			    RelativeDensity = 0.5f;
-			    LiftAcceleration = 850f;
-			    MaxSampleDepth = 40f;
-			    WaterLinearDrag = 0.7f;
-			    WaterAngularDrag = 1.8f;
-			    PointVelocityDrag = 0.2f;
-			    UprightStabilization = 0.1f;
-			    break;
-
-		    case BuoyancyMaterialPreset.Wood:
-			    RelativeDensity = 0.65f;
-			    LiftAcceleration = 820f;
-			    MaxSampleDepth = 48f;
-			    WaterLinearDrag = 0.8f;
-			    WaterAngularDrag = 1.5f;
-			    PointVelocityDrag = 0.15f;
-			    UprightStabilization = 0.15f;
-			    break;
-
-		    case BuoyancyMaterialPreset.HeavyWood:
-			    RelativeDensity = 0.9f;
-			    LiftAcceleration = 850f;
-			    MaxSampleDepth = 56f;
-			    WaterLinearDrag = 0.9f;
-			    WaterAngularDrag = 1.7f;
-			    PointVelocityDrag = 0.18f;
-			    UprightStabilization = 0.12f;
-			    break;
-
-		    case BuoyancyMaterialPreset.Metal:
-			    RelativeDensity = 1.8f;
-			    LiftAcceleration = 650f;
-			    MaxSampleDepth = 64f;
-			    WaterLinearDrag = 1.0f;
-			    WaterAngularDrag = 2.0f;
-			    PointVelocityDrag = 0.22f;
-			    UprightStabilization = 0.05f;
-			    break;
-
-		    case BuoyancyMaterialPreset.Stone:
-			    RelativeDensity = 2.4f;
-			    LiftAcceleration = 500f;
-			    MaxSampleDepth = 64f;
-			    WaterLinearDrag = 1.1f;
-			    WaterAngularDrag = 2.2f;
-			    PointVelocityDrag = 0.25f;
-			    UprightStabilization = 0.02f;
-			    break;
-	    }
-    } 
-
 	protected override void OnStart()
 	{
 		if ( !Body.IsValid() )
@@ -174,8 +115,8 @@ public sealed class FloodBuoyancy : Component
 
 		BuildPiece = Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
 
-        if ( ApplyPresetOnStart )
-	        ApplyMaterialPreset();
+		if ( ApplyPresetOnStart )
+			FloodBuoyancyMaterialPresets.ApplyTo( this, MaterialPreset );
 	}
 
 	protected override void OnFixedUpdate()

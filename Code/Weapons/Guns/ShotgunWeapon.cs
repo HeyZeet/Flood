@@ -247,11 +247,13 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 	{
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
-		if ( !viewModel.IsValid() )
-			return;
+		if ( viewModel.IsValid() )
+		{
+			viewModel.SetAnimationBool( ReloadingBool, true );
+			viewModel.SetAnimationBool( ReloadBodygroupBool, true );
+		}
 
-		viewModel.SetAnimationBool( ReloadingBool, true );
-		viewModel.SetAnimationBool( ReloadBodygroupBool, true );
+		PlayThirdPersonReloadAnimation();
 	}
 
 	private void PlayShotgunShellInsert( bool firstShell )
@@ -260,10 +262,10 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 
 		var viewModel = Components.Get<ViewModelWeapon>( FindMode.EverythingInSelfAndDescendants );
 
-		if ( !viewModel.IsValid() )
-			return;
+		if ( viewModel.IsValid() )
+			viewModel.PlayAnimation( firstShell ? ReloadingFirstShellTrigger : ReloadingShellTrigger );
 
-		viewModel.PlayAnimation( firstShell ? ReloadingFirstShellTrigger : ReloadingShellTrigger );
+		PlayThirdPersonReloadAnimation();
 	}
 
 	private void PlayShotgunShellInsertSound( bool firstShell )
@@ -286,6 +288,19 @@ public sealed class ShotgunWeapon : BaseGunWeapon
 		viewModel.SetAnimationBool( ReloadingFirstShellTrigger, false );
 		viewModel.SetAnimationBool( ReloadBodygroupBool, false );
 		viewModel.SetAnimationBool( ReloadTrigger, false );
+	}
+
+	private void PlayThirdPersonReloadAnimation()
+	{
+		var thirdPersonModel = Components.Get<ThirdPersonWeaponModel>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !thirdPersonModel.IsValid() )
+			return;
+
+		if ( thirdPersonModel.ShouldHideForLocalPlayer() )
+			return;
+
+		thirdPersonModel.PlayAnimation( ReloadTrigger );
 	}
 
 	private void BroadcastShotgunReloadStart( bool startsEmpty, bool skipLocalOwner = true )

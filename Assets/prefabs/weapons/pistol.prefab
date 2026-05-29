@@ -22,25 +22,52 @@
         "Flags": 0,
         "AmmoInClip": 12,
         "AnimationRenderer": null,
+        "AttackTrigger": "b_attack",
         "BaseSpreadDegrees": 0.5,
+        "BrickImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.brick.prefab"
+        },
         "BulletRadius": 1.5,
         "BulletRange": 5000,
         "ClipSize": 12,
         "Damage": 10,
+        "DefaultImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.generic.prefab"
+        },
+        "DeploySound": "sounds/pistoldeploy.sound",
+        "DeployTrigger": "b_deploy",
         "DrawDebugTrace": true,
+        "DryAttackTrigger": "b_attack_dry",
         "DryFireSound": "sounds/pistoldryfire.sound",
         "FireSound": "sounds/pistolshoot.sound",
+        "FleshImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.flesh.mist.prefab"
+        },
+        "GlassImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.glass.prefab"
+        },
         "HasReserveAmmo": true,
         "HoldType": "pistol",
+        "IgnoreRoundDamageRules": false,
+        "ImpactLifeTime": 1.5,
         "InfiniteAmmo": true,
-        "InventorySlot": 2,
+        "InventorySlot": -1,
+        "IsUnlocked": false,
         "MaxSpreadDegrees": 3,
+        "MetalImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.metal.prefab"
+        },
         "MuzzleBoneName": "silencer",
         "MuzzleFlashLifeTime": 0.18,
         "MuzzleFlashPositionOffset": "0,0,0",
         "MuzzleFlashPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+          "prefab": "prefabs/weapons/muzzleflash/pistol_muzzleflash.prefab"
         },
         "MuzzleFlashRotationOffset": "0,0,0",
         "OnComponentDestroy": null,
@@ -53,14 +80,24 @@
         "PlayDeployAnimation": true,
         "PrimaryFireRate": 0.5,
         "RecoilPitch": 1.1,
-        "RecoilRecoveryRate": 8,
         "RecoilYaw": 0.35,
         "ReloadSound": "sounds/pistolreload.sound",
         "ReloadTime": 1.4,
+        "ReloadTrigger": "b_reload",
+        "RepeatPrimaryAttackWhileHeld": true,
+        "RepeatSecondaryAttackWhileHeld": true,
         "ReserveAmmo": 48,
         "SecondaryFireRate": 0.5,
         "SpreadPerShot": 0.35,
-        "SpreadRecoveryRate": 4
+        "SpreadRecoveryRate": 4,
+        "WaterImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact_water.prefab"
+        },
+        "WoodImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.wood.prefab"
+        }
       },
       {
         "__type": "ViewModelWeapon",
@@ -70,6 +107,7 @@
         "ArmsModel": "models/first_person/v_first_person_arms_citizen.vmdl",
         "AttackTrigger": "b_attack",
         "DeployTrigger": "b_deploy",
+        "DryAttackTrigger": "b_attack_dry",
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -89,7 +127,7 @@
         "AttackTrigger": "b_attack",
         "DebugMuzzleFlashPrefab": {
           "_type": "gameobject",
-          "prefab": "prefabs/weapons/pistol_muzzleflash.prefab"
+          "prefab": "prefabs/weapons/muzzleflash/pistol_muzzleflash.prefab"
         },
         "DebugMuzzleFlashScale": 1,
         "HandBoneName": "hold_R",

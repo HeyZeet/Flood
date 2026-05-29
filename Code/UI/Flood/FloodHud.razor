@@ -255,12 +255,12 @@
 	private int HudBuildVersion { get; set; }
 	private GamePhase LastDisplayedPhase { get; set; }
 	private float DisplaySecondsRemaining { get; set; }
-	private List<ScoreboardRow> ScoreboardRows { get; set; } = new();
-	private List<BuildMenuGroup> BuildMenuGroups { get; set; } = new();
-	private List<BuildMenuEntry> VisibleBuildMenuEntries { get; set; } = new();
-	private List<ShopTab> ShopTabs { get; set; } = new();
-	private List<ShopEntry> VisibleShopItems { get; set; } = new();
-	private List<CarryableSelectorItem> CarryableSelectorItems { get; set; } = new();
+	private List<FloodScoreboardRow> ScoreboardRows { get; set; } = new();
+	private List<FloodBuildMenuGroup> BuildMenuGroups { get; set; } = new();
+	private List<FloodBuildMenuEntry> VisibleBuildMenuEntries { get; set; } = new();
+	private List<FloodShopTab> ShopTabs { get; set; } = new();
+	private List<FloodShopEntry> VisibleShopItems { get; set; } = new();
+	private List<FloodCarryableSelectorItem> CarryableSelectorItems { get; set; } = new();
 	private string ScoreboardStateKey { get; set; } = "";
 	private string BuildMenuStateKey { get; set; } = "";
 	private string ShopStateKey { get; set; } = "";
@@ -287,66 +287,6 @@
 		ShopItemType.Perk,
 		ShopItemType.GameModifier
 	};
-
-	private sealed class ScoreboardRow
-	{
-		public string Name { get; init; }
-		public string Status { get; init; }
-		public int Kills { get; init; }
-		public int Deaths { get; init; }
-		public string Resources { get; init; }
-		public string CssClass { get; init; }
-
-		public string StateKey => $"{Name}|{Status}|{Kills}|{Deaths}|{Resources}|{CssClass}";
-	}
-
-	private sealed class BuildMenuGroup
-	{
-		public BuildPieceMaterial Material { get; init; }
-		public string Name { get; init; }
-		public string TabCssClass { get; init; }
-		public string StateKey => $"{Material}|{Name}|{TabCssClass}";
-	}
-
-	private sealed class BuildMenuEntry
-	{
-		public int Index { get; init; }
-		public string Name { get; init; }
-		public string ModelPath { get; init; }
-		public int Cost { get; init; }
-		public int Health { get; init; }
-		public string CssClass { get; init; }
-		public string StateKey => $"{Index}|{Name}|{ModelPath}|{Cost}|{Health}|{CssClass}";
-	}
-
-	private sealed class ShopTab
-	{
-		public ShopItemType ItemType { get; init; }
-		public string Name { get; init; }
-		public string CssClass { get; init; }
-		public string StateKey => $"{ItemType}|{Name}|{CssClass}";
-	}
-
-	private sealed class ShopEntry
-	{
-		public int Index { get; init; }
-		public string Name { get; init; }
-		public string Description { get; init; }
-		public string ModelPath { get; init; }
-		public int Cost { get; init; }
-		public string Status { get; init; }
-		public string ButtonText { get; init; }
-		public string CssClass { get; init; }
-		public string StateKey => $"{Index}|{Name}|{Description}|{ModelPath}|{Cost}|{Status}|{ButtonText}|{CssClass}";
-	}
-
-	private sealed class CarryableSelectorItem
-	{
-		public string SlotText { get; init; }
-		public string Name { get; init; }
-		public string CssClass { get; init; }
-		public string StateKey => $"{SlotText}|{Name}|{CssClass}";
-	}
 
 	protected override void OnUpdate()
 	{
@@ -448,7 +388,7 @@
 		return "No Winner";
 	}
 
-	private List<ScoreboardRow> BuildScoreboardRows()
+	private List<FloodScoreboardRow> BuildScoreboardRows()
 	{
 		return FloodPlayer.All
 			.Where( player => player.IsValid() )
@@ -459,7 +399,7 @@
 			.ToList();
 	}
 
-	private ScoreboardRow BuildScoreboardRow( FloodPlayer player )
+	private FloodScoreboardRow BuildScoreboardRow( FloodPlayer player )
 	{
 		var isLocal = player == FloodPlayer.Local;
 		var status = player.IsEliminated ? "Out" : player.IsDead ? "Dead" : "Alive";
@@ -472,7 +412,7 @@
 		if ( player.IsEliminated || player.IsDead )
 			cssClass += " is-dead";
 
-		return new ScoreboardRow
+		return new FloodScoreboardRow
 		{
 			Name = string.IsNullOrWhiteSpace( player.PlayerName ) ? player.GameObject.Name : player.PlayerName,
 			Status = status,
@@ -512,12 +452,24 @@
 		var activeCarryable = inventory.IsValid() ? inventory.ActiveCarryable : null;
 		var resources = player.BuildResources;
 		var resourceText = resources.IsValid() ? resources.Resources.ToString() : "--";
+		var shop = GetLocalShopController( player );
 
 		UpdateBuildState( player, roundManager, activeCarryable, resourceText );
-		SetShopState( PlayerShopController.Local.IsValid() && PlayerShopController.Local.IsShopOpen, PlayerShopController.Local, resourceText );
+		SetShopState( shop.IsValid() && shop.IsShopOpen, shop, resourceText );
 		UpdateCarryableSelectorState( inventory );
 		UpdateAmmoState( activeCarryable );
 		UpdateCrosshairState( player, activeCarryable );
+	}
+
+	private PlayerShopController GetLocalShopController( FloodPlayer player )
+	{
+		if ( PlayerShopController.Local.IsValid() )
+			return PlayerShopController.Local;
+
+		if ( player.IsValid() && player.Shop.IsValid() )
+			return player.Shop;
+
+		return null;
 	}
 
 	private void UpdateCrosshairState( FloodPlayer player, BaseCarryable activeCarryable )
@@ -596,10 +548,13 @@
 		if ( Input.MouseWheel.y != 0 )
 			return true;
 
-		return Input.Pressed( "Slot1" )
-			|| Input.Pressed( "Slot2" )
-			|| Input.Pressed( "Slot3" )
-			|| Input.Pressed( "Slot4" );
+		for ( var slot = 1; slot <= 9; slot++ )
+		{
+			if ( Input.Pressed( $"Slot{slot}" ) )
+				return true;
+		}
+
+		return false;
 	}
 
 	private void UpdateBuildState( FloodPlayer player, FloodGameManager roundManager, BaseCarryable activeCarryable, string resourceText )
@@ -794,7 +749,7 @@
 
 		var groups = BuildMenuMaterialOrder
 			.Where( material => boatBuilder.AvailablePieces.Any( piece => piece is not null && piece.Material == material ) )
-			.Select( material => new BuildMenuGroup
+			.Select( material => new FloodBuildMenuGroup
 			{
 				Material = material,
 				Name = GetMaterialName( material ),
@@ -864,7 +819,7 @@
 		var catalog = shop.Items;
 		var tabs = ShopTypeOrder
 			.Where( itemType => catalog.Any( item => item is not null && item.ItemType == itemType ) )
-			.Select( itemType => new ShopTab
+			.Select( itemType => new FloodShopTab
 			{
 				ItemType = itemType,
 				Name = GetShopTypeName( itemType ),
@@ -917,7 +872,7 @@
 		var items = inventory.Carryables
 			.Where( carryable => carryable.IsValid() )
 			.OrderBy( carryable => carryable.InventorySlot )
-			.Select( carryable => new CarryableSelectorItem
+			.Select( carryable => new FloodCarryableSelectorItem
 			{
 				SlotText = GetCarryableSlotText( carryable.InventorySlot ),
 				Name = carryable.DisplayName,
@@ -956,7 +911,7 @@
 		return (slot + 1).ToString();
 	}
 
-	private ShopEntry CreateShopEntry( PlayerShopController shop, ShopItemData item, int index )
+	private FloodShopEntry CreateShopEntry( PlayerShopController shop, ShopItemData item, int index )
 	{
 		if ( item is null || item.ItemType != SelectedShopType )
 			return null;
@@ -970,7 +925,7 @@
 				? item.WeaponPrefab.Components.Get<ModelRenderer>( FindMode.EverythingInSelfAndDescendants )?.Model
 				: null;
 
-		return new ShopEntry
+		return new FloodShopEntry
 		{
 			Index = index,
 			Name = item.DisplayName,
@@ -1022,7 +977,7 @@
 		};
 	}
 
-	private BuildMenuEntry CreateBuildMenuEntry( BoatBuilder boatBuilder, BuildPieceData piece, int index )
+	private FloodBuildMenuEntry CreateBuildMenuEntry( BoatBuilder boatBuilder, BuildPieceData piece, int index )
 	{
 		if ( piece is null || piece.Material != SelectedBuildMenuMaterial )
 			return null;
@@ -1035,7 +990,7 @@
 				? "flood-hud__build-piece-slot"
 				: "flood-hud__build-piece-slot cannot-afford";
 
-		return new BuildMenuEntry
+		return new FloodBuildMenuEntry
 		{
 			Index = index,
 			Name = piece.DisplayName,

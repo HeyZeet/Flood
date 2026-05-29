@@ -322,6 +322,26 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "StartingResources": 500
+      },
+      {
+        "__type": "PlayerShopController",
+        "__guid": "6303aa65-1e6b-48d8-93b9-5b566fa9e2d8",
+        "__enabled": true,
+        "AllowDuringBuildPhase": true,
+        "AllowDuringCombatPhase": false,
+        "AllowDuringFloodPhase": false,
+        "AllowDuringRoundEnd": true,
+        "AllowDuringWaiting": false,
+        "AutoLoadResourceItems": true,
+        "AvailableItems": [],
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "ShopInputAction": "menu"
       }
     ],
     "Children": [
@@ -567,7 +587,7 @@
               "resources/props/armor_airduct_panel_16x16.bpiece",
               "resources/props/armor_airduct_panel_48x32.bpiece"
             ],
-            "InventorySlot": -1,
+            "InventorySlot": 0,
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
             "OnComponentEnabled": null,
@@ -666,56 +686,6 @@
             "ZIndex": 100
           },
           {
-            "__type": "Sandbox.UI.Build.BuildHud",
-            "__guid": "7945e8bf-6d7b-40c6-9094-7c78e59418d7",
-            "__enabled": true,
-            "Flags": 0,
-            "OnComponentDestroy": null,
-            "OnComponentDisabled": null,
-            "OnComponentEnabled": null,
-            "OnComponentFixedUpdate": null,
-            "OnComponentStart": null,
-            "OnComponentUpdate": null
-          },
-          {
-            "__type": "Sandbox.UI.Ammo.AmmoHud",
-            "__guid": "9e82989d-c803-4845-b857-7090bd85a0ca",
-            "__enabled": true,
-            "Flags": 0,
-            "OnComponentDestroy": null,
-            "OnComponentDisabled": null,
-            "OnComponentEnabled": null,
-            "OnComponentFixedUpdate": null,
-            "OnComponentStart": null,
-            "OnComponentUpdate": null
-          },
-          {
-            "__type": "Sandbox.UI.Death.DeathHud",
-            "__guid": "063c405e-87d5-4add-b835-76f191baa731",
-            "__enabled": true,
-            "Flags": 0,
-            "EnableDebugHint": true,
-            "OnComponentDestroy": null,
-            "OnComponentDisabled": null,
-            "OnComponentEnabled": null,
-            "OnComponentFixedUpdate": null,
-            "OnComponentStart": null,
-            "OnComponentUpdate": null
-          },
-          {
-            "__type": "Sandbox.UI.Round.RoundHud",
-            "__guid": "dbc71a87-1b38-4fdc-baa6-dc0a475245f5",
-            "__enabled": true,
-            "Flags": 0,
-            "OnComponentDestroy": null,
-            "OnComponentDisabled": null,
-            "OnComponentEnabled": null,
-            "OnComponentFixedUpdate": null,
-            "OnComponentStart": null,
-            "OnComponentUpdate": null,
-            "ShowDuringWaiting": false
-          },
-          {
             "__type": "Sandbox.UI.Flood.FloodHud",
             "__guid": "bbf1e4bf-b6ab-44d0-a410-27d5bcb1231e",
             "__enabled": true,
@@ -748,6 +718,14 @@
               },
               "Property": "Position",
               "Value": "0,-172.337402,-9.87458038"
+            },
+            {
+              "Target": {
+                "Type": "Component",
+                "IdValue": "7f4c116b-8dfa-4abd-8c84-db45f5ffa3e2"
+              },
+              "Property": "IsUnlocked",
+              "Value": false
             }
           ],
           "MovedObjects": []
@@ -774,6 +752,14 @@
               },
               "Property": "Position",
               "Value": "0,-172.337402,-9.87458038"
+            },
+            {
+              "Target": {
+                "Type": "Component",
+                "IdValue": "6edf0594-8f70-4c1d-8651-95b7c68e7c62"
+              },
+              "Property": "IsUnlocked",
+              "Value": false
             }
           ],
           "MovedObjects": []
@@ -809,6 +795,40 @@
           "6ed89f5b-bf49-48d2-a2df-f963369a2d74": "3d4b3c82-e9ef-4f28-9f31-78314cfc2e3f",
           "5fe5dcb2-ed53-4608-998d-f4f7a513ddea": "fbc1d71d-0415-4fbd-9baa-28d04184b49a",
           "d04a9fdc-2424-468b-b096-7ec03ebbb4ba": "d9ade1a2-842f-41dd-8758-69bdcb971d4a"
+        }
+      },
+      {
+        "__guid": "ff2e9f94-3051-40ce-8d18-47ecafaf7018",
+        "__version": 2,
+        "__Prefab": "prefabs/weapons/shotgun.prefab",
+        "__PrefabInstancePatch": {
+          "AddedObjects": [],
+          "RemovedObjects": [],
+          "PropertyOverrides": [
+            {
+              "Target": {
+                "Type": "GameObject",
+                "IdValue": "73a710e5-07a1-49f2-9a5d-31a7a9633d9a"
+              },
+              "Property": "Position",
+              "Value": "0,-172.337402,-9.87458038"
+            },
+            {
+              "Target": {
+                "Type": "Component",
+                "IdValue": "d8e942b0-ec22-4c8f-a7f1-a6b477623716"
+              },
+              "Property": "IsUnlocked",
+              "Value": false
+            }
+          ],
+          "MovedObjects": []
+        },
+        "__PrefabIdToInstanceId": {
+          "73a710e5-07a1-49f2-9a5d-31a7a9633d9a": "ff2e9f94-3051-40ce-8d18-47ecafaf7018",
+          "d8e942b0-ec22-4c8f-a7f1-a6b477623716": "2a27ec22-1758-4db8-9af4-d6951b0cae43",
+          "c3bd551a-8979-43d5-9cf9-123701c7c3a6": "ad1398da-2d22-45ea-a252-b4da8cb8d464",
+          "b0298f22-1cb1-4877-8171-b6d95f053f65": "6b5dcc2d-b358-4c1e-b2ef-653928884403"
         }
       }
     ]

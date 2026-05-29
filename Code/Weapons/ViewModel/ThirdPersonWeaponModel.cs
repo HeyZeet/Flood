@@ -9,10 +9,10 @@ public sealed class ThirdPersonWeaponModel : Component
 	public string HandBoneName { get; set; } = "hold_R";
 
 	[Property, Group( "Body Animation" )]
-    public int HoldType { get; set; } = 6; // 6 = melee_weapons
+	public int HoldType { get; set; } = 6; // 6 = melee_weapons
 
-    [Property, Group( "Body Animation" )]
-    public int HoldTypeHandedness { get; set; } = 0; // 0 = 2H
+	[Property, Group( "Body Animation" )]
+	public int HoldTypeHandedness { get; set; } = 0; // 0 = 2H
 
 	[Property, Group( "Body Animation" )]
 	public float HoldTypePose { get; set; } = 0f;
@@ -51,6 +51,7 @@ public sealed class ThirdPersonWeaponModel : Component
 	private ModelRenderer WorldRenderer { get; set; }
 	private SkinnedModelRenderer BodyRenderer { get; set; }
 	private GameObject DebugMuzzleFlashObject { get; set; }
+	private bool LoggedMissingWorldModel { get; set; }
 
 	protected override void OnStart()
 	{
@@ -61,6 +62,7 @@ public sealed class ThirdPersonWeaponModel : Component
 	protected override void OnUpdate()
 	{
 		EnsureBodyRenderer();
+		EnsureWorldModel();
 
 		UpdateWorldModelVisibility();
 
@@ -85,6 +87,7 @@ public sealed class ThirdPersonWeaponModel : Component
 
 	public void Show()
 	{
+		EnsureWorldModel();
 		UpdateWorldModelVisibility();
 		UpdateBodyHoldType();
 	}
@@ -116,17 +119,35 @@ public sealed class ThirdPersonWeaponModel : Component
 
 	private void CreateWorldModel()
 	{
+		if ( WorldModelObject.IsValid() )
+			return;
+
 		if ( !WorldModel.IsValid() )
 		{
-			Log.Warning( $"{GameObject.Name} has no third-person WorldModel assigned." );
+			if ( !LoggedMissingWorldModel )
+			{
+				Log.Warning( $"{GameObject.Name} has no third-person WorldModel assigned." );
+				LoggedMissingWorldModel = true;
+			}
+
 			return;
 		}
 
+		LoggedMissingWorldModel = false;
 		WorldModelObject = new GameObject( $"{GameObject.Name} ThirdPersonModel" );
 		WorldModelObject.SetParent( GameObject );
 
 		WorldRenderer = WorldModelObject.Components.Create<ModelRenderer>();
 		WorldRenderer.Model = WorldModel;
+	}
+
+	private bool EnsureWorldModel()
+	{
+		if ( WorldModelObject.IsValid() && WorldRenderer.IsValid() )
+			return true;
+
+		CreateWorldModel();
+		return WorldModelObject.IsValid() && WorldRenderer.IsValid();
 	}
 
 	public bool ShouldHideForLocalPlayer()
@@ -148,23 +169,23 @@ public sealed class ThirdPersonWeaponModel : Component
 	}
 
 	private void UpdateBodyHoldType()
-    {
-	    if ( !EnsureBodyRenderer() )
-		    return;
+	{
+		if ( !EnsureBodyRenderer() )
+			return;
 
-	    BodyRenderer.Set( "holdtype", HoldType );
-	    BodyRenderer.Set( "holdtype_handedness", HoldTypeHandedness );
-	    BodyRenderer.Set( "holdtype_pose", HoldTypePose );
-    }
+		BodyRenderer.Set( "holdtype", HoldType );
+		BodyRenderer.Set( "holdtype_handedness", HoldTypeHandedness );
+		BodyRenderer.Set( "holdtype_pose", HoldTypePose );
+	}
 
 	private void ClearBodyHoldType()
-    {
-	    if ( !EnsureBodyRenderer() )
-		    return;
+	{
+		if ( !EnsureBodyRenderer() )
+			return;
 
-	    BodyRenderer.Set( "holdtype", 0 ); // 0 = none
-	    BodyRenderer.Set( "holdtype_pose", -1f );
-    }
+		BodyRenderer.Set( "holdtype", 0 ); // 0 = none
+		BodyRenderer.Set( "holdtype_pose", -1f );
+	}
 
 	private void FollowHandBone()
 	{
@@ -287,6 +308,7 @@ public sealed class ThirdPersonWeaponModel : Component
 		{
 			DebugMuzzleFlashObject = DebugMuzzleFlashPrefab.Clone();
 			DebugMuzzleFlashObject.Name = $"{GameObject.Name} Debug Muzzle Flash";
+			DebugMuzzleFlashObject.NetworkMode = NetworkMode.Never;
 		}
 
 		var muzzleTransform = GetMuzzleTransform();

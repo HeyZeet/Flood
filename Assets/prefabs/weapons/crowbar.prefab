@@ -22,12 +22,34 @@
         "Flags": 0,
         "AnimationRenderer": null,
         "BaseSpreadDegrees": 0.75,
+        "BrickImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.brick.prefab"
+        },
         "Damage": 10,
+        "DefaultImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.generic.prefab"
+        },
         "DrawDebugTrace": true,
+        "FleshImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.flesh.mist.prefab"
+        },
+        "GlassImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.glass.prefab"
+        },
         "HitSound": "sounds/hit.sound",
         "HoldType": "melee_weapons",
-        "InventorySlot": 1,
+        "ImpactLifeTime": 1.5,
+        "InventorySlot": -1,
+        "IsUnlocked": false,
         "MaxSpreadDegrees": 4,
+        "MetalImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.metal.prefab"
+        },
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -45,7 +67,15 @@
         "SpreadPerShot": 0.35,
         "SpreadRecoveryRate": 3,
         "SwingSound": "sounds/swing.sound",
-        "TraceRadius": 8
+        "TraceRadius": 8,
+        "WaterImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact_water.prefab"
+        },
+        "WoodImpactPrefab": {
+          "_type": "gameobject",
+          "prefab": "prefabs/weapons/impacteffects/impact.wood.prefab"
+        }
       },
       {
         "__type": "ThirdPersonWeaponModel",

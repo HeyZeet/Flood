@@ -802,6 +802,26 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "StartingResources": 500
+        },
+        {
+          "__type": "PlayerShopController",
+          "__guid": "89ac020b-28ce-4d0d-8d3d-68e28cb0a893",
+          "__enabled": true,
+          "AllowDuringBuildPhase": true,
+          "AllowDuringCombatPhase": false,
+          "AllowDuringFloodPhase": false,
+          "AllowDuringRoundEnd": true,
+          "AllowDuringWaiting": false,
+          "AutoLoadResourceItems": true,
+          "AvailableItems": [],
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ShopInputAction": "menu"
         }
       ],
       "Children": [
@@ -1048,7 +1068,7 @@
                 "resources/props/armor_airduct_panel_48x32.bpiece"
               ],
               "CanSellPieces": true,
-              "InventorySlot": 3,
+              "InventorySlot": 0,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
@@ -1149,56 +1169,6 @@
                 "component_type": "CameraComponent"
               },
               "ZIndex": 100
-            },
-            {
-              "__type": "Sandbox.UI.Build.BuildHud",
-              "__guid": "6e9e587b-3a2d-4e94-9d7d-6e74c071e5cb",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            },
-            {
-              "__type": "Sandbox.UI.Ammo.AmmoHud",
-              "__guid": "fe271036-060a-4523-a5eb-2c3637614a13",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            },
-            {
-              "__type": "Sandbox.UI.Death.DeathHud",
-              "__guid": "68a8849b-8cfe-4ef4-ab19-27f972a13085",
-              "__enabled": true,
-              "Flags": 0,
-              "EnableDebugHint": true,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            },
-            {
-              "__type": "Sandbox.UI.Round.RoundHud",
-              "__guid": "6d03c305-c6f5-4b0a-8b05-c73039e34a4b",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "ShowDuringWaiting": false
             },
             {
               "__type": "Sandbox.UI.Flood.FloodHud",

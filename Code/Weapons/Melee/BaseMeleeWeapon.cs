@@ -6,6 +6,15 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 	[Property, Group( "Melee Trace" )] public float TraceRadius { get; set; } = 8f;
 	[Property, Group( "Melee Trace" )] public bool DrawDebugTrace { get; set; } = true;
 
+	[Property, Group( "Impact Effects" )] public GameObject DefaultImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject WoodImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject MetalImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject GlassImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject WaterImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject BrickImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public GameObject FleshImpactPrefab { get; set; }
+	[Property, Group( "Impact Effects" )] public float ImpactLifeTime { get; set; } = 1.5f;
+
 	public override void PrimaryAttack()
 	{
 		base.PrimaryAttack();
@@ -69,7 +78,14 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 		Log.Info( $"{DisplayName} hit {tr.GameObject.Name}." );
 
 		LogBuildPieceHit( tr );
+		PlayImpactEffect( tr );
+		BroadcastImpactEffect( tr );
+		OnMeleeHit( tr );
 		TryDamageHitObject( tr );
+	}
+
+	protected virtual void OnMeleeHit( SceneTraceResult trace )
+	{
 	}
 
 	protected virtual Vector3 GetAttackStart()
@@ -94,6 +110,121 @@ public abstract class BaseMeleeWeapon : BaseWeapon
 		damageable.TakeDamage( damageInfo );
 
 		Log.Info( $"{DisplayName} damaged {trace.GameObject.Name} for {Damage}." );
+	}
+
+	protected virtual void PlayImpactEffect( SceneTraceResult trace )
+	{
+		var impactPrefab = GetImpactPrefab( trace );
+
+		if ( !impactPrefab.IsValid() )
+			return;
+
+		PlayImpactEffect( impactPrefab, trace.HitPosition, trace.Normal, ImpactLifeTime );
+	}
+
+	private void BroadcastImpactEffect( SceneTraceResult trace )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var impactPrefab = GetImpactPrefab( trace );
+
+		if ( !impactPrefab.IsValid() )
+			return;
+
+		PlayImpactEffectBroadcast( impactPrefab, trace.HitPosition, trace.Normal, ImpactLifeTime );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayImpactEffectBroadcast( GameObject impactPrefab, Vector3 hitPosition, Vector3 hitNormal, float lifeTime )
+	{
+		if ( Networking.IsHost )
+			return;
+
+		PlayImpactEffect( impactPrefab, hitPosition, hitNormal, lifeTime );
+	}
+
+	private void PlayImpactEffect( GameObject impactPrefab, Vector3 hitPosition, Vector3 hitNormal, float lifeTime )
+	{
+		if ( !impactPrefab.IsValid() )
+			return;
+
+		var impact = impactPrefab.Clone();
+
+		impact.WorldPosition = hitPosition;
+		impact.WorldRotation = Rotation.LookAt( GetSafeImpactNormal( hitNormal ) );
+
+		if ( lifeTime > 0f )
+		{
+			var destroyAfterTime = impact.Components.Create<DestroyAfterTime>();
+			destroyAfterTime.LifeTime = lifeTime;
+		}
+	}
+
+	protected virtual GameObject GetImpactPrefab( SceneTraceResult trace )
+	{
+		if ( HasTagInHierarchy( trace.GameObject, "water" ) && WaterImpactPrefab.IsValid() )
+			return WaterImpactPrefab;
+
+		if ( IsFleshHit( trace ) && FleshImpactPrefab.IsValid() )
+			return FleshImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "glass" ) && GlassImpactPrefab.IsValid() )
+			return GlassImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "metal" ) && MetalImpactPrefab.IsValid() )
+			return MetalImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "wood" ) && WoodImpactPrefab.IsValid() )
+			return WoodImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "brick" ) && BrickImpactPrefab.IsValid() )
+			return BrickImpactPrefab;
+
+		if ( HasTagInHierarchy( trace.GameObject, "concrete" ) && BrickImpactPrefab.IsValid() )
+			return BrickImpactPrefab;
+
+		return DefaultImpactPrefab;
+	}
+
+	private Vector3 GetSafeImpactNormal( Vector3 hitNormal )
+	{
+		if ( hitNormal.Length > 0.01f )
+			return hitNormal.Normal;
+
+		return Vector3.Up;
+	}
+
+	private bool HasTagInHierarchy( GameObject gameObject, string tag )
+	{
+		var current = gameObject;
+
+		while ( current.IsValid() )
+		{
+			if ( current.Tags.Has( tag ) )
+				return true;
+
+			current = current.Parent;
+		}
+
+		return false;
+	}
+
+	private bool IsFleshHit( SceneTraceResult trace )
+	{
+		if ( trace.GameObject.Components.Get<FloodPlayer>( FindMode.EverythingInSelfAndAncestors ).IsValid() )
+			return true;
+
+		if ( trace.GameObject.Components.Get<PlayerHealth>( FindMode.EverythingInSelfAndAncestors ).IsValid() )
+			return true;
+
+		if ( HasTagInHierarchy( trace.GameObject, "player" ) )
+			return true;
+
+		if ( HasTagInHierarchy( trace.GameObject, "flesh" ) )
+			return true;
+
+		return false;
 	}
 
 	private bool IsAimRequestReasonable( Vector3 start, Vector3 direction )

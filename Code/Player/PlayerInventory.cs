@@ -4,10 +4,23 @@ using System.Linq;
 
 public sealed class PlayerInventory : Component
 {
-	[Property] public int MaxSlots { get; set; } = 4;
+	private sealed class PendingCarryableBind
+	{
+		public GameObject CarryableObject { get; init; }
+		public int Slot { get; init; }
+		public TimeUntil TimeUntilNextBroadcast { get; set; }
+		public TimeUntil TimeUntilExpired { get; set; }
+	}
+
+	[Property, Sync( SyncFlags.FromHost )] public int MaxSlots { get; set; } = 4;
+	[Property, Group( "Networking" )] public float CarryableBindRetrySeconds { get; set; } = 3f;
+	[Property, Group( "Networking" )] public float CarryableBindRetryInterval { get; set; } = 0.2f;
+
 	private bool WasOwnerDead { get; set; }
 	private int LastPresentedActiveSlot { get; set; } = int.MinValue;
+	private int LastKnownCarryableCount { get; set; } = -1;
 	private BaseCarryable PresentedCarryable { get; set; }
+	private readonly List<PendingCarryableBind> PendingCarryableBinds = new();
 
 	[Sync( SyncFlags.FromHost )] public int ActiveSlot { get; private set; } = -1;
 
@@ -37,8 +50,7 @@ public sealed class PlayerInventory : Component
 	{
 		get
 		{
-			return Components
-				.GetAll<BaseCarryable>( FindMode.EverythingInChildren )
+			return GetCarryablesSnapshot()
 				.OrderBy( x => x.InventorySlot )
 				.ToList();
 		}
@@ -63,6 +75,8 @@ public sealed class PlayerInventory : Component
 
 	protected override void OnUpdate()
 	{
+		UpdatePendingCarryableBinds();
+		RefreshCarryableBindings();
 		UpdateActiveCarryablePresentation();
 
 		if ( !IsLocallyControlled() )
@@ -143,6 +157,7 @@ public sealed class PlayerInventory : Component
 
 		carryable.InventorySlot = slot;
 		carryable.Inventory = this;
+		carryable.SetUnlocked( true );
 
 		carryable.GameObject.SetParent( GameObject );
 		carryable.OnAddedToInventory( this );
@@ -160,6 +175,9 @@ public sealed class PlayerInventory : Component
 
 		if ( !prefab.IsValid() )
 			return false;
+
+		if ( TryUnlockExistingCarryableFromPrefab( prefab, slot, makeActive ) )
+			return true;
 
 		var obj = prefab.Clone();
 		obj.SetParent( GameObject );
@@ -190,7 +208,78 @@ public sealed class PlayerInventory : Component
 				Log.Warning( $"Failed to network spawn carryable {carryable.DisplayName}." );
 		}
 
+		obj.SetParent( GameObject );
+		Log.Info( $"Added carryable {carryable.DisplayName} to inventory slot {carryable.InventorySlot}. ActiveSlot={ActiveSlot}, Networked={obj.Network.Active}." );
+		QueueCarryableBindBroadcast( obj, carryable.InventorySlot );
+
 		return true;
+	}
+
+	[Rpc.Broadcast]
+	private void BindNetworkCarryableBroadcast( GameObject carryableObject, int slot, GameObject inventoryObject )
+	{
+		if ( inventoryObject != GameObject )
+			return;
+
+		if ( !carryableObject.IsValid() )
+		{
+			Log.Warning( $"Inventory bind received for slot {slot}, but the carryable object is not valid on this client yet." );
+			return;
+		}
+
+		var carryable = carryableObject.Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !carryable.IsValid() )
+		{
+			Log.Warning( $"Inventory bind received {carryableObject.Name}, but it has no BaseCarryable." );
+			return;
+		}
+
+		BindCarryableToInventory( carryable );
+		LastPresentedActiveSlot = int.MinValue;
+
+		if ( carryable.InventorySlot != ActiveSlot )
+			carryable.OnHolster();
+
+		Log.Info( $"Bound network carryable {carryable.DisplayName} to inventory slot {carryable.InventorySlot}. ActiveSlot={ActiveSlot}, Local={IsLocallyControlled()}." );
+	}
+
+	private void QueueCarryableBindBroadcast( GameObject carryableObject, int slot )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( !carryableObject.IsValid() )
+			return;
+
+		PendingCarryableBinds.Add( new PendingCarryableBind
+		{
+			CarryableObject = carryableObject,
+			Slot = slot,
+			TimeUntilNextBroadcast = 0f,
+			TimeUntilExpired = CarryableBindRetrySeconds.Clamp( 0.2f, 10f )
+		} );
+	}
+
+	private void UpdatePendingCarryableBinds()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		foreach ( var pendingBind in PendingCarryableBinds.ToArray() )
+		{
+			if ( !pendingBind.CarryableObject.IsValid() || pendingBind.TimeUntilExpired )
+			{
+				PendingCarryableBinds.Remove( pendingBind );
+				continue;
+			}
+
+			if ( !pendingBind.TimeUntilNextBroadcast )
+				continue;
+
+			pendingBind.TimeUntilNextBroadcast = CarryableBindRetryInterval.Clamp( 0.05f, 1f );
+			BindNetworkCarryableBroadcast( pendingBind.CarryableObject, pendingBind.Slot, GameObject );
+		}
 	}
 
 	public BaseCarryable GetCarryableInSlot( int slot )
@@ -275,24 +364,35 @@ public sealed class PlayerInventory : Component
 
 	private void SetupStartingCarryables()
 	{
-		foreach ( var carryable in Carryables )
+		foreach ( var carryable in GetCarryablesSnapshot( true ) )
 		{
 			if ( !carryable.IsValid() )
 				continue;
 
-			carryable.Inventory = this;
-			carryable.OnAddedToInventory( this );
+			if ( !carryable.IsUnlocked )
+			{
+				carryable.OnHolster();
+				continue;
+			}
 
+			BindCarryableToInventory( carryable );
 			carryable.OnHolster();
 		}
+
+		LastKnownCarryableCount = GetCarryablesSnapshot().Count;
+		LastPresentedActiveSlot = int.MinValue;
 	}
 
 	private void HandleSlotInput()
 	{
-		if ( Input.Pressed( "Slot1" ) ) SwitchToSlot( 0 );
-		if ( Input.Pressed( "Slot2" ) ) SwitchToSlot( 1 );
-		if ( Input.Pressed( "Slot3" ) ) SwitchToSlot( 2 );
-		if ( Input.Pressed( "Slot4" ) ) SwitchToSlot( 3 );
+		var maxCarryableSlot = Carryables.Count > 0 ? Carryables.Max( carryable => carryable.InventorySlot ) + 1 : 0;
+		var maxNumberKeySlots = System.Math.Min( System.Math.Max( MaxSlots, maxCarryableSlot ), 9 );
+
+		for ( var slot = 0; slot < maxNumberKeySlots; slot++ )
+		{
+			if ( Input.Pressed( $"Slot{slot + 1}" ) )
+				SwitchToSlot( slot );
+		}
 	}
 
 	private void HandleMouseWheelInput()
@@ -306,7 +406,7 @@ public sealed class PlayerInventory : Component
 
 	private List<BaseCarryable> GetSortedCarryables()
 	{
-		return Carryables
+		return GetCarryablesSnapshot()
 			.Where( x => x.IsValid() )
 			.OrderBy( x => x.InventorySlot )
 			.ToList();
@@ -366,10 +466,10 @@ public sealed class PlayerInventory : Component
 			return;
 		}
 
-		if ( !force && LastPresentedActiveSlot == ActiveSlot )
-			return;
-
 		var nextCarryable = ActiveCarryable;
+
+		if ( !force && LastPresentedActiveSlot == ActiveSlot && PresentedCarryable == nextCarryable )
+			return;
 
 		if ( PresentedCarryable.IsValid() && PresentedCarryable != nextCarryable )
 			PresentedCarryable.OnHolster();
@@ -410,6 +510,9 @@ public sealed class PlayerInventory : Component
 		if ( carryable.Inventory != this )
 			return false;
 
+		if ( carryable.InventoryObject == GameObject )
+			return true;
+
 		var current = carryable.GameObject;
 
 		while ( current.IsValid() )
@@ -421,5 +524,122 @@ public sealed class PlayerInventory : Component
 		}
 
 		return false;
+	}
+
+	private List<BaseCarryable> GetCarryablesSnapshot( bool includeLocked = false )
+	{
+		var carryables = Components
+			.GetAll<BaseCarryable>( FindMode.EverythingInChildren )
+			.Where( carryable => carryable.IsValid() )
+			.Where( carryable => includeLocked || carryable.IsUnlocked )
+			.ToList();
+
+		if ( Scene.IsValid() )
+		{
+			foreach ( var gameObject in Scene.GetAllObjects( true ) )
+			{
+				if ( !gameObject.IsValid() )
+					continue;
+
+				var carryable = gameObject.Components.Get<BaseCarryable>();
+
+				if ( !carryable.IsValid() )
+					continue;
+
+				if ( !includeLocked && !carryable.IsUnlocked )
+					continue;
+
+				if ( carryable.InventoryObject != GameObject )
+					continue;
+
+				if ( carryables.Contains( carryable ) )
+					continue;
+
+				carryables.Add( carryable );
+			}
+		}
+
+		return carryables;
+	}
+
+	private void RefreshCarryableBindings()
+	{
+		var carryables = GetCarryablesSnapshot( true );
+		var shouldForcePresentation = carryables.Count != LastKnownCarryableCount;
+
+		LastKnownCarryableCount = carryables.Count;
+
+		foreach ( var carryable in carryables )
+		{
+			if ( !carryable.IsValid() )
+				continue;
+
+			if ( !carryable.IsUnlocked )
+			{
+				if ( carryable.Inventory == this )
+					carryable.OnHolster();
+
+				continue;
+			}
+
+			if ( carryable.Inventory == this )
+				continue;
+
+			BindCarryableToInventory( carryable );
+			shouldForcePresentation = true;
+
+			if ( carryable.InventorySlot != ActiveSlot )
+				carryable.OnHolster();
+		}
+
+		if ( shouldForcePresentation )
+			LastPresentedActiveSlot = int.MinValue;
+	}
+
+	private void BindCarryableToInventory( BaseCarryable carryable )
+	{
+		if ( !carryable.IsValid() )
+			return;
+
+		carryable.Inventory = this;
+		carryable.OnAddedToInventory( this );
+	}
+
+	private bool TryUnlockExistingCarryableFromPrefab( GameObject prefab, int slot, bool makeActive )
+	{
+		var prefabCarryable = prefab.Components.Get<BaseCarryable>( FindMode.EverythingInSelfAndDescendants );
+
+		if ( !prefabCarryable.IsValid() )
+			return false;
+
+		var carryable = GetCarryablesSnapshot( true )
+			.FirstOrDefault( candidate => candidate.IsValid() && candidate.GetType() == prefabCarryable.GetType() );
+
+		if ( !carryable.IsValid() )
+			return false;
+
+		if ( carryable.IsUnlocked )
+			return false;
+
+		if ( slot < 0 )
+			slot = FindEmptySlot();
+
+		if ( slot >= MaxSlots )
+			MaxSlots = slot + 1;
+
+		if ( !IsValidSlot( slot ) )
+			return false;
+
+		carryable.InventorySlot = slot;
+		carryable.SetUnlocked( true );
+		BindCarryableToInventory( carryable );
+
+		if ( makeActive )
+			SetActiveCarryable( carryable );
+
+		LastPresentedActiveSlot = int.MinValue;
+		Log.Info( $"Unlocked existing carryable {carryable.DisplayName} in inventory slot {carryable.InventorySlot}. ActiveSlot={ActiveSlot}." );
+
+		return true;
 	}
 }

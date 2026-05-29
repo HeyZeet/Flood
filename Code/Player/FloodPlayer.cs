@@ -149,7 +149,7 @@ public sealed class FloodPlayer : Component, PlayerController.IEvents
 		BuildResources = Components.Get<PlayerBuildResources>( FindMode.EverythingInSelfAndDescendants );
 		Shop = Components.Get<PlayerShopController>( FindMode.EverythingInSelfAndDescendants );
 
-		if ( !Shop.IsValid() )
+		if ( !Shop.IsValid() && Networking.IsHost )
 			Shop = Components.Create<PlayerShopController>();
 	}
 

@@ -302,6 +302,26 @@
           "OnComponentStart": null,
           "OnComponentUpdate": null,
           "StartingResources": 50
+        },
+        {
+          "__type": "PlayerShopController",
+          "__guid": "b877d9a6-f77e-4b3a-8d52-ebf4b4e20d91",
+          "__enabled": true,
+          "AllowDuringBuildPhase": true,
+          "AllowDuringCombatPhase": false,
+          "AllowDuringFloodPhase": false,
+          "AllowDuringRoundEnd": true,
+          "AllowDuringWaiting": false,
+          "AutoLoadResourceItems": true,
+          "AvailableItems": [],
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "ShopInputAction": "menu"
         }
       ],
       "Children": [
@@ -602,60 +622,6 @@
             {
               "__type": "BuildPieceFactory",
               "__guid": "8ddceb9c-55e4-47b0-b793-97f4e011d9f4",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            }
-          ],
-          "Children": []
-        },
-        {
-          "__guid": "14673ded-fd49-4fda-a4ab-322dadd44096",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "BuildHud",
-          "Position": "6.65915871,0,58.3978081",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.ScreenPanel",
-              "__guid": "3f2c462e-f135-4f4a-8ad8-c09bf7673a12",
-              "__enabled": true,
-              "Flags": 0,
-              "AutoScreenScale": true,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Opacity": 1,
-              "Scale": 1,
-              "ScaleStrategy": "FollowDesktopScaling",
-              "TargetCamera": {
-                "_type": "component",
-                "component_id": "2e383f54-1239-41ad-9c4c-0f65ee8b8c9f",
-                "go": "362fc882-8032-4372-a134-5ddd324b0074",
-                "component_type": "CameraComponent"
-              },
-              "ZIndex": 100
-            },
-            {
-              "__type": "Sandbox.UI.Build.BuildHud",
-              "__guid": "bb064175-f246-46cf-b54e-372dae061872",
               "__enabled": true,
               "Flags": 0,
               "OnComponentDestroy": null,
