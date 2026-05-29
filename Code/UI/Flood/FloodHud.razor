@@ -176,6 +176,17 @@
 		</div>
 	}
 
+	@if ( ShouldShowCrosshair )
+	{
+		<div class="@CrosshairCssClass">
+			<div class="flood-hud__crosshair-line flood-hud__crosshair-line--top"></div>
+			<div class="flood-hud__crosshair-line flood-hud__crosshair-line--right"></div>
+			<div class="flood-hud__crosshair-dot"></div>
+			<div class="flood-hud__crosshair-line flood-hud__crosshair-line--bottom"></div>
+			<div class="flood-hud__crosshair-line flood-hud__crosshair-line--left"></div>
+		</div>
+	}
+
 	@if ( ShouldShowAmmo )
 	{
 		<div class="flood-hud__ammo">
@@ -219,6 +230,7 @@
 	private bool ShouldShowBuildMenu { get; set; }
 	private bool ShouldShowShop { get; set; }
 	private bool ShouldShowCarryableSelector { get; set; }
+	private bool ShouldShowCrosshair { get; set; }
 	private bool IsReloading { get; set; }
 
 	private string RoundPhaseText { get; set; } = "Waiting";
@@ -237,6 +249,7 @@
 	private string WeaponText { get; set; } = "";
 	private string AmmoClipText { get; set; } = "0";
 	private string AmmoReserveText { get; set; } = "";
+	private string CrosshairCssClass { get; set; } = "flood-hud__crosshair";
 	private string DeathTitleText { get; set; } = "You Died";
 
 	private int HudBuildVersion { get; set; }
@@ -476,6 +489,7 @@
 		{
 			SetBuildState( false, "None", "None", "--", "" );
 			SetCarryableSelectorState( false, null );
+			SetCrosshairState( false, "" );
 			SetAmmoState( false, "", "0", "", false );
 			SetDeathState( false, "You Died" );
 			return;
@@ -489,6 +503,7 @@
 			SetBuildMenuState( false, null );
 			SetShopState( false, null, "--" );
 			SetCarryableSelectorState( false, null );
+			SetCrosshairState( false, "" );
 			SetAmmoState( false, "", "0", "", false );
 			return;
 		}
@@ -502,6 +517,54 @@
 		SetShopState( PlayerShopController.Local.IsValid() && PlayerShopController.Local.IsShopOpen, PlayerShopController.Local, resourceText );
 		UpdateCarryableSelectorState( inventory );
 		UpdateAmmoState( activeCarryable );
+		UpdateCrosshairState( player, activeCarryable );
+	}
+
+	private void UpdateCrosshairState( FloodPlayer player, BaseCarryable activeCarryable )
+	{
+		if ( !player.IsValid() || player.IsDead || !activeCarryable.IsValid() || ShouldShowBuildMenu || ShouldShowShop )
+		{
+			SetCrosshairState( false, "" );
+			return;
+		}
+
+		var cssClass = "flood-hud__crosshair";
+		var hasCrosshair = false;
+
+		if ( activeCarryable.Components.Get<BaseGunWeapon>( FindMode.EverythingInSelfAndDescendants ).IsValid() )
+		{
+			cssClass += " is-gun";
+			hasCrosshair = true;
+		}
+		else if ( activeCarryable.Components.Get<BaseMeleeWeapon>( FindMode.EverythingInSelfAndDescendants ).IsValid() )
+		{
+			cssClass += " is-melee";
+			hasCrosshair = true;
+		}
+		else if (
+			activeCarryable is BoatBuilder ||
+			activeCarryable.Components.Get<BaseToolWeapon>( FindMode.EverythingInSelfAndDescendants ).IsValid()
+		)
+		{
+			cssClass += " is-tool";
+			hasCrosshair = true;
+		}
+
+		if ( !hasCrosshair )
+		{
+			SetCrosshairState( false, "" );
+			return;
+		}
+
+		cssClass += player.SyncedRoundPhase switch
+		{
+			GamePhase.CombatPhase => " phase-combat",
+			GamePhase.FloodPhase => " phase-flood",
+			GamePhase.BuildPhase => " phase-build",
+			_ => " phase-neutral"
+		};
+
+		SetCrosshairState( true, cssClass );
 	}
 
 	private void UpdateCarryableSelectorState( PlayerInventory inventory )
@@ -875,6 +938,16 @@
 		HudBuildVersion++;
 	}
 
+	private void SetCrosshairState( bool shouldShow, string cssClass )
+	{
+		if ( ShouldShowCrosshair == shouldShow && CrosshairCssClass == cssClass )
+			return;
+
+		ShouldShowCrosshair = shouldShow;
+		CrosshairCssClass = cssClass;
+		HudBuildVersion++;
+	}
+
 	private string GetCarryableSlotText( int slot )
 	{
 		if ( slot < 0 )
@@ -1042,6 +1115,7 @@
 		hash.Add( ShouldShowBuildMenu );
 		hash.Add( ShouldShowShop );
 		hash.Add( ShouldShowCarryableSelector );
+		hash.Add( ShouldShowCrosshair );
 		hash.Add( ShouldShowAmmo );
 		hash.Add( ShouldShowDeath );
 		hash.Add( ShouldShowScoreboard );
@@ -1064,6 +1138,7 @@
 		hash.Add( ShopStateKey );
 		hash.Add( ShopSubtitleText );
 		hash.Add( CarryableSelectorStateKey );
+		hash.Add( CrosshairCssClass );
 		hash.Add( WeaponText );
 		hash.Add( AmmoClipText );
 		hash.Add( AmmoReserveText );

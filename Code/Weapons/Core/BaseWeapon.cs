@@ -354,9 +354,8 @@ public abstract class BaseWeapon : BaseCarryable
 		if ( direction.Length.AlmostEqual( 0f ) )
 			direction = WorldRotation.Forward;
 
-		var traceStart = start + direction * 4f;
-		var end = traceStart + direction * range;
-		var trace = Scene.Trace.Sphere( radius, traceStart, end );
+		var end = start + direction * range;
+		var trace = Scene.Trace.Sphere( radius, start, end );
 
 		var owner = OwnerPlayer;
 

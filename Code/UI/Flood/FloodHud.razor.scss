@@ -560,6 +560,147 @@ FloodHud {
 	text-overflow: ellipsis;
 }
 
+.flood-hud__crosshair {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 44px;
+	height: 44px;
+	transform: translate( -50%, -50% );
+	z-index: 220;
+	opacity: 0.92;
+}
+
+.flood-hud__crosshair-dot {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 4px;
+	height: 4px;
+	transform: translate( -50%, -50% );
+	border-radius: 2px;
+	background-color: rgba( 255, 255, 255, 0.96 );
+	box-shadow: 0px 0px 5px rgba( 0, 0, 0, 0.85 );
+}
+
+.flood-hud__crosshair-line {
+	position: absolute;
+	background-color: rgba( 255, 255, 255, 0.88 );
+	border-radius: 2px;
+	box-shadow: 0px 0px 5px rgba( 0, 0, 0, 0.85 );
+}
+
+.flood-hud__crosshair-line--top,
+.flood-hud__crosshair-line--bottom {
+	left: 50%;
+	width: 2px;
+	height: 9px;
+	transform: translateX( -50% );
+}
+
+.flood-hud__crosshair-line--left,
+.flood-hud__crosshair-line--right {
+	top: 50%;
+	width: 9px;
+	height: 2px;
+	transform: translateY( -50% );
+}
+
+.flood-hud__crosshair-line--top {
+	top: 5px;
+}
+
+.flood-hud__crosshair-line--bottom {
+	bottom: 5px;
+}
+
+.flood-hud__crosshair-line--left {
+	left: 5px;
+}
+
+.flood-hud__crosshair-line--right {
+	right: 5px;
+}
+
+.flood-hud__crosshair.phase-combat .flood-hud__crosshair-dot {
+	background-color: rgb( 255, 72, 72 );
+}
+
+.flood-hud__crosshair.phase-flood .flood-hud__crosshair-dot {
+	background-color: rgb( 105, 210, 255 );
+}
+
+.flood-hud__crosshair.phase-build .flood-hud__crosshair-dot {
+	background-color: rgb( 94, 232, 128 );
+}
+
+.flood-hud__crosshair.is-melee {
+	width: 34px;
+	height: 34px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--top,
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--bottom {
+	height: 7px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--left,
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--right {
+	width: 7px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--top {
+	top: 4px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--bottom {
+	bottom: 4px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--left {
+	left: 4px;
+}
+
+.flood-hud__crosshair.is-melee .flood-hud__crosshair-line--right {
+	right: 4px;
+}
+
+.flood-hud__crosshair.is-tool {
+	width: 52px;
+	height: 52px;
+	opacity: 0.76;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line {
+	background-color: rgba( 105, 210, 255, 0.86 );
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--top,
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--bottom {
+	height: 8px;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--left,
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--right {
+	width: 8px;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--top {
+	top: 6px;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--bottom {
+	bottom: 6px;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--left {
+	left: 6px;
+}
+
+.flood-hud__crosshair.is-tool .flood-hud__crosshair-line--right {
+	right: 6px;
+}
+
 .flood-hud__ammo {
 	position: absolute;
 	right: 64px;
