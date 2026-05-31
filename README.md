@@ -80,10 +80,19 @@ Each build resource can tune display name, description, cost, material, health, 
 - Water works for host and joined clients.
 - Players can swim in the flood water on host and client.
 - Players must be roughly halfway submerged before water damage begins.
+- Water uses an invisible gameplay volume for swim/damage plus a separate flat visual surface.
+- Visual water uses a custom material/shader with subtle animated dirty-water movement.
+- A screen-space underwater distortion effect runs from the local player camera.
+- Water entry and bobbing sounds can be assigned through `FloodBuoyancy`.
 - `FloodBuoyancy` applies custom floating behavior to build pieces.
 - Material presets affect lift, drag, stability, and mass behavior.
 - Welded rafts use group buoyancy so connected pieces float as one craft instead of each prop fighting independently.
-- Raft stability is tuned to reduce spinning/flipping and vertical separation between welded pieces.
+- Raft stability is actively being tuned to reduce spinning, flipping, and vertical separation between welded pieces.
+- Recent buoyancy work is inspired by K3rhos/WaterTool-style ideas: sampled water height, spring/damping lift, water flow, and multi-point hull sampling.
+
+Current known tuning issue:
+
+- Some welded barrel/crate raft layouts can still flip upside down or behave awkwardly under load. They float, but raft leveling is still experimental.
 
 ### Combat And Damage
 
@@ -110,6 +119,7 @@ Each build resource can tune display name, description, cost, material, health, 
 - USP, shotgun, and crowbar are shop unlocks.
 - Shotgun reloads one shell at a time and supports empty-first-shell reload animation behavior.
 - Gun and melee impact effects support material-specific prefabs.
+- Weapon sounds, reload animations, impact effects, local viewmodels, and third-person world models are networked for host/client play.
 
 ### Shop
 
@@ -129,6 +139,14 @@ Each build resource can tune display name, description, cost, material, health, 
 - Carryable selector HUD appears while selecting a tool/weapon and hides after selection.
 - Scoreboard and round winner display show at round end.
 - Winner preview displays a rotating player model.
+- A simple crosshair keeps build/combat aiming centered on the same origin.
+
+### Maps And Presentation
+
+- `basemap.scene` is the current arena map in the repo.
+- Water sizing/offsets are tuned around the `MainRoom` gameplay space.
+- The map uses a daytime outdoor arena direction with enclosed walls.
+- The water setup is designed so the gameplay water volume can stay hidden while the visible surface provides the look.
 
 ## Project Structure
 
@@ -144,9 +162,12 @@ Code/
   Weapons/    Carryable, weapon, gun, melee, tool, viewmodel, and world model systems
 
 Assets/
+  materials/  Flood water material and supporting textures
   prefabs/    Player, weapons, tools, impact effects, muzzle flashes, gameplay prefabs
   resources/  Build piece resources and shop items
-  scenes/     Main test scene and supporting scenes
+  scenes/     Basemap and supporting scenes
+  shaders/    Water surface and screen-space water distortion shaders
+  sounds/     Flood-specific sound event assets
 ```
 
 ## Testing In S&box
@@ -163,13 +184,21 @@ Recommended multiplayer test flow:
 8. Equip Weld Tool, select owned pieces, and weld them into a raft.
 9. Confirm other players cannot sell or weld your pieces.
 10. Let the water rise.
-11. Confirm both host and client see water, swim, take water damage, and see rafts float.
+11. Confirm both host and client see water, swim, take water damage, hear water sounds, and see rafts float.
 12. Enter combat phase.
 13. Buy/equip weapons from the shop.
 14. Confirm weapon unlocks appear in inventory on host and client.
 15. Shoot and melee players/props and confirm sounds, animations, damage, and impact effects replicate.
 16. Kill a player and confirm ragdoll/elimination behavior.
 17. Confirm round winner display, scoreboard, and reset.
+
+Useful raft stress test:
+
+1. Place 4 crates in a square.
+2. Place 4 plastic barrels around the sides/corners.
+3. Select all pieces with the Weld Tool and weld them into one raft.
+4. Start flood phase.
+5. Watch for vertical separation, spinning, flipping, and player movement on top of the raft.
 
 ## Development Notes
 
@@ -185,7 +214,9 @@ Recommended multiplayer test flow:
 Short-term goals:
 
 - Continue tuning raft walking/player movement on floating rafts.
+- Continue tuning welded raft buoyancy, load balancing, and upside-down recovery.
 - Improve armor so it reinforces existing boat pieces.
+- Add stronger feedback for water entry, prop splashes, and raft damage.
 - Add more weapon/tool polish, particles, sounds, and animations.
 - Expand shop content and add round-end payouts.
 - Improve scoreboard/winner presentation.
@@ -202,4 +233,4 @@ Longer-term goals:
 
 ## Status
 
-Flood 2.0 is playable in host/client testing. The core loop, networking, building, ownership, welding, water, buoyancy, shop unlocks, weapons, damage, HUD, winner display, and round reset are all working but still being actively tuned.
+Flood 2.0 is playable in host/client testing. The core loop, networking, building, ownership, welding, water, shop unlocks, weapons, damage, HUD, winner display, and round reset are working. Buoyancy and raft stability are functional but still the most active tuning area.
