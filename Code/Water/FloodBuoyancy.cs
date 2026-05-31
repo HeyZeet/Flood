@@ -37,8 +37,11 @@ public sealed class FloodBuoyancy : Component
 	[Property] public bool UseManualSampleBuoyancy { get; set; } = true;
 
 	[Header( "Manual Buoyancy" )]
-	[Property] public int SampleGridSize { get; set; } = 2;
+	[Property] public int SampleGridSize { get; set; } = 3;
+	[Property, Range( 0.2f, 1f )] public float HullSampleSpread { get; set; } = 0.78f;
+	[Property, Range( 0f, 0.5f )] public float SampleHeightFraction { get; set; } = 0.12f;
 	[Property] public float LiftAcceleration { get; set; } = 900f;
+	[Property] public float Damping { get; set; } = 5f;
 	[Property] public float MaxSampleDepth { get; set; } = 48f;
 	[Property] public float SurfaceTouchDepth { get; set; } = 0f;
 
@@ -46,6 +49,8 @@ public sealed class FloodBuoyancy : Component
 	[Property] public float WaterLinearDrag { get; set; } = 0.8f;
 	[Property] public float WaterAngularDrag { get; set; } = 1.5f;
 	[Property] public float PointVelocityDrag { get; set; } = 0.15f;
+	[Property, Range( 0f, 1f )] public float WaveTransportStrength { get; set; } = 0.15f;
+	[Property] public float WaveTransportForce { get; set; } = 8f;
 	[Property] public float ConnectedRaftAngularDragBonus { get; set; } = 1.25f;
 	[Property] public float MaxWaterVelocity { get; set; } = 420f;
 	[Property] public float MaxWaterAngularVelocity { get; set; } = 3f;
@@ -63,7 +68,12 @@ public sealed class FloodBuoyancy : Component
 	[Property] public float GroupVerticalVelocityDamping { get; set; } = 4.5f;
 	[Property] public float GroupMaxUpwardVelocity { get; set; } = 95f;
 	[Property] public float GroupMaxDownwardVelocity { get; set; } = 220f;
-	[Property] public float GroupUprightStabilization { get; set; } = 0.08f;
+	[Property, Range( 0f, 1f )] public float GroupSampleTorqueStrength { get; set; } = 0f;
+	[Property] public float GroupUprightStabilization { get; set; } = 8f;
+	[Property] public float GroupUprightAngularDamping { get; set; } = 1.5f;
+	[Property] public float GroupMaxUprightCorrection { get; set; } = 16f;
+	[Property] public float GroupUpsideDownRecoveryMultiplier { get; set; } = 3.5f;
+	[Property, Range( -1f, 1f )] public float GroupUpsideDownRecoveryThreshold { get; set; } = 0.1f;
 	[Property] public float AttachedPieceStabilityBonus { get; set; } = 0.08f;
 	[Property] public float AttachedPieceLiftBonus { get; set; } = 0.035f;
 	[Property] public float AttachedArmorStabilityBonus { get; set; } = 0.03f;
@@ -73,6 +83,10 @@ public sealed class FloodBuoyancy : Component
 	[Property] public float MaxRaftLiftMultiplier { get; set; } = 1.45f;
 	[Property] public float MinDamagedRaftStabilityMultiplier { get; set; } = 0.35f;
 	[Property] public float UnattachedInstabilityMultiplier { get; set; } = 0.65f;
+
+	[Header( "Raft Load Balance" )]
+	[Property] public bool UseRaftAngularAssist { get; set; } = true;
+	[Property] public float RaftAngularAssistStrength { get; set; } = 2.5f;
 
 	[Header( "Debug" )]
 	[Property] public bool DrawDebug { get; set; } = true;
@@ -84,6 +98,14 @@ public sealed class FloodBuoyancy : Component
     [Property] public float MinSplashSpeed { get; set; } = 80f;
     [Property] public float SplashCooldown { get; set; } = 0.35f;
 
+	[Header( "Water Sounds" )]
+	[Property] public bool UseDefaultWaterSounds { get; set; } = true;
+	[Property] public SoundEvent SplashSound { get; set; }
+	[Property] public SoundEvent BobSound { get; set; }
+	[Property] public float MinBobVerticalSpeed { get; set; } = 20f;
+	[Property] public float BobSoundCooldown { get; set; } = 0.85f;
+	[Property, Range( 0f, 1f )] public float MinBobWetness { get; set; } = 0.08f;
+
 	public float LastWetness { get; private set; }
 	public bool IsTouchingWater => LastWetness > 0f;
 	public Vector3 LastWaterContactPoint { get; private set; }
@@ -91,9 +113,12 @@ public sealed class FloodBuoyancy : Component
 	public float LastRaftHealthFraction { get; private set; } = 1f;
 	[Sync( SyncFlags.FromHost )] public bool IsInWater { get; private set; }
 	[Sync( SyncFlags.FromHost )] public float SyncedWetness { get; private set; }
-    private bool WasTouchingWater { get; set; }
+	private bool WasTouchingWater { get; set; }
     private TimeSince TimeSinceLastSplash { get; set; } = 999f;
+	private TimeSince TimeSinceLastBobSound { get; set; } = 999f;
 	private BuildPiece BuildPiece { get; set; }
+	private const string DefaultSplashSoundPath = "sounds/water/splash_impact.sound";
+	private const string DefaultBobSoundPath = "sounds/water/water_bob.sound";
 
 	private struct RaftStabilityState
 	{
@@ -114,6 +139,8 @@ public sealed class FloodBuoyancy : Component
 			Log.Warning( $"{GameObject.Name} has FloodBuoyancy but no Rigidbody." );
 
 		BuildPiece = Components.Get<BuildPiece>( FindMode.EverythingInSelfAndAncestors );
+
+		LoadDefaultWaterSounds();
 
 		if ( ApplyPresetOnStart )
 			FloodBuoyancyMaterialPresets.ApplyTo( this, MaterialPreset );
@@ -219,13 +246,14 @@ public sealed class FloodBuoyancy : Component
 		var bottomZ = raftBounds.Mins.z;
 		var topZ = raftBounds.Maxs.z;
 		var height = (topZ - bottomZ).Clamp( 1f, 999999f );
-		var waterSurface = water.GetSurfaceHeight( raftBounds.Center );
+		var waterSurface = GetAverageWaterSurfaceHeight( water, raftBounds );
 		var submergedHeight = (waterSurface - bottomZ).Clamp( 0f, height );
 		var wetness = (submergedHeight / height).Clamp( 0f, 1f );
 		var depthPercent = ((waterSurface - bottomZ) / MaxSampleDepth.Clamp( 1f, 10000f )).Clamp( 0f, 1f );
 		var raftStability = BuildRaftStabilityStateFromPieces( connectedPieces );
 
 		UpdateConnectedBuoyancyState( connectedPieces, wetness, raftStability, waterSurface );
+		UpdateWaterContactEffects( water, wetness );
 
 		if ( wetness <= 0f )
 			return;
@@ -235,27 +263,26 @@ public sealed class FloodBuoyancy : Component
 		var floatError = (wetness - targetWetness).Clamp( 0f, 1f );
 		var liftAcceleration = GroupLiftAcceleration * materialLift * depthPercent * raftStability.LiftMultiplier;
 		liftAcceleration += GroupFloatCorrectionStrength * floatError * raftStability.StabilityMultiplier;
-		var liftVelocity = Vector3.Up * liftAcceleration * Time.Delta;
+		var activeBodies = new List<Rigidbody>( GetActiveRaftBodies( connectedPieces ) );
 
-		foreach ( var body in GetActiveRaftBodies( connectedPieces ) )
+		foreach ( var body in activeBodies )
 		{
+			ApplyGroupSampleBuoyancy( water, raftBounds, body, raftStability, materialLift, targetWetness, wetness, activeBodies.Count );
+
 			var flow = water.GetFlowVelocity( body.WorldPosition );
-			var relativeVelocity = body.Velocity - flow;
+			var relativeVelocity = (body.Velocity - flow).WithZ( 0f );
 			var linearDrag = 1f - (WaterLinearDrag * raftStability.StabilityMultiplier * wetness * Time.Delta).Clamp( 0f, 0.95f );
 			var angularDrag = 1f - ((WaterAngularDrag + ConnectedRaftAngularDragBonus) * raftStability.StabilityMultiplier * wetness * Time.Delta).Clamp( 0f, 0.95f );
-			var verticalDamping = Vector3.Up * body.Velocity.z * GroupVerticalVelocityDamping * wetness * Time.Delta;
 
-			body.Velocity += liftVelocity;
-			body.Velocity -= verticalDamping;
 			body.Velocity -= relativeVelocity * PointVelocityDrag * wetness * Time.Delta;
 			body.Velocity *= linearDrag;
 			body.AngularVelocity *= angularDrag;
 
 			if ( StabilizeRollPitch )
-			{
-				var correction = Vector3.Cross( body.WorldRotation.Up, Vector3.Up );
-				body.AngularVelocity += correction * GroupUprightStabilization * raftStability.StabilityMultiplier * wetness * Time.Delta;
-			}
+				ApplyGroupUprightStabilization( body, wetness, raftStability );
+
+			if ( UseRaftAngularAssist )
+				ApplyRaftAngularAssist( body, wetness, raftStability );
 
 			ClampBodyWaterMotion( body, wetness, raftStability, true );
 			ClampGroupVerticalVelocity( body );
@@ -291,6 +318,64 @@ public sealed class FloodBuoyancy : Component
 		}
 	}
 
+	private void ApplyGroupSampleBuoyancy(
+		FloodWaterController water,
+		BBox raftBounds,
+		Rigidbody body,
+		RaftStabilityState raftStability,
+		float materialLift,
+		float targetWetness,
+		float wetness,
+		int activeBodyCount )
+	{
+		var samples = BuildBottomSamples( raftBounds );
+		var sampleCount = samples.Count;
+		var bodyShare = activeBodyCount.Clamp( 1, 64 );
+		var mass = body.Mass.Clamp( 1f, 100000f ) / bodyShare;
+		var floatError = (wetness - targetWetness).Clamp( 0f, 1f );
+
+		foreach ( var sample in samples )
+		{
+			var surfaceHeight = water.GetSurfaceHeight( sample );
+			var depth = surfaceHeight - sample.z;
+
+			if ( depth < SurfaceTouchDepth )
+			{
+				if ( DrawDebug )
+					DrawSampleDebug( sample, surfaceHeight, false );
+
+				continue;
+			}
+
+			var depthPercent = (depth / MaxSampleDepth.Clamp( 1f, 10000f )).Clamp( 0f, 1f );
+			var forcePoint = GetGroupForcePoint( body, sample );
+			var pointVelocity = GetVelocityAtPoint( body, forcePoint );
+			var liftAcceleration = GroupLiftAcceleration * materialLift * depthPercent * raftStability.LiftMultiplier;
+			var correctionAcceleration = GroupFloatCorrectionStrength * floatError * raftStability.StabilityMultiplier;
+			var dampingAcceleration = -pointVelocity.z * GroupVerticalVelocityDamping * raftStability.StabilityMultiplier * wetness;
+			var maxLiftAcceleration = (GroupLiftAcceleration * materialLift * raftStability.LiftMultiplier * 1.25f) + correctionAcceleration;
+			var verticalAcceleration = (liftAcceleration + correctionAcceleration + dampingAcceleration).Clamp( -GroupLiftAcceleration * 0.25f, maxLiftAcceleration );
+
+			var waterFlow = water.GetFlowVelocity( sample );
+			var relativeVelocity = pointVelocity - waterFlow;
+			var dragAcceleration = -relativeVelocity * PointVelocityDrag * raftStability.StabilityMultiplier * depthPercent;
+			var waveTransportAcceleration = waterFlow.WithZ( 0f ) * WaveTransportForce * WaveTransportStrength * depthPercent;
+			var sampleAcceleration = Vector3.Up * verticalAcceleration + dragAcceleration + waveTransportAcceleration;
+
+			body.ApplyForceAt( forcePoint, sampleAcceleration * mass / sampleCount );
+		}
+	}
+
+	private Vector3 GetGroupForcePoint( Rigidbody body, Vector3 sample )
+	{
+		var torqueStrength = GroupSampleTorqueStrength.Clamp( 0f, 1f );
+
+		if ( torqueStrength <= 0f )
+			return body.WorldPosition;
+
+		return body.WorldPosition + (sample - body.WorldPosition) * torqueStrength;
+	}
+
 	private void ClampGroupVerticalVelocity( Rigidbody body )
 	{
 		var velocity = body.Velocity;
@@ -301,6 +386,71 @@ public sealed class FloodBuoyancy : Component
 			body.Velocity = velocity.WithZ( maxUp );
 		else if ( velocity.z < -maxDown )
 			body.Velocity = velocity.WithZ( -maxDown );
+	}
+
+	private void ApplyGroupUprightStabilization( Rigidbody body, float wetness, RaftStabilityState raftStability )
+	{
+		if ( wetness <= 0f )
+			return;
+
+		var up = body.WorldRotation.Up.Normal;
+		var alignment = Vector3.Dot( up, Vector3.Up ).Clamp( -1f, 1f );
+		var correctionAxis = Vector3.Cross( up, Vector3.Up );
+
+		if ( correctionAxis.LengthSquared < 0.0001f )
+			correctionAxis = GetInvertedRecoveryAxis( body );
+		else
+			correctionAxis = correctionAxis.Normal;
+
+		var tiltAngle = MathF.Acos( alignment ).Clamp( 0f, MathF.PI );
+		var recoveryMultiplier = alignment <= GroupUpsideDownRecoveryThreshold
+			? GroupUpsideDownRecoveryMultiplier.Clamp( 1f, 20f )
+			: 1f;
+
+		var correction = correctionAxis
+			* GroupUprightStabilization
+			* recoveryMultiplier
+			* tiltAngle
+			* raftStability.StabilityMultiplier
+			* wetness;
+
+		correction = correction.ClampLength( GroupMaxUprightCorrection.Clamp( 0.1f, 1000f ) );
+
+		// Damp roll and pitch without fighting player-facing yaw.
+		var rollPitchDamping = new Vector3( body.AngularVelocity.x, body.AngularVelocity.y, 0f )
+			* GroupUprightAngularDamping
+			* wetness;
+
+		body.AngularVelocity += (correction - rollPitchDamping) * Time.Delta;
+	}
+
+	private void ApplyRaftAngularAssist( Rigidbody body, float wetness, RaftStabilityState raftStability )
+	{
+		if ( wetness <= 0f )
+			return;
+
+		var assist = RaftAngularAssistStrength * raftStability.StabilityMultiplier * wetness * Time.Delta;
+		var angularVelocity = body.AngularVelocity;
+
+		// Keep some yaw freedom, but bleed off roll/pitch energy that tends to compound on welded rafts.
+		angularVelocity.x = angularVelocity.x.LerpTo( 0f, assist.Clamp( 0f, 0.9f ) );
+		angularVelocity.y = angularVelocity.y.LerpTo( 0f, assist.Clamp( 0f, 0.9f ) );
+		body.AngularVelocity = angularVelocity;
+	}
+
+	private static Vector3 GetInvertedRecoveryAxis( Rigidbody body )
+	{
+		var forward = body.WorldRotation.Forward.WithZ( 0f );
+
+		if ( forward.LengthSquared > 0.0001f )
+			return forward.Normal;
+
+		var right = body.WorldRotation.Right.WithZ( 0f );
+
+		if ( right.LengthSquared > 0.0001f )
+			return right.Normal;
+
+		return Vector3.Right;
 	}
 
 	private float GetTargetWetness( float materialLift )
@@ -318,7 +468,7 @@ public sealed class FloodBuoyancy : Component
 	private void SetDryStateIfOutOfWater( FloodWaterController water )
 	{
 		var bounds = Body.GetWorldBounds();
-		var waterSurface = water.GetSurfaceHeight( Body.WorldPosition );
+		var waterSurface = GetAverageWaterSurfaceHeight( water, bounds );
 		var wetness = ((waterSurface - bounds.Mins.z) / (bounds.Maxs.z - bounds.Mins.z).Clamp( 1f, 999999f )).Clamp( 0f, 1f );
 
 		LastWetness = wetness;
@@ -337,7 +487,7 @@ public sealed class FloodBuoyancy : Component
 		var topZ = bounds.Maxs.z;
 		var height = (topZ - bottomZ).Clamp( 1f, 999999f );
 
-		var waterSurfaceAtBody = water.GetSurfaceHeight( Body.WorldPosition );
+		var waterSurfaceAtBody = GetAverageWaterSurfaceHeight( water, bounds );
 
 		var submergedHeight = (waterSurfaceAtBody - bottomZ).Clamp( 0f, height );
 		var wholeBodyWetness = (submergedHeight / height).Clamp( 0f, 1f );
@@ -385,15 +535,14 @@ public sealed class FloodBuoyancy : Component
 
 	    if ( isTouchingWater && !WasTouchingWater )
 		    PlayEnterWaterSplash( water );
+	    else if ( isTouchingWater )
+		    PlayWaterBobSound( water, wetness );
 
 	    WasTouchingWater = isTouchingWater;
     }
 
     private void PlayEnterWaterSplash( FloodWaterController water )
     {
-	    if ( !SplashPrefab.IsValid() )
-		    return;
-
 	    if ( TimeSinceLastSplash < SplashCooldown )
 		    return;
 
@@ -402,31 +551,100 @@ public sealed class FloodBuoyancy : Component
 
 	    TimeSinceLastSplash = 0f;
 
-	    var splash = SplashPrefab.Clone();
+	    var position = GetWaterEffectPosition( water );
 
-	    var position = LastWaterContactPoint;
+	    PlayWaterSound( SplashSound, position );
 
-	    if ( position == Vector3.Zero )
-		    position = Body.WorldPosition;
-
-	    position.z = water.SurfaceHeight;
-
-	    splash.WorldPosition = position;
-	    splash.WorldRotation = Rotation.Identity;
-
-	    if ( SplashLifeTime > 0f )
-	    {
-		    var destroyAfterTime = splash.Components.Create<DestroyAfterTime>();
-		    destroyAfterTime.LifeTime = SplashLifeTime;
-	    }
+	    SpawnSplashEffect( position );
     }
+
+	private void PlayWaterBobSound( FloodWaterController water, float wetness )
+	{
+		if ( BobSound is null )
+			return;
+
+		if ( wetness < MinBobWetness.Clamp( 0f, 1f ) )
+			return;
+
+		if ( TimeSinceLastBobSound < BobSoundCooldown )
+			return;
+
+		var verticalSpeed = MathF.Abs( Body.Velocity.z );
+
+		if ( verticalSpeed < MinBobVerticalSpeed )
+			return;
+
+		TimeSinceLastBobSound = 0f;
+		PlayWaterSound( BobSound, GetWaterEffectPosition( water ) );
+	}
+
+	private Vector3 GetWaterEffectPosition( FloodWaterController water )
+	{
+		var position = LastWaterContactPoint;
+
+		if ( position == Vector3.Zero )
+			position = Body.WorldPosition;
+
+		position.z = water.GetSurfaceHeight( position );
+
+		return position;
+	}
+
+	private void SpawnSplashEffect( Vector3 position )
+	{
+		if ( !SplashPrefab.IsValid() )
+			return;
+
+		var splash = SplashPrefab.Clone();
+
+		splash.WorldPosition = position;
+		splash.WorldRotation = Rotation.Identity;
+
+		if ( SplashLifeTime > 0f )
+		{
+			var destroyAfterTime = splash.Components.Create<DestroyAfterTime>();
+			destroyAfterTime.LifeTime = SplashLifeTime;
+		}
+	}
+
+	private void PlayWaterSound( SoundEvent sound, Vector3 position )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( sound is null )
+			return;
+
+		PlayWaterSoundBroadcast( sound, position );
+	}
+
+	[Rpc.Broadcast]
+	private void PlayWaterSoundBroadcast( SoundEvent sound, Vector3 position )
+	{
+		if ( sound is null )
+			return;
+
+		Sound.Play( sound, position );
+	}
+
+	private void LoadDefaultWaterSounds()
+	{
+		if ( !UseDefaultWaterSounds )
+			return;
+
+		SplashSound ??= ResourceLibrary.Get<SoundEvent>( DefaultSplashSoundPath );
+		BobSound ??= ResourceLibrary.Get<SoundEvent>( DefaultBobSoundPath );
+	}
 
 	private void ApplySampleBuoyancy( FloodWaterController water, BBox bounds, RaftStabilityState raftStability )
 	{
 		var samples = BuildBottomSamples( bounds );
+		var sampleCount = samples.Count;
 
 		var wetSampleCount = 0;
 		var contactPointTotal = Vector3.Zero;
+		var mass = Body.Mass.Clamp( 1f, 100000f );
+		var densityScale = 1f / RelativeDensity.Clamp( 0.1f, 10f );
 
 		foreach ( var sample in samples )
 		{
@@ -443,21 +661,23 @@ public sealed class FloodBuoyancy : Component
 
 			var depthPercent = (depth / MaxSampleDepth).Clamp( 0f, 1f );
 
-			// Lower density = stronger lift.
-			// Higher density = weaker lift, meaning heavy objects sink.
-			var densityScale = 1f / RelativeDensity.Clamp( 0.1f, 10f );
+			// Lower density = stronger lift. Higher density = weaker lift, so heavy props sit lower.
+			var liftAcceleration = LiftAcceleration * depthPercent * densityScale * raftStability.LiftMultiplier;
+			var pointVelocity = GetVelocityAtPoint( sample );
+			var dampingAcceleration = -pointVelocity.z * Damping * raftStability.StabilityMultiplier * depthPercent;
+			var maxLiftAcceleration = LiftAcceleration * densityScale * raftStability.LiftMultiplier * 1.25f;
+			var verticalAcceleration = (liftAcceleration + dampingAcceleration).Clamp( -LiftAcceleration * 0.25f, maxLiftAcceleration );
 
-			var liftVelocity = Vector3.Up * LiftAcceleration * depthPercent * densityScale * raftStability.LiftMultiplier * Time.Delta;
-
-			// Simple point drag from body movement through water.
 			var waterFlow = water.GetFlowVelocity( sample );
-			var relativeVelocity = Body.Velocity - waterFlow;
-			var dragVelocity = -relativeVelocity * PointVelocityDrag * raftStability.StabilityMultiplier * depthPercent * Time.Delta;
+			var relativeVelocity = pointVelocity - waterFlow;
+			var dragAcceleration = -relativeVelocity * PointVelocityDrag * raftStability.StabilityMultiplier * depthPercent;
+			var waveTransportAcceleration = waterFlow.WithZ( 0f ) * WaveTransportForce * WaveTransportStrength * depthPercent;
+			var sampleAcceleration = Vector3.Up * verticalAcceleration + dragAcceleration + waveTransportAcceleration;
 
-			Body.Velocity += liftVelocity + dragVelocity;
+			Body.ApplyForceAt( sample, sampleAcceleration * mass / sampleCount );
 
 			wetSampleCount++;
-			contactPointTotal += sample;
+			contactPointTotal += sample.WithZ( surfaceHeight );
 
 			if ( DrawDebug )
 				DrawSampleDebug( sample, surfaceHeight, true );
@@ -467,25 +687,33 @@ public sealed class FloodBuoyancy : Component
 			LastWaterContactPoint = contactPointTotal / wetSampleCount;
 	}
 
-	private IEnumerable<Vector3> BuildBottomSamples( BBox bounds )
+	private List<Vector3> BuildBottomSamples( BBox bounds )
 	{
+		var samples = new List<Vector3>();
 		var gridSize = SampleGridSize.Clamp( 1, 4 );
-
 		var min = bounds.Mins;
 		var max = bounds.Maxs;
-
-		var z = min.z;
+		var center = bounds.Center;
+		var spread = HullSampleSpread.Clamp( 0.2f, 1f );
+		var halfX = bounds.Size.x * 0.5f * spread;
+		var halfY = bounds.Size.y * 0.5f * spread;
+		var z = min.z.LerpTo( max.z, SampleHeightFraction.Clamp( 0f, 0.5f ) );
 
 		if ( gridSize == 1 )
 		{
-			yield return new Vector3(
-				(min.x + max.x) * 0.5f,
-				(min.y + max.y) * 0.5f,
+			samples.Add( new Vector3(
+				center.x,
+				center.y,
 				z
-			);
+			) );
 
-			yield break;
+			return samples;
 		}
+
+		var sampleMinX = center.x - halfX;
+		var sampleMaxX = center.x + halfX;
+		var sampleMinY = center.y - halfY;
+		var sampleMaxY = center.y + halfY;
 
 		for ( var x = 0; x < gridSize; x++ )
 		{
@@ -494,13 +722,53 @@ public sealed class FloodBuoyancy : Component
 				var xPercent = gridSize == 1 ? 0.5f : x / (float)(gridSize - 1);
 				var yPercent = gridSize == 1 ? 0.5f : y / (float)(gridSize - 1);
 
-				yield return new Vector3(
-					min.x.LerpTo( max.x, xPercent ),
-					min.y.LerpTo( max.y, yPercent ),
+				samples.Add( new Vector3(
+					sampleMinX.LerpTo( sampleMaxX, xPercent ),
+					sampleMinY.LerpTo( sampleMaxY, yPercent ),
 					z
-				);
+				) );
 			}
 		}
+
+		return samples;
+	}
+
+	private Vector3 GetVelocityAtPoint( Vector3 worldPoint )
+	{
+		return GetVelocityAtPoint( Body, worldPoint );
+	}
+
+	private static Vector3 GetVelocityAtPoint( Rigidbody body, Vector3 worldPoint )
+	{
+		return body.Velocity + Vector3.Cross( body.AngularVelocity, worldPoint - body.WorldPosition );
+	}
+
+	private float GetAverageWaterSurfaceHeight( FloodWaterController water, BBox bounds )
+	{
+		var center = bounds.Center;
+		var spread = HullSampleSpread.Clamp( 0.2f, 1f );
+		var halfX = bounds.Size.x * 0.5f * spread;
+		var halfY = bounds.Size.y * 0.5f * spread;
+		var total = 0f;
+		var count = 0;
+
+		void AddSample( float x, float y )
+		{
+			total += water.GetSurfaceHeight( new Vector3( x, y, center.z ) );
+			count++;
+		}
+
+		AddSample( center.x, center.y );
+		AddSample( center.x - halfX, center.y );
+		AddSample( center.x + halfX, center.y );
+		AddSample( center.x, center.y - halfY );
+		AddSample( center.x, center.y + halfY );
+		AddSample( center.x - halfX, center.y - halfY );
+		AddSample( center.x - halfX, center.y + halfY );
+		AddSample( center.x + halfX, center.y - halfY );
+		AddSample( center.x + halfX, center.y + halfY );
+
+		return count > 0 ? total / count : water.SurfaceHeight;
 	}
 
 	private void ApplyWaterDrag( float wetness, RaftStabilityState raftStability )

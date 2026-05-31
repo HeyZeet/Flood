@@ -166,6 +166,20 @@ public sealed class BuildPieceFactory : Component
 		buoyancy.GroupVerticalVelocityDamping = 4.5f;
 		buoyancy.GroupMaxUpwardVelocity = 95f;
 		buoyancy.GroupMaxDownwardVelocity = 220f;
+		buoyancy.GroupSampleTorqueStrength = 0f;
+		buoyancy.GroupUprightStabilization = 8f;
+		buoyancy.GroupUprightAngularDamping = 1.5f;
+		buoyancy.GroupMaxUprightCorrection = 16f;
+		buoyancy.GroupUpsideDownRecoveryMultiplier = 3.5f;
+		buoyancy.GroupUpsideDownRecoveryThreshold = 0.1f;
+		buoyancy.UseRaftAngularAssist = true;
+		buoyancy.RaftAngularAssistStrength = 2.5f;
+		buoyancy.SampleGridSize = 3;
+		buoyancy.HullSampleSpread = 0.78f;
+		buoyancy.SampleHeightFraction = 0.12f;
+		buoyancy.Damping = 5.5f;
+		buoyancy.WaveTransportStrength = 0.15f;
+		buoyancy.WaveTransportForce = 8f;
 
 		switch ( material )
 		{
@@ -173,30 +187,35 @@ public sealed class BuildPieceFactory : Component
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.Wood;
 				buoyancy.RelativeDensity = 0.65f;
 				buoyancy.LiftAcceleration = 820f;
+				buoyancy.Damping = 5.5f;
 				break;
 
 			case BuildPieceMaterial.Metal:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.Metal;
 				buoyancy.RelativeDensity = 1.8f;
 				buoyancy.LiftAcceleration = 650f;
+				buoyancy.Damping = 6.5f;
 				break;
 
 			case BuildPieceMaterial.Plastic:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.LightPlastic;
 				buoyancy.RelativeDensity = 0.5f;
 				buoyancy.LiftAcceleration = 850f;
+				buoyancy.Damping = 6f;
 				break;
 
 			case BuildPieceMaterial.Foam:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.LightPlastic;
 				buoyancy.RelativeDensity = 0.35f;
 				buoyancy.LiftAcceleration = 780f;
+				buoyancy.Damping = 6f;
 				break;
 
 			case BuildPieceMaterial.Armor:
 				buoyancy.MaterialPreset = BuoyancyMaterialPreset.Metal;
 				buoyancy.RelativeDensity = 1.35f;
 				buoyancy.LiftAcceleration = 700f;
+				buoyancy.Damping = 6.25f;
 				break;
 		}
 	}

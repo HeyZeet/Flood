@@ -5,6 +5,7 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 	[Property] public float FieldOfView { get; set; } = 80f;
 	[Property] public float EyeHeight { get; set; } = 64f;
 	[Property] public bool DrawDebugAim { get; set; } = true;
+	[Property] public bool EnableWaterScreenDistortion { get; set; } = true;
 
 	[Header( "Recoil" )]
 	[Property] public float RecoilRecoveryRate { get; set; } = 10f;
@@ -75,6 +76,7 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 
 		camera.Enabled = true;
 		camera.FieldOfView = FieldOfView;
+		EnsureWaterScreenDistortion( camera );
 
 		var player = Components.Get<FloodPlayer>();
 
@@ -93,6 +95,21 @@ public sealed class FloodPlayerCamera : Component, PlayerController.IEvents
 		EyeRotation = camera.WorldRotation;
 
 		DrawDebugAimLine();
+	}
+
+	private void EnsureWaterScreenDistortion( CameraComponent camera )
+	{
+		if ( !EnableWaterScreenDistortion || !camera.IsValid() )
+			return;
+
+		camera.EnablePostProcessing = true;
+
+		var distortion = camera.Components.Get<FloodWaterScreenDistortion>();
+
+		if ( !distortion.IsValid() )
+			distortion = camera.Components.Create<FloodWaterScreenDistortion>();
+
+		distortion.Enabled = true;
 	}
 
 	private bool IsLocalPlayer()

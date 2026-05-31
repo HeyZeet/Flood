@@ -1,0 +1,47 @@
+{
+  "UI": false,
+  "Volume": "0.45",
+  "Pitch": "0.78",
+  "Decibels": 48,
+  "SelectionMode": "Random",
+  "Sounds": [
+    "sounds/Impacts/Bullets/water_bullet_impact-1.vsnd",
+    "sounds/Impacts/Bullets/water_bullet_impact-2.vsnd",
+    "sounds/Impacts/Bullets/water_bullet_impact-3.vsnd"
+  ],
+  "Occlusion": true,
+  "AirAbsorption": true,
+  "Transmission": true,
+  "OcclusionRadius": 64,
+  "DistanceAttenuation": true,
+  "Distance": 2600,
+  "Falloff": [
+    {
+      "x": 0,
+      "y": 1,
+      "in": 0,
+      "out": -1.8,
+      "mode": "Mirrored"
+    },
+    {
+      "x": 0.18,
+      "y": 0.2,
+      "in": 1.8,
+      "out": -1.8,
+      "mode": "Mirrored"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "in": 0,
+      "out": 0,
+      "mode": "Mirrored"
+    }
+  ],
+  "DefaultMixer": {
+    "Name": "game",
+    "Id": "9a560d5d-c470-461b-b6f4-0ec5985b0ef8"
+  },
+  "__references": [],
+  "__version": 1
+}

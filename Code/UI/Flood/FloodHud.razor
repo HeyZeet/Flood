@@ -6,6 +6,13 @@
 @inherits PanelComponent
 
 <root>
+	@if ( ShouldShowUnderwaterEffect )
+	{
+		<div class="flood-hud__underwater-effect">
+			<div class="flood-hud__underwater-vignette"></div>
+		</div>
+	}
+
 	@if ( ShouldShowWinner )
 	{
 		<div class="flood-hud__winner">
@@ -231,6 +238,7 @@
 	private bool ShouldShowShop { get; set; }
 	private bool ShouldShowCarryableSelector { get; set; }
 	private bool ShouldShowCrosshair { get; set; }
+	private bool ShouldShowUnderwaterEffect { get; set; }
 	private bool IsReloading { get; set; }
 
 	private string RoundPhaseText { get; set; } = "Waiting";
@@ -430,6 +438,7 @@
 			SetBuildState( false, "None", "None", "--", "" );
 			SetCarryableSelectorState( false, null );
 			SetCrosshairState( false, "" );
+			SetUnderwaterEffectState( false );
 			SetAmmoState( false, "", "0", "", false );
 			SetDeathState( false, "You Died" );
 			return;
@@ -444,6 +453,7 @@
 			SetShopState( false, null, "--" );
 			SetCarryableSelectorState( false, null );
 			SetCrosshairState( false, "" );
+			SetUnderwaterEffectState( false );
 			SetAmmoState( false, "", "0", "", false );
 			return;
 		}
@@ -459,6 +469,25 @@
 		UpdateCarryableSelectorState( inventory );
 		UpdateAmmoState( activeCarryable );
 		UpdateCrosshairState( player, activeCarryable );
+		UpdateUnderwaterEffectState( player );
+	}
+
+	private void UpdateUnderwaterEffectState( FloodPlayer player )
+	{
+		var water = FloodWaterController.Instance;
+
+		if ( !player.IsValid() || !water.IsValid() )
+		{
+			SetUnderwaterEffectState( false );
+			return;
+		}
+
+		var camera = player.Components.Get<FloodPlayerCamera>( FindMode.EverythingInSelfAndDescendants );
+		var eyePosition = camera.IsValid()
+			? camera.EyePosition
+			: player.WorldPosition + Vector3.Up * 64f;
+
+		SetUnderwaterEffectState( water.IsUnderwater( eyePosition ) );
 	}
 
 	private PlayerShopController GetLocalShopController( FloodPlayer player )
@@ -903,6 +932,15 @@
 		HudBuildVersion++;
 	}
 
+	private void SetUnderwaterEffectState( bool shouldShow )
+	{
+		if ( ShouldShowUnderwaterEffect == shouldShow )
+			return;
+
+		ShouldShowUnderwaterEffect = shouldShow;
+		HudBuildVersion++;
+	}
+
 	private string GetCarryableSlotText( int slot )
 	{
 		if ( slot < 0 )
@@ -1071,6 +1109,7 @@
 		hash.Add( ShouldShowShop );
 		hash.Add( ShouldShowCarryableSelector );
 		hash.Add( ShouldShowCrosshair );
+		hash.Add( ShouldShowUnderwaterEffect );
 		hash.Add( ShouldShowAmmo );
 		hash.Add( ShouldShowDeath );
 		hash.Add( ShouldShowScoreboard );
